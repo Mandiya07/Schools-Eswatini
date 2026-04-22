@@ -41,9 +41,9 @@ const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({ institutions,
   ];
 
   const forecastData = [
-    { year: 'Year 1', MoET: 200000, Schools: 1100000, Educators: 100000, 'Parents & Students': 300000, Total: 1700000 },
-    { year: 'Year 2', MoET: 400000, Schools: 4800000, Educators: 500000, 'Parents & Students': 1500000, Total: 7200000 },
-    { year: 'Year 3', MoET: 800000, Schools: 13500000, Educators: 2000000, 'Parents & Students': 4000000, Total: 20300000 },
+    { year: 'Year 1', 'National Utility License (MoET)': 2000000, 'Convenience Fees': 1500000, 'Marketplace Share': 200000, Total: 3700000 },
+    { year: 'Year 2', 'National Utility License (MoET)': 2500000, 'Convenience Fees': 6000000, 'Marketplace Share': 800000, Total: 9300000 },
+    { year: 'Year 3', 'National Utility License (MoET)': 3000000, 'Convenience Fees': 18000000, 'Marketplace Share': 2500000, Total: 23500000 },
   ];
 
   return (
@@ -56,10 +56,15 @@ const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({ institutions,
             Infrastructure Status: Operational
           </p>
         </div>
-        <div className="flex gap-4">
-           <div className="bg-white border p-6 rounded-[32px] shadow-sm">
-              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Monthly Recurring Revenue</p>
-              <p className="text-2xl font-black text-slate-900">SZL {mrr.toLocaleString()}</p>
+        <div className="flex flex-wrap gap-4">
+           <div className="bg-white border p-8 rounded-[32px] shadow-sm">
+              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">National Utility Grant (Monthly)</p>
+              <p className="text-2xl font-black text-slate-900">SZL 166,666</p>
+           </div>
+           <div className="bg-white border p-8 rounded-[32px] shadow-sm">
+              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Marketplace Volume (GMV)</p>
+              <p className="text-2xl font-black text-amber-600">SZL 84,320</p>
+              <p className="text-[8px] font-black text-slate-400 uppercase">Platform Take: SZL 16,864</p>
            </div>
         </div>
       </div>
@@ -526,10 +531,9 @@ const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({ institutions,
                      formatter={(value: number) => ['SZL ' + value.toLocaleString(), undefined]}
                   />
                   <Legend wrapperStyle={{ fontSize: '12px', fontWeight: 700, marginTop: '20px' }} />
-                  <Area type="monotone" dataKey="MoET" stackId="1" stroke="#3b82f6" fill="url(#colorMoET)" />
-                  <Area type="monotone" dataKey="Schools" stackId="1" stroke="#10b981" fill="url(#colorSchools)" />
-                  <Area type="monotone" dataKey="Educators" stackId="1" stroke="#f59e0b" fill="url(#colorEducators)" />
-                  <Area type="monotone" dataKey="Parents & Students" stackId="1" stroke="#6366f1" fill="url(#colorParents)" />
+                  <Area type="monotone" dataKey="National Utility License (MoET)" stackId="1" stroke="#3b82f6" fill="url(#colorMoET)" />
+                  <Area type="monotone" dataKey="Marketplace Share" stackId="1" stroke="#f59e0b" fill="url(#colorEducators)" />
+                  <Area type="monotone" dataKey="Convenience Fees" stackId="1" stroke="#6366f1" fill="url(#colorParents)" />
                 </AreaChart>
               </ResponsiveContainer>
             </div>

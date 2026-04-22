@@ -137,6 +137,10 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ user }) => {
               <p className="text-[10px] font-black text-blue-600 uppercase tracking-widest">Attendance</p>
               <p className="text-2xl font-black text-slate-900 mt-1">98%</p>
             </div>
+            <div className="flex-1 md:flex-none px-6 py-3 bg-amber-50 rounded-2xl border border-amber-100 text-center">
+              <p className="text-[10px] font-black text-amber-600 uppercase tracking-widest">Sponsorship</p>
+              <p className="text-[10px] font-black text-amber-800 uppercase mt-1 px-3 py-1 bg-amber-200/50 rounded-full">Matched: MTN</p>
+            </div>
           </div>
         </header>
 

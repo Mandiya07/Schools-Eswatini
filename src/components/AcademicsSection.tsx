@@ -362,6 +362,41 @@ const AcademicsSection: React.FC<AcademicsSectionProps> = ({ academics, primaryC
             </div>
           </div>
         </div>
+
+        {/* Detailed Staff Profiles */}
+        {academics.staff.profiles && academics.staff.profiles.length > 0 && (
+          <div className="mt-16 bg-slate-50 rounded-[48px] p-12 border border-slate-100">
+            <h4 className="text-2xl font-black text-slate-900 tracking-tight mb-8">Meet Our Educators</h4>
+            <div className="space-y-6">
+              {academics.staff.profiles.map((profile, idx) => (
+                <details key={profile.id} className="group bg-white rounded-3xl border border-slate-100 overflow-hidden [&_summary::-webkit-details-marker]:hidden">
+                  <summary className="flex items-center justify-between p-8 cursor-pointer hover:bg-slate-50 transition-colors">
+                    <div className="flex items-center gap-6">
+                      <div className="w-14 h-14 bg-blue-100 text-blue-600 rounded-2xl flex items-center justify-center font-black text-xl uppercase">
+                        {profile.name.charAt(0)}
+                      </div>
+                      <div>
+                        <h5 className="text-lg font-black text-slate-900">{profile.name}</h5>
+                        <p className="text-[10px] font-bold text-blue-600 uppercase tracking-widest mt-1">{profile.role}</p>
+                      </div>
+                    </div>
+                    <ChevronDown className="w-5 h-5 text-slate-400 group-open:rotate-180 transition-transform" />
+                  </summary>
+                  <div className="p-8 pt-0 border-t border-slate-50 bg-slate-50/50 space-y-6">
+                    <div className="pt-6">
+                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Qualifications</p>
+                      <p className="text-sm font-bold text-slate-800">{profile.qualifications || 'Not specified'}</p>
+                    </div>
+                    <div>
+                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Professional Background</p>
+                      <p className="text-sm font-medium text-slate-600 leading-relaxed">{profile.professionalBackground || 'Not specified'}</p>
+                    </div>
+                  </div>
+                </details>
+              ))}
+            </div>
+          </div>
+        )}
       </section>
 
       {/* 9. Performance & Achievements */}

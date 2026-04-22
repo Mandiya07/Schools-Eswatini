@@ -73,6 +73,32 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({ user }) => {
     price: 0
   });
   const [resources, setResources] = useState<any[]>(MOCK_RESOURCES);
+  const [isEditingTutorProfile, setIsEditingTutorProfile] = useState(false);
+  const [tutorProfileForm, setTutorProfileForm] = useState<User['tutorProfile']>(user.tutorProfile || {
+    isEnabled: false,
+    subjects: [],
+    bio: '',
+    availability: {
+      days: [],
+      timeRange: '08:00 - 17:00',
+      status: 'available'
+    },
+    hourlyRate: 150
+  });
+
+  const handleUpdateTutorProfile = async () => {
+    setSaveStatus('saving');
+    try {
+      await setDoc(doc(db, 'users', user.id), { tutorProfile: tutorProfileForm }, { merge: true });
+      setSaveStatus('success');
+      setIsEditingTutorProfile(false);
+      setTimeout(() => setSaveStatus('idle'), 3000);
+      triggerAlert('merit', 'Tutoring profile updated successfully!');
+    } catch (error) {
+      setSaveStatus('error');
+      handleFirestoreError(error, OperationType.UPDATE, `users/${user.id}/tutorProfile`);
+    }
+  };
 
   const handleUploadSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -403,49 +429,249 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({ user }) => {
         <>
           {activeTab === 'marketplace' && (
             <div className="animate-in fade-in slide-in-from-bottom-8 duration-700 space-y-12 mb-20">
-               <div className="bg-emerald-900 rounded-[48px] p-16 text-white relative overflow-hidden flex flex-col md:flex-row items-center gap-12">
-                  <div className="absolute top-0 right-0 w-80 h-80 bg-emerald-400 opacity-5 blur-[100px]" />
+               <div className="bg-amber-900 rounded-[48px] p-16 text-white relative overflow-hidden flex flex-col md:flex-row items-center gap-12 border border-amber-800/50">
+                  <div className="absolute top-0 right-0 w-80 h-80 bg-amber-400 opacity-5 blur-[100px]" />
                   <div className="relative z-10 space-y-6 flex-1">
-                     <span className="px-4 py-2 bg-emerald-500/20 text-emerald-400 rounded-full text-[10px] font-black uppercase tracking-widest border border-emerald-500/30">Teacher-to-Teacher Economy</span>
-                     <h2 className="text-4xl font-black tracking-tight leading-tight">Monetize Your Expertise.</h2>
-                     <p className="text-emerald-200/70 font-medium max-w-sm">
-                        Upload your best lesson plans, mock exams, or study revision guides and earn SZL from other educators across Eswatini.
+                     <span className="px-4 py-2 bg-amber-500/20 text-amber-400 rounded-full text-[10px] font-black uppercase tracking-widest border border-amber-500/30">Educator Creator Economy</span>
+                     <h2 className="text-4xl font-black tracking-tight leading-tight">Your Expertise is Valuable.</h2>
+                     <p className="text-amber-200/70 font-medium max-w-sm">
+                        Turn your lesson plans and study guides into a sustainable income stream while helping students across the nation.
                      </p>
-                     <div className="flex gap-4">
-                        <button className="bg-emerald-500 text-emerald-950 px-8 py-4 rounded-2xl font-black uppercase tracking-widest text-[10px] shadow-lg shadow-emerald-500/20">Become a Seller</button>
-                        <button className="bg-white/10 text-white px-8 py-4 rounded-2xl font-black uppercase tracking-widest text-[10px] border border-white/10">Browse Top Sellers</button>
+                     <div className="flex flex-wrap gap-4">
+                        <button className="bg-amber-500 text-amber-950 px-8 py-4 rounded-2xl font-black uppercase tracking-widest text-[10px] shadow-lg shadow-amber-500/20">Upload New Resource</button>
+                        <button 
+                          onClick={() => setIsEditingTutorProfile(true)}
+                          className="bg-white/10 text-white px-8 py-4 rounded-2xl font-black uppercase tracking-widest text-[10px] border border-white/10 hover:bg-white/20 transition-all"
+                        >
+                          {tutorProfileForm?.isEnabled ? 'Edit Tutor Profile' : 'Setup Tutor Profile'}
+                        </button>
                      </div>
                   </div>
-                  <div className="grid grid-cols-2 gap-4 flex-1 w-full">
-                     <div className="bg-white/5 p-6 rounded-3xl border border-white/10">
-                        <p className="text-[10px] font-black text-emerald-400 uppercase tracking-widest mb-2">My Total Sales</p>
-                        <p className="text-3xl font-black">E0.00</p>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 flex-1 w-full relative z-10">
+                     <div className="bg-white/5 p-8 rounded-[32px] border border-white/10">
+                        <p className="text-[10px] font-black text-amber-400 uppercase tracking-widest mb-4">Total Revenue (All Time)</p>
+                        <p className="text-4xl font-black text-white">SZL 2,450.00</p>
+                        <div className="flex justify-between items-center mt-6 text-[10px] font-black uppercase tracking-widest">
+                           <span className="text-slate-400">Platform Share (20%)</span>
+                           <span className="text-rose-400">- SZL 490.00</span>
+                        </div>
                      </div>
-                     <div className="bg-white/5 p-6 rounded-3xl border border-white/10">
-                        <p className="text-[10px] font-black text-amber-400 uppercase tracking-widest mb-2">Pending MoMo Payout</p>
-                        <p className="text-3xl font-black">E0.00</p>
+                     <div className="bg-white/5 p-8 rounded-[32px] border border-white/10">
+                        <p className="text-[10px] font-black text-emerald-400 uppercase tracking-widest mb-4">Status & Reach</p>
+                        <div className="space-y-4">
+                           <div className="flex justify-between items-center">
+                              <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Tutoring</span>
+                              <span className={`px-2 py-1 rounded text-[8px] font-black uppercase tracking-widest ${tutorProfileForm?.isEnabled ? 'bg-emerald-500/20 text-emerald-400' : 'bg-rose-500/20 text-rose-400'}`}>
+                                 {tutorProfileForm?.isEnabled ? 'Online' : 'Offline'}
+                              </span>
+                           </div>
+                           <div className="flex justify-between items-center">
+                              <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Connections</span>
+                              <span className="text-xl font-black text-white">12 Pupils</span>
+                           </div>
+                        </div>
                      </div>
                   </div>
                </div>
 
-               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                  {[
-                    { title: 'Full Form 5 Maths Revision Pack', seller: 'Mr. Simelane', price: 'E150', downloads: 42, icon: '📐' },
-                    { title: 'Biology Lab Report Templates', seller: 'Ms. Shongwe', price: 'E45', downloads: 128, icon: '🧪' },
-                    { title: 'EGCSE English Essay Guide', seller: 'Mr. Zwane', price: 'E75', downloads: 89, icon: '✍️' }
-                  ].map((item, i) => (
-                    <div key={i} className="bg-white p-8 rounded-[40px] border border-slate-100 shadow-sm hover:shadow-xl transition-all group flex flex-col justify-between h-full">
-                       <div>
-                          <div className="w-14 h-14 bg-slate-50 rounded-2xl flex items-center justify-center text-2xl mb-6 shadow-inner group-hover:bg-emerald-50 group-hover:scale-110 transition-all">{item.icon}</div>
-                          <h4 className="text-lg font-black text-slate-900 mb-2">{item.title}</h4>
-                          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">By {item.seller}</p>
-                       </div>
-                       <div className="flex justify-between items-center mt-8 pt-6 border-t border-slate-50">
-                          <span className="text-xl font-black text-emerald-600 font-mono tracking-tighter">{item.price}</span>
-                          <button className="px-6 py-3 bg-slate-900 text-white rounded-xl font-black uppercase tracking-widest text-[10px] shadow-lg group-hover:bg-emerald-600 transition-colors">Purchase</button>
-                       </div>
-                    </div>
-                  ))}
+               {isEditingTutorProfile && (
+                  <motion.div 
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="bg-white rounded-[48px] border border-slate-100 shadow-xl p-10 md:p-14 space-y-12"
+                  >
+                     <div className="flex justify-between items-center">
+                        <div>
+                           <h3 className="text-2xl font-black text-slate-900 tracking-tight">Tutor Profile Settings</h3>
+                           <p className="text-slate-500 font-medium">Define your subjects, availability, and tuition rates.</p>
+                        </div>
+                        <button onClick={() => setIsEditingTutorProfile(false)} className="p-4 bg-slate-50 text-slate-400 rounded-2xl hover:text-rose-500 transition-all">
+                           <X className="w-6 h-6" />
+                        </button>
+                     </div>
+
+                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+                        <div className="space-y-8">
+                           <div className="flex items-center justify-between p-6 bg-slate-900 rounded-[32px] text-white">
+                              <div className="flex items-center gap-4">
+                                 <div className={`w-12 h-12 rounded-2xl flex items-center justify-center ${tutorProfileForm?.isEnabled ? 'bg-emerald-500' : 'bg-white/10'}`}>
+                                    <CheckCircle className="w-6 h-6" />
+                                 </div>
+                                 <div>
+                                    <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Visibility</p>
+                                    <p className="font-bold">{tutorProfileForm?.isEnabled ? 'Visible in Marketplace' : 'Hidden from Students'}</p>
+                                 </div>
+                              </div>
+                              <button 
+                                onClick={() => setTutorProfileForm(prev => ({ ...prev!, isEnabled: !prev!.isEnabled }))}
+                                className={`w-14 h-8 rounded-full transition-all relative ${tutorProfileForm?.isEnabled ? 'bg-emerald-500' : 'bg-slate-700'}`}
+                              >
+                                 <div className={`absolute top-1 w-6 h-6 bg-white rounded-full transition-all ${tutorProfileForm?.isEnabled ? 'right-1' : 'left-1'}`} />
+                              </button>
+                           </div>
+
+                           <div className="space-y-4">
+                              <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest">Tutoring Subjects</label>
+                              <div className="flex flex-wrap gap-2">
+                                 {['Mathematics', 'Physics', 'SiSwati', 'English', 'Biology', 'Chemistry', 'Geography', 'History'].map(sub => (
+                                    <button
+                                      key={sub}
+                                      onClick={() => {
+                                        const subjects = tutorProfileForm!.subjects.includes(sub)
+                                          ? tutorProfileForm!.subjects.filter(s => s !== sub)
+                                          : [...tutorProfileForm!.subjects, sub];
+                                        setTutorProfileForm(prev => ({ ...prev!, subjects }));
+                                      }}
+                                      className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest border transition-all ${tutorProfileForm!.subjects.includes(sub) ? 'bg-amber-600 text-white border-amber-600 shadow-lg shadow-amber-600/20' : 'bg-white text-slate-500 border-slate-200'}`}
+                                    >
+                                       {sub}
+                                    </button>
+                                 ))}
+                              </div>
+                           </div>
+
+                           <div className="space-y-4">
+                              <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest">Bio / Introduction</label>
+                              <textarea 
+                                className="w-full bg-slate-50 border border-slate-100 rounded-[32px] p-6 font-medium text-slate-600 h-32 resize-none focus:bg-white focus:border-amber-400 transition-all outline-none"
+                                placeholder="Describe your teaching style and experience..."
+                                value={tutorProfileForm?.bio}
+                                onChange={(e) => setTutorProfileForm(prev => ({ ...prev!, bio: e.target.value }))}
+                              />
+                           </div>
+                        </div>
+
+                        <div className="space-y-8">
+                           <div className="space-y-4">
+                              <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest">Weekly Availability</label>
+                              <div className="grid grid-cols-7 gap-2">
+                                 {['M', 'T', 'W', 'T', 'F', 'S', 'S'].map((day, i) => {
+                                    const dayNames = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+                                    const isSelected = tutorProfileForm!.availability.days.includes(dayNames[i]);
+                                    return (
+                                       <button
+                                         key={i}
+                                         onClick={() => {
+                                           const days = isSelected
+                                             ? tutorProfileForm!.availability.days.filter(d => d !== dayNames[i])
+                                             : [...tutorProfileForm!.availability.days, dayNames[i]];
+                                           setTutorProfileForm(prev => ({ ...prev!, availability: { ...prev!.availability, days } }));
+                                         }}
+                                         className={`h-12 rounded-xl flex items-center justify-center text-[10px] font-black border transition-all ${isSelected ? 'bg-slate-900 text-white border-slate-900 shadow-lg' : 'bg-slate-50 text-slate-400 border-slate-100'}`}
+                                       >
+                                          {day}
+                                       </button>
+                                    )
+                                 })}
+                              </div>
+                           </div>
+
+                           <div className="grid grid-cols-2 gap-6">
+                              <div className="space-y-4">
+                                 <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest uppercase">Preferred Time Slot</label>
+                                 <input 
+                                   className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-6 py-4 font-bold text-slate-900 outline-none"
+                                   placeholder="e.g. 16:00 - 18:00"
+                                   value={tutorProfileForm?.availability.timeRange}
+                                   onChange={(e) => setTutorProfileForm(prev => ({ ...prev!, availability: { ...prev!.availability, timeRange: e.target.value } }))}
+                                 />
+                              </div>
+                              <div className="space-y-4">
+                                 <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest uppercase tracking-widest">Rate (SZL / Hr)</label>
+                                 <input 
+                                   type="number"
+                                   className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-6 py-4 font-bold text-slate-900 outline-none"
+                                   value={tutorProfileForm?.hourlyRate}
+                                   onChange={(e) => setTutorProfileForm(prev => ({ ...prev!, hourlyRate: parseInt(e.target.value) }))}
+                                 />
+                              </div>
+                           </div>
+
+                           <div className="p-8 bg-amber-50 rounded-[32px] border border-amber-100 space-y-4">
+                              <div className="flex items-center gap-3">
+                                 <Sparkles className="text-amber-500 w-5 h-5" />
+                                 <h4 className="text-sm font-black text-amber-900 uppercase tracking-widest">Pro Tip</h4>
+                              </div>
+                              <p className="text-xs text-amber-700 font-medium leading-relaxed">
+                                 Detailed bios and specific availability slots increase student connection rates by up to 40%. Listing your primary institution also builds trust.
+                              </p>
+                           </div>
+                        </div>
+                     </div>
+
+                     <div className="flex justify-end gap-4 pt-12 border-t border-slate-100">
+                        <button 
+                          onClick={() => setIsEditingTutorProfile(false)}
+                          className="px-8 py-4 bg-slate-50 text-slate-400 rounded-2xl font-black uppercase tracking-widest text-[10px] hover:bg-slate-100 transition-all"
+                        >
+                           Discard Changes
+                        </button>
+                        <button 
+                          onClick={handleUpdateTutorProfile}
+                          disabled={saveStatus === 'saving'}
+                          className="px-12 py-4 bg-amber-600 text-white rounded-2xl font-black uppercase tracking-widest text-[10px] shadow-xl shadow-amber-600/20 hover:bg-amber-700 transition-all flex items-center gap-3"
+                        >
+                           {saveStatus === 'saving' ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                           Save Tutor Profile
+                        </button>
+                     </div>
+                  </motion.div>
+               )}
+
+               <div>
+                  <div className="flex items-center justify-between mb-8">
+                     <h3 className="text-2xl font-black text-slate-900 tracking-tight">My Published Products</h3>
+                     <div className="flex items-center gap-2">
+                        <TrendingUp className="w-5 h-5 text-amber-600" />
+                        <span className="text-xs font-bold text-slate-500">Live Sales Data</span>
+                     </div>
+                  </div>
+                  
+                  <div className="bg-white rounded-[40px] border border-slate-100 shadow-sm overflow-hidden">
+                     <table className="w-full text-left border-collapse">
+                        <thead>
+                           <tr className="bg-slate-50 border-b border-slate-100">
+                              <th className="px-8 py-6 text-[10px] font-black uppercase tracking-widest text-slate-400">Resource Details</th>
+                              <th className="px-8 py-6 text-[10px] font-black uppercase tracking-widest text-slate-400">Price</th>
+                              <th className="px-8 py-6 text-[10px] font-black uppercase tracking-widest text-slate-400">Sales</th>
+                              <th className="px-8 py-6 text-[10px] font-black uppercase tracking-widest text-slate-400">Revenue (Net)</th>
+                              <th className="px-8 py-6 text-[10px] font-black uppercase tracking-widest text-slate-400 text-right">Action</th>
+                           </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-100 italic">
+                           {[
+                              { title: 'Full Form 5 Maths Revision Pack', type: 'Study Pack', price: 150, sales: 12, net: 1440 },
+                              { title: 'Biology Lab Report Templates', type: 'Templates', price: 45, sales: 8, net: 288 },
+                              { title: 'EGCSE English Essay Guide', type: 'Guide', price: 75, sales: 4, net: 240 }
+                           ].map((item, i) => (
+                              <tr key={i} className="hover:bg-slate-50/50 transition-colors group">
+                                 <td className="px-8 py-6">
+                                    <div className="flex items-center gap-4">
+                                       <div className="w-12 h-12 bg-amber-50 rounded-xl flex items-center justify-center text-amber-600 font-bold">
+                                          {item.title[0]}
+                                       </div>
+                                       <div>
+                                          <p className="font-black text-slate-900">{item.title}</p>
+                                          <p className="text-[10px] font-black uppercase text-slate-400">{item.type}</p>
+                                       </div>
+                                    </div>
+                                 </td>
+                                 <td className="px-8 py-6 font-bold text-slate-600 italic">SZL {item.price}</td>
+                                 <td className="px-8 py-6 font-bold text-slate-900">{item.sales} units</td>
+                                 <td className="px-8 py-6">
+                                    <p className="font-black text-emerald-600">SZL {item.net}</p>
+                                    <p className="text-[9px] font-black text-slate-400 uppercase">After 20% commission</p>
+                                 </td>
+                                 <td className="px-8 py-6 text-right">
+                                    <button className="p-3 bg-slate-100 text-slate-400 rounded-xl hover:bg-slate-900 hover:text-white transition-all">
+                                       <Edit2 className="w-4 h-4" />
+                                    </button>
+                                 </td>
+                              </tr>
+                           ))}
+                        </tbody>
+                     </table>
+                  </div>
                </div>
             </div>
           )}

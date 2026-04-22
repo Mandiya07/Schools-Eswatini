@@ -10,7 +10,7 @@ interface AcademicsEditorProps {
 
 const AcademicsEditor: React.FC<AcademicsEditorProps> = ({ institution, onUpdate }) => {
   const { academics } = institution.sections;
-  const [activeSubTab, setActiveSubTab] = useState<'overview' | 'departments' | 'programs'>('overview');
+  const [activeSubTab, setActiveSubTab] = useState<'overview' | 'departments' | 'programs' | 'staff'>('overview');
 
   const updateField = (field: string, value: any) => {
     onUpdate({
@@ -30,7 +30,7 @@ const AcademicsEditor: React.FC<AcademicsEditorProps> = ({ institution, onUpdate
           <p className="text-sm text-slate-500 font-medium">Manage departments, programs, and academic standards</p>
         </div>
         <div className="flex bg-slate-100 p-1.5 rounded-2xl">
-          {(['overview', 'departments', 'programs'] as const).map(tab => (
+          {(['overview', 'departments', 'programs', 'staff'] as const).map(tab => (
             <button 
               key={tab} 
               onClick={() => setActiveSubTab(tab)}
@@ -306,6 +306,92 @@ const AcademicsEditor: React.FC<AcademicsEditorProps> = ({ institution, onUpdate
                         {prog.syllabusUrl && (
                            <a href={prog.syllabusUrl} target="_blank" rel="noreferrer" className="text-[10px] font-medium text-blue-500 hover:underline">View Current Syllabus →</a>
                         )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {activeSubTab === 'staff' && (
+            <div className="space-y-6 animate-in slide-in-from-left-4">
+              <div className="flex items-center justify-between">
+                <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest text-blue-600">Academic Staff Profiles</h4>
+                <button 
+                  onClick={() => updateField('staff', {
+                    ...academics.staff, 
+                    profiles: [...(academics.staff.profiles || []), { id: Date.now().toString(), name: 'New Staff Member', role: 'Teacher', qualifications: '', professionalBackground: '', image: '' }]
+                  })}
+                  className="text-[10px] font-black text-blue-600 uppercase tracking-widest hover:underline"
+                >
+                  + Add Staff Profile
+                </button>
+              </div>
+              <div className="space-y-4">
+                {(academics.staff.profiles || []).map((profile, idx) => (
+                  <div key={profile.id} className="bg-slate-50 p-6 rounded-3xl border border-slate-100 space-y-4 relative group">
+                    <div className="flex justify-between items-center">
+                      <input 
+                        className="bg-transparent border-none font-black text-slate-900 p-0 focus:ring-0 text-lg w-full" 
+                        value={profile.name} 
+                        onChange={e => {
+                          const newProfiles = [...(academics.staff.profiles || [])];
+                          newProfiles[idx].name = e.target.value;
+                          updateField('staff', { ...academics.staff, profiles: newProfiles });
+                        }}
+                        placeholder="Staff Name"
+                      />
+                      <button 
+                        onClick={() => {
+                          const newProfiles = (academics.staff.profiles || []).filter((_, i) => i !== idx);
+                          updateField('staff', { ...academics.staff, profiles: newProfiles });
+                        }}
+                        className="text-rose-500 hover:text-rose-700 ml-4"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                    <div className="grid grid-cols-1 gap-4">
+                      <div>
+                        <label className="block text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Role / Title</label>
+                        <input 
+                          className="w-full bg-white border border-slate-200 rounded-xl px-4 py-2 text-xs font-bold outline-none focus:border-blue-500" 
+                          placeholder="e.g. Senior Lecturer" 
+                          value={profile.role || ''} 
+                          onChange={e => {
+                            const newProfiles = [...(academics.staff.profiles || [])];
+                            newProfiles[idx].role = e.target.value;
+                            updateField('staff', { ...academics.staff, profiles: newProfiles });
+                          }}
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Qualifications</label>
+                        <input 
+                          className="w-full bg-white border border-slate-200 rounded-xl px-4 py-2 text-xs font-bold outline-none focus:border-blue-500" 
+                          placeholder="e.g. Ph.D. in Biology, M.Ed." 
+                          value={profile.qualifications || ''} 
+                          onChange={e => {
+                            const newProfiles = [...(academics.staff.profiles || [])];
+                            newProfiles[idx].qualifications = e.target.value;
+                            updateField('staff', { ...academics.staff, profiles: newProfiles });
+                          }}
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Professional Background</label>
+                        <textarea 
+                          rows={3}
+                          className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-xs font-medium outline-none focus:border-blue-500 resize-none" 
+                          placeholder="Brief description of experience, awards, and specialties..." 
+                          value={profile.professionalBackground || ''} 
+                          onChange={e => {
+                            const newProfiles = [...(academics.staff.profiles || [])];
+                            newProfiles[idx].professionalBackground = e.target.value;
+                            updateField('staff', { ...academics.staff, profiles: newProfiles });
+                          }}
+                        />
+                      </div>
                     </div>
                   </div>
                 ))}

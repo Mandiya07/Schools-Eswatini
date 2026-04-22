@@ -3,6 +3,7 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Institution, Region, InstitutionType, GenderType } from '../types';
 import MapComponent from '../components/MapComponent';
+import Advertisement from '../components/Advertisement';
 import { GoogleGenAI } from "@google/genai";
 
 interface BrowsePageProps {
@@ -205,30 +206,32 @@ const BrowsePage: React.FC<BrowsePageProps> = ({
 
                <section className="space-y-4">
                   <label className="text-[11px] font-black text-slate-900 uppercase tracking-widest">Level</label>
-                  <select 
-                     className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-xs font-bold appearance-none cursor-pointer"
-                     value={selectedType}
-                     onChange={e => setSelectedType(e.target.value)}
-                  >
-                     <option value="All">All Levels</option>
-                     <option value={InstitutionType.PRIMARY}>Primary</option>
-                     <option value={InstitutionType.HIGH_SCHOOL}>High School</option>
-                     <option value={InstitutionType.TERTIARY}>Tertiary</option>
-                     <option value={InstitutionType.ASSOCIATION}>Association & Professional Bodies</option>
-                  </select>
+                  <div className="flex flex-col gap-2">
+                     {['All', InstitutionType.PRIMARY, InstitutionType.HIGH_SCHOOL, InstitutionType.TERTIARY, InstitutionType.ASSOCIATION].map(type => (
+                        <button 
+                          key={type} 
+                          onClick={() => setSelectedType(type)} 
+                          className={`text-left px-5 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${selectedType === type ? 'bg-slate-900 text-white shadow-lg' : 'bg-white border text-slate-500 hover:border-slate-300'}`}
+                        >
+                          {type === 'All' ? 'All Levels' : type === InstitutionType.ASSOCIATION ? 'Professional Bodies' : type}
+                        </button>
+                     ))}
+                  </div>
                </section>
 
                <section className="space-y-4">
                   <label className="text-[11px] font-black text-slate-900 uppercase tracking-widest">Ownership</label>
-                  <select 
-                     className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-xs font-bold appearance-none cursor-pointer"
-                     value={selectedOwnership}
-                     onChange={e => setSelectedOwnership(e.target.value)}
-                  >
-                     <option value="All">All Ownership</option>
-                     <option value={InstitutionType.PUBLIC}>Public</option>
-                     <option value={InstitutionType.PRIVATE}>Private</option>
-                  </select>
+                  <div className="flex flex-col gap-2">
+                     {['All', InstitutionType.PUBLIC, InstitutionType.PRIVATE].map(ownership => (
+                        <button 
+                          key={ownership} 
+                          onClick={() => setSelectedOwnership(ownership)} 
+                          className={`text-left px-5 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${selectedOwnership === ownership ? 'bg-slate-900 text-white shadow-lg' : 'bg-white border text-slate-500 hover:border-slate-300'}`}
+                        >
+                          {ownership === 'All' ? 'All Ownership' : ownership}
+                        </button>
+                     ))}
+                  </div>
                </section>
 
                <section className="space-y-4">
@@ -249,11 +252,17 @@ const BrowsePage: React.FC<BrowsePageProps> = ({
                     <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${boardingOnly ? 'left-5' : 'left-1'}`} />
                   </button>
                </section>
+
+               <div className="pt-6">
+                 <Advertisement type="sidebar" />
+               </div>
             </div>
           </aside>
 
           {/* Results Area */}
           <main className="flex-1">
+            <Advertisement type="banner" className="mb-8" />
+            
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-6">
                <div className="flex items-center gap-4">
                  <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">{filteredInstitutions.length} Results Found</p>

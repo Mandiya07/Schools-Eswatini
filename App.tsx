@@ -5,6 +5,7 @@ import { User, Institution, Region, UserRole } from './types';
 import { MOCK_INSTITUTIONS } from './mockData';
 import { auth, db, onAuthStateChanged, onSnapshot, collection, doc, getDoc, setDoc, deleteDoc, getDocs, query, OperationType, handleFirestoreError } from './src/lib/firebase';
 import { logActivity, ActivityType } from './src/services/securityService';
+import { requestNotificationPermission } from './src/lib/pwa';
 
 // Pages
 import HomePage from './pages/HomePage';
@@ -23,6 +24,8 @@ import GovernancePage from './pages/GovernancePage';
 import ParentPortal from './pages/ParentPortal';
 import MinistryPortal from './pages/MinistryPortal';
 import MinistryCorner from './pages/MinistryCorner';
+import AIStudyAssistant from './pages/AIStudyAssistant';
+import EducatorMarketplace from './pages/EducatorMarketplace';
 
 // Components
 import Navbar from './components/Navbar';
@@ -59,6 +62,23 @@ const App: React.FC = () => {
   const [fontSize, setFontSize] = useState(16);
   const [lang, setLang] = useState<'en' | 'ss'>('en');
   const [isLowDataMode, setIsLowDataMode] = useState(false);
+  const [isOffline, setIsOffline] = useState(!navigator.onLine);
+
+  useEffect(() => {
+    // Attempt to request PWA push notification permission
+    requestNotificationPermission();
+
+    const handleOnline = () => setIsOffline(false);
+    const handleOffline = () => setIsOffline(true);
+
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
 
   useEffect(() => {
     if (isLowDataMode) {
@@ -70,6 +90,22 @@ const App: React.FC = () => {
 
   // Firebase Auth Listener
   useEffect(() => {
+    // Development bypass check
+    const isDevAdmin = localStorage.getItem('se_dev_admin') === 'true';
+    if (isDevAdmin) {
+      setUser({
+        id: 'dev-admin',
+        email: 'siphom.yati@gmail.com',
+        name: 'Dev Super Admin',
+        role: UserRole.SUPER_ADMIN,
+        isVerified: true,
+        twoFactorEnabled: true
+      });
+      setIsAuthReady(true);
+      setLoading(false);
+      return;
+    }
+
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       if (firebaseUser) {
         try {
@@ -184,6 +220,7 @@ const App: React.FC = () => {
   const handleLogout = async () => {
     try {
       const email = user?.email;
+      localStorage.removeItem('se_dev_admin');
       await auth.signOut();
       setUser(null);
       logActivity(ActivityType.LOGOUT, `User logged out: ${email}`);
@@ -297,6 +334,7 @@ const App: React.FC = () => {
             <Route path="/campus-life" element={<CommunityHub />} />
             <Route path="/governance" element={<GovernancePage />} />
             <Route path="/ministry-corner" element={<MinistryCorner />} />
+            <Route path="/ai-tutor" element={<AIStudyAssistant />} />
             <Route path="/student" element={<StudentDashboard user={user} />} />
             <Route 
               path="/school/:slug" 
@@ -350,6 +388,8 @@ const App: React.FC = () => {
               } 
             />
 
+            <Route path="/marketplace" element={<EducatorMarketplace />} />
+
             <Route 
               path="/ministry" 
               element={
@@ -389,6 +429,13 @@ const App: React.FC = () => {
             onRemove={toggleCompare} 
             onClose={() => setShowComparison(false)} 
           />
+        )}
+
+        {isOffline && (
+          <div className="fixed bottom-0 left-0 right-0 bg-rose-600 text-white text-center py-2 px-4 shadow-lg z-[100] animate-in slide-in-from-bottom-2 flex items-center justify-center gap-3">
+            <span className="w-2 h-2 bg-rose-300 rounded-full animate-pulse"></span>
+            <p className="text-[10px] font-black uppercase tracking-widest">You are currently offline. Pages and data may be cached for offline use.</p>
+          </div>
         )}
       </div>
     </WorkflowProvider>

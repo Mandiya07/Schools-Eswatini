@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { Link } from 'react-router-dom';
 
 const Footer: React.FC = () => {
   return (
@@ -31,6 +32,8 @@ const Footer: React.FC = () => {
           <div>
             <h3 className="font-semibold text-white mb-4 uppercase text-xs tracking-wider">Support</h3>
             <ul className="space-y-2 text-slate-400 text-sm">
+              <li><Link to="/governance" className="hover:text-blue-400">Governance</Link></li>
+              <li><Link to="/ministry-corner" className="hover:text-blue-400">Ministry Corner</Link></li>
               <li><a href="#" className="hover:text-blue-400">Add School</a></li>
               <li><a href="#" className="hover:text-blue-400">Terms of Service</a></li>
               <li><a href="#" className="hover:text-blue-400">Privacy Policy</a></li>

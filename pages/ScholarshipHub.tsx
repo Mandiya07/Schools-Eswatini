@@ -14,12 +14,28 @@ import {
   BookOpen,
   MessageCircle,
   CheckCircle2,
-  ExternalLink
+  ExternalLink,
+  ShieldCheck,
+  TrendingDown,
+  Building2,
+  PieChart
 } from 'lucide-react';
 
 interface ScholarshipHubProps {
   institutions: Institution[];
 }
+
+const MOCK_HIGH_PERFORMERS = [
+  { id: 'hp1', initials: 'S.D.', region: 'Hhohho', level: 'Form 5', avgGrade: 'A+', subjects: ['Maths', 'Physics', 'ICT'], status: 'Available for Sponsorship', strength: 'Engineering/Tech' },
+  { id: 'hp2', initials: 'L.N.', region: 'Manzini', level: 'Form 5', avgGrade: 'A', subjects: ['Biology', 'Chem', 'Maths'], status: 'Under Review by FNB', strength: 'Medical Sci' },
+  { id: 'hp3', initials: 'T.M.', region: 'Shiselweni', level: 'Form 3', avgGrade: 'A', subjects: ['Agric', 'Maths', 'SiSwati'], status: 'Available for Sponsorship', strength: 'Agricultural Dev' },
+];
+
+const MOCK_SPONSORS = [
+  { name: 'MTN Eswatini', focus: 'ICT & Digital Literacy', budget: 'E500k', scholarships: 15 },
+  { name: 'FNB Foundation', focus: 'General Academic Excellence', budget: 'E1.2M', scholarships: 45 },
+  { name: 'Eswatini Bank', focus: 'Commerce & Accounting', budget: 'E300k', scholarships: 10 },
+];
 
 const MOCK_EXTERNAL_SCHOLARSHIPS = [
   {
@@ -95,7 +111,7 @@ const HIGH_SCHOOL_SUBJECTS = [
 ];
 
 const CareerAndScholarshipHub: React.FC<ScholarshipHubProps> = ({ institutions }) => {
-  const [activeTab, setActiveTab] = useState<'scholarships' | 'pathways' | 'mentorship'>('pathways');
+  const [activeTab, setActiveTab] = useState<'scholarships' | 'pathways' | 'mentorship' | 'matching'>('pathways');
   const [searchTerm, setSearchTerm] = useState('');
   
   // Pathways State
@@ -156,6 +172,12 @@ const CareerAndScholarshipHub: React.FC<ScholarshipHubProps> = ({ institutions }
             className={`px-8 py-4 rounded-full text-[10px] font-black uppercase tracking-widest flex items-center gap-3 transition-all ${activeTab === 'scholarships' ? 'bg-purple-600 text-white shadow-xl' : 'bg-white text-slate-500 hover:bg-slate-100'}`}
           >
             <Award className="w-4 h-4" /> Live Scholarships
+          </button>
+          <button 
+            onClick={() => setActiveTab('matching')}
+            className={`px-8 py-4 rounded-full text-[10px] font-black uppercase tracking-widest flex items-center gap-3 transition-all ${activeTab === 'matching' ? 'bg-amber-600 text-white shadow-xl' : 'bg-white text-slate-500 hover:bg-slate-100'}`}
+          >
+            <Building2 className="w-4 h-4" /> Corporate Matching
           </button>
           <button 
             onClick={() => setActiveTab('mentorship')}
@@ -316,6 +338,132 @@ const CareerAndScholarshipHub: React.FC<ScholarshipHubProps> = ({ institutions }
                   </div>
                 ))}
               </div>
+            </motion.div>
+          )}
+
+          {/* CORPORATE MATCHING TAB */}
+          {activeTab === 'matching' && (
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-12">
+               {/* Personal Match Status (Simulated for high-performing student) */}
+               <div className="bg-emerald-50 border border-emerald-100 rounded-[40px] p-10 flex flex-col md:flex-row items-center justify-between gap-8">
+                  <div className="flex items-center gap-6">
+                    <div className="w-16 h-16 bg-emerald-600 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-emerald-600/20">
+                       <ShieldCheck className="w-8 h-8" />
+                    </div>
+                    <div>
+                       <h3 className="text-xl font-black text-slate-900">Your Sponsorship Match Status</h3>
+                       <p className="text-sm text-slate-500 font-medium">Based on your Term 1 Average of <span className="text-emerald-600 font-black">92%</span></p>
+                    </div>
+                  </div>
+                  <div className="flex flex-wrap gap-4">
+                     <div className="px-6 py-3 bg-white rounded-2xl border border-emerald-100 shadow-sm">
+                        <p className="text-[9px] font-black uppercase text-slate-400">Status</p>
+                        <p className="text-sm font-black text-emerald-600 uppercase tracking-widest">Matched</p>
+                     </div>
+                     <div className="px-6 py-3 bg-white rounded-2xl border border-emerald-100 shadow-sm">
+                        <p className="text-[9px] font-black uppercase text-slate-400">Sponsor</p>
+                        <p className="text-sm font-black text-slate-900">MTN Foundation</p>
+                     </div>
+                     <button className="bg-slate-900 text-white px-8 py-3 rounded-2xl font-black uppercase tracking-widest text-[9px] shadow-lg">View Conditions</button>
+                  </div>
+               </div>
+
+               <div className="bg-amber-900 rounded-[48px] p-12 text-white relative overflow-hidden flex flex-col md:flex-row items-center gap-12">
+                  <div className="absolute top-0 right-0 w-80 h-80 bg-amber-400 opacity-5 blur-[100px]" />
+                  <div className="relative z-10 space-y-6 flex-1">
+                     <span className="px-4 py-2 bg-amber-500/20 text-amber-400 rounded-full text-[9px] font-black uppercase tracking-widest border border-amber-500/30">CSR & Social Impact</span>
+                     <h2 className="text-4xl font-black tracking-tight leading-tight">The High-Performer Matching Hub.</h2>
+                     <p className="text-amber-200/70 font-medium max-w-sm">
+                        Corporations: Identify and sponsor Eswatini's brightest minds before they leave the country. Automate your CSR spend with verified academic data.
+                     </p>
+                     <div className="flex gap-4">
+                        <button className="bg-amber-500 text-amber-950 px-8 py-4 rounded-2xl font-black uppercase tracking-widest text-[9px] shadow-lg">Become a Sponsor</button>
+                        <button className="bg-white/10 text-white px-8 py-4 rounded-2xl font-black uppercase tracking-widest text-[9px] border border-white/10">View CSR Report</button>
+                     </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4 flex-1 w-full text-center">
+                     <div className="bg-white/5 p-8 rounded-3xl border border-white/10">
+                        <p className="text-3xl font-black">E2.4M</p>
+                        <p className="text-[9px] font-black text-amber-400 uppercase tracking-widest mt-2">Active CSR Pledges</p>
+                     </div>
+                     <div className="bg-white/5 p-8 rounded-3xl border border-white/10">
+                        <p className="text-3xl font-black">124</p>
+                        <p className="text-[9px] font-black text-emerald-400 uppercase tracking-widest mt-2">Students Matched</p>
+                     </div>
+                  </div>
+               </div>
+
+               <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
+                  <div className="lg:col-span-2 space-y-8">
+                     <div className="flex items-center justify-between">
+                        <h3 className="text-2xl font-black text-slate-900 tracking-tight">Verified High-Performer Queue</h3>
+                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest italic">Updated Real-time from Portals</span>
+                     </div>
+                     
+                     <div className="grid grid-cols-1 gap-4">
+                        {MOCK_HIGH_PERFORMERS.map((hp) => (
+                           <div key={hp.id} className="p-8 bg-white border border-slate-100 rounded-[32px] hover:shadow-xl hover:border-amber-200 transition-all group flex flex-col md:flex-row justify-between items-center gap-8">
+                              <div className="flex items-center gap-6">
+                                 <div className="w-16 h-16 bg-slate-900 text-white rounded-full flex items-center justify-center text-xl font-black shadow-inner">
+                                    {hp.initials}
+                                 </div>
+                                 <div className="space-y-1">
+                                    <h4 className="text-lg font-black text-slate-900 leading-tight">Student ID: {hp.id}</h4>
+                                    <p className="text-xs font-bold text-amber-600">{hp.region} Region • {hp.level}</p>
+                                    <div className="flex gap-2">
+                                       {hp.subjects.map(s => (
+                                          <span key={s} className="text-[8px] font-black uppercase text-slate-400">{s}</span>
+                                       ))}
+                                    </div>
+                                 </div>
+                              </div>
+
+                              <div className="text-center md:text-right space-y-2">
+                                 <div className="px-4 py-2 bg-emerald-50 text-emerald-600 rounded-xl text-[10px] font-black uppercase tracking-widest animate-pulse">
+                                    Top 1% Achievement
+                                 </div>
+                                 <p className="text-2xl font-black text-slate-900">{hp.avgGrade} Avg</p>
+                                 <button className="text-[10px] font-black text-blue-600 uppercase tracking-widest hover:underline">Sponsor This Student</button>
+                              </div>
+                           </div>
+                        ))}
+                     </div>
+                  </div>
+
+                  <div className="space-y-8">
+                     <h3 className="text-2xl font-black text-slate-900 tracking-tight">Lead CSR Partners</h3>
+                     <div className="space-y-4">
+                        {MOCK_SPONSORS.map((sponsor) => (
+                           <div key={sponsor.name} className="p-6 bg-slate-50 border border-slate-100 rounded-3xl flex flex-col gap-4">
+                              <div className="flex justify-between items-start">
+                                 <h4 className="font-black text-slate-900">{sponsor.name}</h4>
+                                 <ShieldCheck className="w-5 h-5 text-emerald-500" />
+                              </div>
+                              <p className="text-xs text-slate-500 font-medium">Focus: {sponsor.focus}</p>
+                              <div className="flex justify-between items-center pt-2 border-t border-slate-200">
+                                 <div>
+                                    <p className="text-[9px] font-black text-slate-400 uppercase">Pledge</p>
+                                    <p className="font-black text-emerald-600">{sponsor.budget}</p>
+                                 </div>
+                                 <div className="text-right">
+                                    <p className="text-[9px] font-black text-slate-400 uppercase">Beneficiaries</p>
+                                    <p className="font-black text-slate-900">{sponsor.scholarships}</p>
+                                 </div>
+                              </div>
+                           </div>
+                        ))}
+                     </div>
+
+                     <div className="bg-slate-900 rounded-[32px] p-8 text-white">
+                        <PieChart className="w-8 h-8 text-amber-500 mb-6" />
+                        <h4 className="text-xl font-black mb-2">Platform Impact</h4>
+                        <p className="text-xs text-slate-400 font-medium leading-relaxed mb-6">
+                           Our matching algorithm reduced educational debt forsponsored students by <span className="text-emerald-400 font-black">42%</span> in Q1 2026.
+                        </p>
+                        <button className="w-full py-4 bg-amber-500 text-amber-950 rounded-xl text-[10px] font-black uppercase tracking-widest">Download Impact Report</button>
+                     </div>
+                  </div>
+               </div>
             </motion.div>
           )}
 

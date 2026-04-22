@@ -689,6 +689,14 @@ export interface Institution {
         totalCount: number;
         avgExperience: string;
         certifications: string[];
+        profiles?: {
+          id: string;
+          name: string;
+          role: string;
+          qualifications: string;
+          professionalBackground: string;
+          image?: string;
+        }[];
       };
       performance: {
         passRate: string;
@@ -832,6 +840,19 @@ export interface User {
   institutionId?: string;
   isVerified: boolean;
   twoFactorEnabled: boolean;
+  tutorProfile?: {
+    isEnabled: boolean;
+    subjects: string[];
+    bio: string;
+    availability: {
+      days: string[];
+      timeRange: string;
+      status: 'available' | 'busy' | 'away';
+    };
+    hourlyRate?: number;
+    rating?: number;
+    connections?: number;
+  };
 }
 
 export interface AuditLog {

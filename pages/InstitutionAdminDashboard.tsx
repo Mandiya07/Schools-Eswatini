@@ -132,7 +132,7 @@ const InstitutionAdminDashboard: React.FC<InstitutionAdminDashboardProps> = ({ u
                </div>
             </div>
          </div>
-         <div className="flex gap-4 items-center">
+         <div className="flex flex-wrap justify-center md:justify-end gap-4 items-center w-full md:w-auto">
            <div className="relative">
              <button onClick={() => setActiveTab('workflows')} className="w-12 h-12 bg-white rounded-full shadow-sm border border-slate-100 flex items-center justify-center text-slate-600 hover:text-indigo-600 transition-colors">
                <AlertCircle className="w-5 h-5" />
@@ -817,6 +817,71 @@ const InstitutionAdminDashboard: React.FC<InstitutionAdminDashboardProps> = ({ u
                         />
                       </div>
                     </div>
+                  </div>
+                </section>
+
+                <hr className="border-slate-100" />
+
+                <section>
+                  <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-10">
+                    <div>
+                      <h3 className="text-xl font-black text-slate-900 mb-2 flex items-center gap-3">💸 Debt Recovery & Fee Tracking</h3>
+                      <p className="text-xs text-slate-500 font-medium">Monitor arrears and initiate recovery workflows with parents.</p>
+                    </div>
+                    <div className="flex gap-2">
+                       <button className="bg-blue-600 text-white px-6 py-3 rounded-2xl text-[9px] font-black uppercase tracking-widest flex items-center gap-2 hover:bg-blue-700 transition-colors">
+                          <Send className="w-4 h-4" />
+                          Nudge All Debtors
+                       </button>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+                     <div className="p-8 bg-rose-50 rounded-[32px] border border-rose-100">
+                        <p className="text-[10px] font-black text-rose-600 uppercase tracking-widest mb-2">Total Arrears (2025)</p>
+                        <p className="text-3xl font-black text-rose-700 tracking-tight">SZL 482,500</p>
+                        <p className="text-[10px] font-bold text-rose-400 mt-2">Across 142 Parents</p>
+                     </div>
+                     <div className="p-8 bg-emerald-50 rounded-[32px] border border-emerald-100">
+                        <p className="text-[10px] font-black text-emerald-600 uppercase tracking-widest mb-2">Recovered via App</p>
+                        <p className="text-3xl font-black text-emerald-700 tracking-tight">SZL 128,400</p>
+                        <p className="text-[10px] font-bold text-emerald-400 mt-2">26% Collection Rate Increase</p>
+                     </div>
+                     <div className="p-8 bg-blue-50 rounded-[32px] border border-blue-100">
+                        <p className="text-[10px] font-black text-blue-600 uppercase tracking-widest mb-2">Net Platform Cost</p>
+                        <p className="text-3xl font-black text-blue-700 tracking-tight">SZL 0</p>
+                        <p className="text-[10px] font-bold text-blue-400 mt-2">100% Covered by Convenience Fees</p>
+                     </div>
+                  </div>
+
+                  <div className="bg-slate-50 rounded-[40px] p-8 mt-10">
+                     <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-6">High-Priority Debtors (30+ Days)</h4>
+                     <div className="space-y-4">
+                        {[
+                          { name: 'Sibongile Dlamini', grade: 'Form 3', debt: 4200, lastNudge: '2 days ago', status: 'Unpaid' },
+                          { name: 'Musa Gamedze', grade: 'Grade 5', debt: 1500, lastNudge: 'Never', status: 'Partial' },
+                          { name: 'Thabo Maseko', grade: 'Form 5', debt: 8900, lastNudge: '5 mins ago', status: 'Unpaid' }
+                        ].map((debtor, i) => (
+                          <div key={i} className="bg-white p-5 rounded-2xl border border-slate-100 flex items-center justify-between shadow-sm group hover:border-blue-200 transition-colors">
+                             <div className="flex items-center gap-4">
+                                <div className="w-10 h-10 bg-slate-100 rounded-xl flex items-center justify-center font-black text-slate-400 text-xs">{debtor.name[0]}</div>
+                                <div>
+                                   <p className="text-sm font-black text-slate-900">{debtor.name}</p>
+                                   <p className="text-[10px] text-slate-400 font-bold uppercase">{debtor.grade} • Last Nudge: {debtor.lastNudge}</p>
+                                </div>
+                             </div>
+                             <div className="flex items-center gap-8 text-right">
+                                <div>
+                                   <p className="text-sm font-black text-slate-900">SZL {debtor.debt.toLocaleString()}</p>
+                                   <span className={`text-[8px] font-black uppercase tracking-widest ${debtor.status === 'Partial' ? 'text-amber-500' : 'text-rose-500'}`}>{debtor.status}</span>
+                                </div>
+                                <button className="w-10 h-10 bg-slate-50 rounded-xl flex items-center justify-center text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition-all opacity-0 group-hover:opacity-100">
+                                   <Send className="w-4 h-4" />
+                                </button>
+                             </div>
+                          </div>
+                        ))}
+                     </div>
                   </div>
                 </section>
               </div>

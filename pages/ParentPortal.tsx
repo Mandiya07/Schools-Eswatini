@@ -558,9 +558,22 @@ const ParentPortal: React.FC<ParentPortalProps> = ({ user }) => {
                    Manage your child's school fees instantly. Pay using MTN Mobile Money or eMali directly from your phone.
                  </p>
                  
-                 <button className="px-8 py-4 bg-yellow-400 hover:bg-yellow-300 text-emerald-900 rounded-2xl font-black uppercase tracking-widest text-[10px] shadow-xl shadow-yellow-400/20 transition-all flex items-center gap-3">
-                   <CreditCard className="w-5 h-5" /> Pay Now via MoMo
-                 </button>
+                 <div className="flex flex-col gap-4">
+                    <div className="bg-white/10 p-6 rounded-3xl border border-white/10">
+                       <label className="block text-[10px] font-black uppercase tracking-widest text-emerald-400 mb-2">Custom Amount (SZL)</label>
+                       <div className="flex gap-2">
+                          <input 
+                            type="number" 
+                            className="flex-1 bg-white/10 border-none rounded-xl px-4 py-3 font-black text-white focus:ring-2 focus:ring-yellow-400" 
+                            placeholder="e.g. 100"
+                          />
+                          <button className="px-8 py-4 bg-yellow-400 hover:bg-yellow-300 text-emerald-900 rounded-xl font-black uppercase tracking-widest text-[10px] shadow-xl shadow-yellow-400/20 transition-all flex items-center gap-3">
+                            Pay via MoMo
+                          </button>
+                       </div>
+                       <p className="text-[10px] text-emerald-400 mt-3 font-bold">+ SZL 5.00 Convenience Fee (Saves you a trip to the bank!)</p>
+                    </div>
+                 </div>
                </div>
                
                <div className="grid grid-cols-2 gap-4">
@@ -576,34 +589,55 @@ const ParentPortal: React.FC<ParentPortalProps> = ({ user }) => {
              </div>
            </div>
 
-           <div className="bg-white rounded-[32px] border border-slate-100 shadow-sm overflow-hidden">
-             <div className="px-8 py-6 border-b border-slate-100 flex items-center justify-between bg-slate-50">
-               <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest">Transaction History</h3>
-               <button className="text-blue-600 hover:text-blue-700 font-bold text-xs flex items-center gap-2">
-                 <Download className="w-4 h-4" /> Download Statement
-               </button>
-             </div>
-             <div className="divide-y divide-slate-100">
-               {MOCK_FINANCES.transactions.map((tx) => (
-                 <div key={tx.id} className="p-6 px-8 flex justify-between items-center hover:bg-slate-50 transition-colors">
-                   <div className="flex items-center gap-6">
-                     <div className="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
-                       <Receipt className="w-5 h-5" />
-                     </div>
-                     <div>
-                       <h4 className="font-black text-slate-900">{tx.type}</h4>
-                       <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Ref: {tx.ref} • {new Date(tx.date).toLocaleDateString()}</p>
-                     </div>
-                   </div>
-                   <div className="text-right flex items-center gap-4">
-                      <span className="text-xl font-black text-emerald-600">+ E{tx.amount}</span>
-                      <button className="p-3 bg-slate-100 text-slate-400 hover:bg-slate-200 hover:text-slate-600 rounded-xl transition-colors">
-                        <Download className="w-4 h-4" />
-                      </button>
-                   </div>
+           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
+              <div className="lg:col-span-2 bg-white rounded-[32px] border border-slate-100 shadow-sm overflow-hidden">
+                <div className="px-8 py-6 border-b border-slate-100 flex items-center justify-between bg-slate-50">
+                  <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest">Transaction History</h3>
+                  <button className="text-blue-600 hover:text-blue-700 font-bold text-xs flex items-center gap-2">
+                    <Download className="w-4 h-4" /> Download Statement
+                  </button>
+                </div>
+                <div className="divide-y divide-slate-100">
+                  {MOCK_FINANCES.transactions.map((tx) => (
+                    <div key={tx.id} className="p-6 px-8 flex justify-between items-center hover:bg-slate-50 transition-colors">
+                      <div className="flex items-center gap-6">
+                        <div className="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
+                          <Receipt className="w-5 h-5" />
+                        </div>
+                        <div>
+                          <h4 className="font-black text-slate-900">{tx.type}</h4>
+                          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Ref: {tx.ref} • {new Date(tx.date).toLocaleDateString()}</p>
+                        </div>
+                      </div>
+                      <div className="text-right flex items-center gap-4">
+                         <span className="text-xl font-black text-emerald-600">+ E{tx.amount}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="bg-white rounded-[32px] border border-slate-100 shadow-sm p-8">
+                 <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-6 px-2">Quick Item Payments</h3>
+                 <div className="space-y-3">
+                    {[
+                      { item: 'Biology Field Trip', cost: 150 },
+                      { item: 'New School Tracksuit', cost: 450 },
+                      { item: 'PTA Contribution', cost: 50 },
+                      { item: 'End-of-Term Party', cost: 80 }
+                    ].map((thing, i) => (
+                      <div key={i} className="p-4 bg-slate-50 rounded-2xl border border-slate-100 flex justify-between items-center hover:bg-blue-50 hover:border-blue-100 transition-all cursor-pointer group">
+                        <div>
+                           <p className="text-xs font-black text-slate-900">{thing.item}</p>
+                           <p className="text-[10px] font-bold text-blue-600">SZL {thing.cost}</p>
+                        </div>
+                        <button className="w-8 h-8 bg-white rounded-lg flex items-center justify-center text-slate-400 group-hover:bg-blue-600 group-hover:text-white transition-all shadow-sm">
+                           <ChevronRight className="w-4 h-4" />
+                        </button>
+                      </div>
+                    ))}
                  </div>
-               ))}
-             </div>
+              </div>
            </div>
         </div>
       )}

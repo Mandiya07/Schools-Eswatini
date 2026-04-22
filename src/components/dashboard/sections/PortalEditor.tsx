@@ -29,6 +29,24 @@ const PortalEditor: React.FC<PortalEditorProps> = ({ institution, onUpdate }) =>
         </header>
 
         <div className="space-y-8">
+          <div className="flex items-center justify-between p-6 bg-slate-900 rounded-[32px] text-white shadow-xl">
+            <div className="flex items-center gap-4">
+              <div className={`w-12 h-12 rounded-2xl flex items-center justify-center text-xl ${portal.enabled ? 'bg-emerald-500 text-white' : 'bg-white/10 text-slate-400'}`}>
+                {portal.enabled ? '✅' : '🔒'}
+              </div>
+              <div>
+                <h4 className="font-black text-sm uppercase tracking-widest">Portal Status</h4>
+                <p className="text-[10px] text-slate-400 font-bold uppercase">{portal.enabled ? 'Active & Accessible' : 'Disabled / Maintenance'}</p>
+              </div>
+            </div>
+            <button 
+              onClick={() => updateField('enabled', !portal.enabled)}
+              className={`w-14 h-8 rounded-full transition-all relative ${portal.enabled ? 'bg-emerald-500' : 'bg-slate-700'}`}
+            >
+              <div className={`absolute top-1 w-6 h-6 bg-white rounded-full transition-all ${portal.enabled ? 'right-1' : 'left-1'}`} />
+            </button>
+          </div>
+
           <div className="group">
             <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Portal Name</label>
             <input 
@@ -39,12 +57,13 @@ const PortalEditor: React.FC<PortalEditorProps> = ({ institution, onUpdate }) =>
           </div>
 
           <div className="group">
-            <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Portal URL</label>
+            <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">External Portal URL (Optional)</label>
+            <p className="text-[10px] text-slate-500 mb-2">If your school uses an external student management system (e.g., Fedena, TSAM, or custom), enter the login URL here.</p>
             <input 
               className="w-full bg-slate-50 border-2 border-transparent focus:border-blue-500 focus:bg-white rounded-2xl px-6 py-4 font-bold transition-all outline-none" 
               value={portal.url} 
               onChange={e => updateField('url', e.target.value)} 
-              placeholder="https://portal.yourschool.com"
+              placeholder="https://portal.yourschool.ac.sz/login"
             />
           </div>
 
