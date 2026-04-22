@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Institution, User, Region, SubscriptionPlan } from '../types';
-import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, BarChart, Bar, XAxis, YAxis, CartesianGrid, LineChart, Line } from 'recharts';
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, BarChart, Bar, XAxis, YAxis, CartesianGrid, LineChart, Line, AreaChart, Area, Legend } from 'recharts';
 import SecurityDashboard from '../components/SecurityDashboard';
 
 interface SuperAdminDashboardProps {
@@ -12,7 +12,7 @@ interface SuperAdminDashboardProps {
 }
 
 const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({ institutions, onUpdate, onDelete, onSeed }) => {
-  const [activeTab, setActiveTab] = useState<'overview' | 'institutions' | 'verification' | 'analytics' | 'security' | 'performance' | 'users' | 'moderation'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'institutions' | 'verification' | 'analytics' | 'security' | 'performance' | 'users' | 'moderation' | 'forecasting'>('overview');
   const [perfStats, setPerfStats] = useState<any>(null);
 
   useEffect(() => {
@@ -38,6 +38,12 @@ const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({ institutions,
     { id: '1', action: '2FA Enrollment', user: 'principal@waterford.sz', ip: '196.24.12.5', timestamp: '2023-11-23 10:12' },
     { id: '2', action: 'Plan Upgrade: Premium', user: 'admin@stmarks.sz', ip: '196.24.15.82', timestamp: '2023-11-23 11:45' },
     { id: '3', action: 'Bulk Image Upload', user: 'info@uniswa.sz', ip: '41.78.22.10', timestamp: '2023-11-23 13:02' },
+  ];
+
+  const forecastData = [
+    { year: 'Year 1', MoET: 200000, Schools: 1100000, Educators: 100000, 'Parents & Students': 300000, Total: 1700000 },
+    { year: 'Year 2', MoET: 400000, Schools: 4800000, Educators: 500000, 'Parents & Students': 1500000, Total: 7200000 },
+    { year: 'Year 3', MoET: 800000, Schools: 13500000, Educators: 2000000, 'Parents & Students': 4000000, Total: 20300000 },
   ];
 
   return (
@@ -106,6 +112,12 @@ const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({ institutions,
           className={`pb-4 text-[10px] font-black uppercase tracking-widest transition-all border-b-2 whitespace-nowrap ${activeTab === 'moderation' ? 'border-blue-600 text-blue-600' : 'border-transparent text-slate-400'}`}
         >
           Moderation
+        </button>
+        <button 
+          onClick={() => setActiveTab('forecasting')}
+          className={`pb-4 text-[10px] font-black uppercase tracking-widest transition-all border-b-2 whitespace-nowrap ${activeTab === 'forecasting' ? 'border-amber-500 text-amber-500' : 'border-transparent text-slate-400'}`}
+        >
+          Forecasting (Projections)
         </button>
       </div>
 
@@ -467,6 +479,106 @@ const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({ institutions,
                 </div>
               </div>
             ))}
+          </div>
+        </div>
+      ) : activeTab === 'forecasting' ? (
+        <div className="space-y-10">
+          <div className="bg-slate-900 p-10 rounded-[48px] shadow-2xl relative overflow-hidden text-white">
+            <div className="absolute top-0 right-0 p-8 opacity-5 text-9xl">📈</div>
+            <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-8 mb-12">
+               <div>
+                  <h3 className="text-3xl font-black tracking-tight mb-2">3-Year Revenue Projections</h3>
+                  <p className="text-slate-400 font-medium">B2B2C and B2G ecosystem financial modeling for the Eswatini rollout.</p>
+               </div>
+               <div className="bg-white/10 backdrop-blur-md border border-white/20 p-6 rounded-3xl text-right">
+                  <p className="text-[10px] uppercase font-black tracking-widest text-emerald-400 mb-1">Year 3 Target ARR</p>
+                  <p className="text-4xl font-black text-white">SZL 20.3M</p>
+               </div>
+            </div>
+
+            <div className="h-96 w-full mt-8 bg-white/5 rounded-3xl p-6 border border-white/10">
+              <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
+                <AreaChart data={forecastData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+                  <defs>
+                    <linearGradient id="colorMoET" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.8}/>
+                      <stop offset="95%" stopColor="#3b82f6" stopOpacity={0}/>
+                    </linearGradient>
+                    <linearGradient id="colorSchools" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#10b981" stopOpacity={0.8}/>
+                      <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
+                    </linearGradient>
+                    <linearGradient id="colorEducators" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#f59e0b" stopOpacity={0.8}/>
+                      <stop offset="95%" stopColor="#f59e0b" stopOpacity={0}/>
+                    </linearGradient>
+                    <linearGradient id="colorParents" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#6366f1" stopOpacity={0.8}/>
+                      <stop offset="95%" stopColor="#6366f1" stopOpacity={0}/>
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#ffffff20" />
+                  <XAxis dataKey="year" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#cbd5e1', fontWeight: 800 }} />
+                  <YAxis tickFormatter={(val) => `E${(val/1000000).toFixed(1)}M`} axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#cbd5e1', fontWeight: 800 }} />
+                  <Tooltip 
+                     contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #334155', borderRadius: '16px', color: '#fff' }} 
+                     itemStyle={{ color: '#e2e8f0', fontWeight: 700 }}
+                     formatter={(value: number) => ['SZL ' + value.toLocaleString(), undefined]}
+                  />
+                  <Legend wrapperStyle={{ fontSize: '12px', fontWeight: 700, marginTop: '20px' }} />
+                  <Area type="monotone" dataKey="MoET" stackId="1" stroke="#3b82f6" fill="url(#colorMoET)" />
+                  <Area type="monotone" dataKey="Schools" stackId="1" stroke="#10b981" fill="url(#colorSchools)" />
+                  <Area type="monotone" dataKey="Educators" stackId="1" stroke="#f59e0b" fill="url(#colorEducators)" />
+                  <Area type="monotone" dataKey="Parents & Students" stackId="1" stroke="#6366f1" fill="url(#colorParents)" />
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+             <div className="bg-white p-8 rounded-[32px] border border-slate-100 shadow-sm flex flex-col justify-between">
+                <div>
+                   <div className="w-10 h-10 bg-blue-100 text-blue-600 rounded-xl flex items-center justify-center text-xl mb-4">🏛</div>
+                   <h4 className="font-black text-slate-900 mb-1">MoET (B2G)</h4>
+                   <p className="text-[10px] uppercase font-black tracking-widest text-slate-400">Data & Verification</p>
+                </div>
+                <div className="mt-8">
+                   <p className="text-2xl font-black text-slate-900">E800k <span className="text-[10px] text-slate-400 uppercase tracking-widest font-bold">/ yr3</span></p>
+                </div>
+             </div>
+             
+             <div className="bg-white p-8 rounded-[32px] border border-slate-100 shadow-sm flex flex-col justify-between">
+                <div>
+                   <div className="w-10 h-10 bg-emerald-100 text-emerald-600 rounded-xl flex items-center justify-center text-xl mb-4">🏫</div>
+                   <h4 className="font-black text-slate-900 mb-1">Schools (B2B)</h4>
+                   <p className="text-[10px] uppercase font-black tracking-widest text-slate-400">SaaS & Comm. Fees</p>
+                </div>
+                <div className="mt-8">
+                   <p className="text-2xl font-black text-slate-900">E13.5M <span className="text-[10px] text-slate-400 uppercase tracking-widest font-bold">/ yr3</span></p>
+                </div>
+             </div>
+
+             <div className="bg-white p-8 rounded-[32px] border border-slate-100 shadow-sm flex flex-col justify-between">
+                <div>
+                   <div className="w-10 h-10 bg-amber-100 text-amber-600 rounded-xl flex items-center justify-center text-xl mb-4">👨‍🏫</div>
+                   <h4 className="font-black text-slate-900 mb-1">Educators (B2C)</h4>
+                   <p className="text-[10px] uppercase font-black tracking-widest text-slate-400">Marketplace Share</p>
+                </div>
+                <div className="mt-8">
+                   <p className="text-2xl font-black text-slate-900">E2.0M <span className="text-[10px] text-slate-400 uppercase tracking-widest font-bold">/ yr3</span></p>
+                </div>
+             </div>
+
+             <div className="bg-white p-8 rounded-[32px] border border-slate-100 shadow-sm flex flex-col justify-between">
+                <div>
+                   <div className="w-10 h-10 bg-indigo-100 text-indigo-600 rounded-xl flex items-center justify-center text-xl mb-4">👨‍👩‍👧</div>
+                   <h4 className="font-black text-slate-900 mb-1">Parents/Students</h4>
+                   <p className="text-[10px] uppercase font-black tracking-widest text-slate-400">Convenience Fees</p>
+                </div>
+                <div className="mt-8">
+                   <p className="text-2xl font-black text-slate-900">E4.0M <span className="text-[10px] text-slate-400 uppercase tracking-widest font-bold">/ yr3</span></p>
+                </div>
+             </div>
           </div>
         </div>
       ) : null}

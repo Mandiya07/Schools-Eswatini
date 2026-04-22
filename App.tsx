@@ -22,6 +22,7 @@ import StudentDashboard from './pages/StudentDashboard';
 import GovernancePage from './pages/GovernancePage';
 import ParentPortal from './pages/ParentPortal';
 import MinistryPortal from './pages/MinistryPortal';
+import MinistryCorner from './pages/MinistryCorner';
 
 // Components
 import Navbar from './components/Navbar';
@@ -295,6 +296,7 @@ const App: React.FC = () => {
             <Route path="/resources" element={<AcademicHub />} />
             <Route path="/campus-life" element={<CommunityHub />} />
             <Route path="/governance" element={<GovernancePage />} />
+            <Route path="/ministry-corner" element={<MinistryCorner />} />
             <Route path="/student" element={<StudentDashboard user={user} />} />
             <Route 
               path="/school/:slug" 

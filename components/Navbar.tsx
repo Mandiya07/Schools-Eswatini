@@ -37,8 +37,11 @@ const Navbar: React.FC<NavbarProps> = ({ user, onLogout, compareCount = 0 }) => 
             <Link to="/resources" className="text-slate-600 hover:text-blue-600 font-bold text-xs uppercase tracking-widest">
               Resources
             </Link>
-            <Link to="/campus-life" className="text-slate-600 hover:text-blue-600 font-bold text-xs uppercase tracking-widest">
-              Campus Life
+            <Link to="/governance" className="text-slate-600 hover:text-blue-600 font-bold text-xs uppercase tracking-widest hidden lg:block">
+              Governance
+            </Link>
+            <Link to="/ministry-corner" className="text-slate-600 hover:text-blue-600 font-bold text-xs uppercase tracking-widest text-[#f59e0b]">
+              Ministry Corner
             </Link>
             <Link to="/compare" className="text-slate-600 hover:text-blue-600 font-bold text-xs uppercase tracking-widest flex items-center gap-2">
               Compare {compareCount > 0 && <span className="bg-blue-100 text-blue-600 w-5 h-5 rounded-full flex items-center justify-center text-[8px]">{compareCount}</span>}

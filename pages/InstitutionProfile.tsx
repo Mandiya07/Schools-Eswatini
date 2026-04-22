@@ -102,6 +102,17 @@ const InstitutionProfile: React.FC<InstitutionProfileProps> = ({ institutions, f
     orderedSections.push({ id: 'contact', label: labels.contact });
   }
 
+  // Ensure ministry information is always present
+  if (!orderedSections.find(s => s.id === 'ministry')) {
+    // Insert just before contact or at the end
+    const contactIndex = orderedSections.findIndex(s => s.id === 'contact');
+    if (contactIndex !== -1) {
+       orderedSections.splice(contactIndex, 0, { id: 'ministry', label: 'Ministry Info' });
+    } else {
+       orderedSections.push({ id: 'ministry', label: 'Ministry Info' });
+    }
+  }
+
   const sections = orderedSections;
 
   const acad = inst.sections.academics;
@@ -385,6 +396,53 @@ const InstitutionProfile: React.FC<InstitutionProfileProps> = ({ institutions, f
                  </div>
                )}
 
+               {/* --- MINISTRY INFORMATION SECTION --- */}
+               {activeSection === 'ministry' && (
+                 <div className="animate-in fade-in slide-in-from-bottom-8 duration-700 bg-white border border-slate-100 rounded-[48px] p-10 md:p-16 shadow-sm">
+                    <div className="flex items-center gap-4 mb-10">
+                       <div className="w-16 h-16 bg-blue-50 text-blue-600 rounded-3xl flex items-center justify-center text-3xl shadow-sm">🏛</div>
+                       <div>
+                          <h2 className="text-3xl font-black tracking-tight mb-1">Ministry Diagnostics</h2>
+                          <p className="text-xs uppercase font-black tracking-widest text-slate-400">Official Record & Standing</p>
+                       </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                       <div className="p-8 bg-slate-50 rounded-[32px]">
+                          <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">Registration ID</p>
+                          <p className="text-xl font-black text-slate-900 font-mono">{inst.moetRegistration || 'PENDING-VERIFICATION'}</p>
+                       </div>
+                       <div className="p-8 bg-slate-50 rounded-[32px]">
+                          <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">National Standing</p>
+                           <p className="text-xl font-black text-slate-900">
+                             {inst.stats?.performanceRanking ? `Ranked #${inst.stats.performanceRanking} Nationally` : 'Unranked'}
+                           </p>
+                       </div>
+                       <div className="p-8 bg-slate-50 rounded-[32px]">
+                          <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">Verification Status</p>
+                          {inst.isVerified ? (
+                            <span className="px-4 py-1.5 bg-emerald-100 text-emerald-700 rounded-xl text-sm font-black uppercase tracking-widest inline-flex items-center gap-2">
+                               <span className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse" /> Verified
+                            </span>
+                          ) : (
+                            <span className="px-4 py-1.5 bg-amber-100 text-amber-700 rounded-xl text-sm font-black uppercase tracking-widest inline-flex items-center gap-2">
+                               <span className="w-2 h-2 bg-amber-500 rounded-full" /> Pending Audit
+                            </span>
+                          )}
+                       </div>
+                       <div className="p-8 bg-slate-50 rounded-[32px]">
+                          <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">Compliance Score</p>
+                          <div className="flex items-center gap-4">
+                             <div className="h-4 flex-grow bg-slate-200 rounded-full overflow-hidden">
+                                <div className="h-full bg-blue-600 rounded-full" style={{ width: `${inst.trustScore || 0}%` }}></div>
+                             </div>
+                             <span className="text-sm font-black text-slate-900">{inst.trustScore || 0}%</span>
+                          </div>
+                       </div>
+                    </div>
+                 </div>
+               )}
+
                {/* --- CONTACT SECTION --- */}
                {activeSection === 'contact' && (
                  <ContactSection institution={inst} primaryColor={inst.theme.primaryColor} lang={lang} />
@@ -421,6 +479,27 @@ const InstitutionProfile: React.FC<InstitutionProfileProps> = ({ institutions, f
                            {favorites.includes(inst.id) ? '♥ Saved in Directory' : 'Save to Favorites'}
                         </button>
                      </div>
+                     
+                     {/* Social Media Links */}
+                     {(inst.contact.facebook || inst.contact.twitter || inst.contact.linkedin) && (
+                        <div className="pt-6 border-t border-slate-100 flex justify-center gap-4">
+                           {inst.contact.facebook && (
+                              <a href={inst.contact.facebook} target="_blank" rel="noreferrer" className="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition-colors">
+                                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"></path></svg>
+                              </a>
+                           )}
+                           {inst.contact.twitter && (
+                              <a href={inst.contact.twitter} target="_blank" rel="noreferrer" className="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 hover:text-sky-500 hover:bg-sky-50 transition-colors">
+                                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 4s-.7 2.1-2 3.4c1.6 10-9.4 17.3-18 11.6 2.2.1 4.4-.6 6-2C3 15.5.5 9.6 3 5c2.2 2.6 5.6 4.1 9 4-.9-4.2 4-6.6 7-3.8 1.1 0 3-1.2 3-1.2z"></path></svg>
+                              </a>
+                           )}
+                           {inst.contact.linkedin && (
+                              <a href={inst.contact.linkedin} target="_blank" rel="noreferrer" className="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 hover:text-blue-700 hover:bg-blue-100 transition-colors">
+                                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"></path><rect x="2" y="9" width="4" height="12"></rect><circle cx="4" cy="4" r="2"></circle></svg>
+                              </a>
+                           )}
+                        </div>
+                     )}
                   </div>
                </div>
 

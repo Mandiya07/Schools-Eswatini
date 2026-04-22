@@ -73,6 +73,23 @@ const InstitutionAdminDashboard: React.FC<InstitutionAdminDashboardProps> = ({ u
     }
   };
 
+  const handleVerificationDocUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file && file.type === 'application/pdf') {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        handleUpdate({ 
+          ...inst, 
+          verificationDocuments: [...(inst.verificationDocuments || []), reader.result as string],
+          verificationStatus: 'pending'
+        });
+      };
+      reader.readAsDataURL(file);
+    } else if (file) {
+      alert("Please upload a PDF document.");
+    }
+  };
+
   const tabs = [
     { id: 'identity', label: 'Identity', icon: '🆔' },
     { id: 'theme', label: 'Appearance', icon: '✨' },
@@ -252,6 +269,57 @@ const InstitutionAdminDashboard: React.FC<InstitutionAdminDashboardProps> = ({ u
                         onChange={e => handleUpdate({ ...inst, parentContact: { ...(inst.parentContact || { name: '', email: '' }), phone: e.target.value } })} 
                       />
                     </div>
+                  </div>
+                </section>
+
+                <section>
+                  <h3 className="text-xl font-black text-slate-900 mb-8 flex items-center gap-3">📜 Verification Documents</h3>
+                  <p className="text-sm text-slate-500 mb-6 font-medium leading-relaxed">Upload official MoET registration certificates, tax clearances, or compliance documents to maintain verified status. Only PDF files are supported.</p>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                     <div>
+                       <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Upload Document (PDF)</label>
+                       <div className="flex items-center gap-4">
+                         <label className="bg-slate-900 text-white px-6 py-3 rounded-xl text-xs font-black uppercase tracking-widest cursor-pointer hover:bg-slate-800 transition-colors flex items-center gap-2">
+                           <Shield className="w-4 h-4" />
+                           Select PDF
+                           <input type="file" accept="application/pdf" className="hidden" onChange={handleVerificationDocUpload} />
+                         </label>
+                         <span className="text-xs font-bold text-slate-400">
+                           Status: <span className={inst.verificationStatus === 'verified' ? 'text-emerald-500' : inst.verificationStatus === 'rejected' ? 'text-rose-500' : 'text-amber-500'}>{inst.verificationStatus?.toUpperCase() || 'REQUIRED'}</span>
+                         </span>
+                       </div>
+                     </div>
+                     <div>
+                       <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Attached Documents</label>
+                       {inst.verificationDocuments && inst.verificationDocuments.length > 0 ? (
+                         <div className="bg-slate-50 rounded-2xl p-4 space-y-3">
+                           {inst.verificationDocuments.map((doc, idx) => (
+                             <div key={idx} className="flex items-center justify-between bg-white p-3 rounded-xl border border-slate-100 shadow-sm">
+                               <div className="flex items-center gap-3">
+                                 <FileText className="w-4 h-4 text-rose-500" />
+                                 <span className="text-xs font-bold text-slate-700">Document_{idx+1}.pdf</span>
+                               </div>
+                               <button 
+                                 onClick={() => {
+                                   const newDocs = [...inst.verificationDocuments!];
+                                   newDocs.splice(idx, 1);
+                                   handleUpdate({ ...inst, verificationDocuments: newDocs });
+                                 }}
+                                 className="text-slate-400 hover:text-rose-500 transition-colors"
+                               >
+                                 <Trash2 className="w-4 h-4" />
+                               </button>
+                             </div>
+                           ))}
+                         </div>
+                       ) : (
+                         <div className="bg-slate-50 border-2 border-dashed border-slate-200 rounded-2xl p-6 flex flex-col items-center justify-center text-center">
+                            <Shield className="w-8 h-8 text-slate-300 mb-2" />
+                            <p className="text-xs font-bold text-slate-400">No documents uploaded</p>
+                         </div>
+                       )}
+                     </div>
                   </div>
                 </section>
               </div>
