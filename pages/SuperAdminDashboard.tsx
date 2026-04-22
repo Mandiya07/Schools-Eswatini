@@ -1,0 +1,477 @@
+
+import React, { useState, useEffect } from 'react';
+import { Institution, User, Region, SubscriptionPlan } from '../types';
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, BarChart, Bar, XAxis, YAxis, CartesianGrid, LineChart, Line } from 'recharts';
+import SecurityDashboard from '../components/SecurityDashboard';
+
+interface SuperAdminDashboardProps {
+  institutions: Institution[];
+  onUpdate: (inst: Institution) => void;
+  onDelete: (id: string) => void;
+  onSeed?: () => void;
+}
+
+const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({ institutions, onUpdate, onDelete, onSeed }) => {
+  const [activeTab, setActiveTab] = useState<'overview' | 'institutions' | 'verification' | 'analytics' | 'security' | 'performance' | 'users' | 'moderation'>('overview');
+  const [perfStats, setPerfStats] = useState<any>(null);
+
+  useEffect(() => {
+    fetch('/api/stats')
+      .then(res => res.json())
+      .then(data => setPerfStats(data))
+      .catch(err => console.error("Failed to fetch perf stats", err));
+  }, []);
+
+  const planData = [
+    { name: 'Free', value: institutions.filter(i => i.plan === SubscriptionPlan.FREE).length, color: '#94a3b8' },
+    { name: 'Premium', value: institutions.filter(i => i.plan === SubscriptionPlan.PREMIUM).length, color: '#3b82f6' },
+    { name: 'Enterprise', value: institutions.filter(i => i.plan === SubscriptionPlan.ENTERPRISE).length, color: '#6366f1' },
+  ];
+
+  const mrr = institutions.reduce((acc, inst) => {
+    if (inst.plan === SubscriptionPlan.PREMIUM) return acc + 2500;
+    if (inst.plan === SubscriptionPlan.ENTERPRISE) return acc + 7500;
+    return acc;
+  }, 0);
+
+  const securityLogs = [
+    { id: '1', action: '2FA Enrollment', user: 'principal@waterford.sz', ip: '196.24.12.5', timestamp: '2023-11-23 10:12' },
+    { id: '2', action: 'Plan Upgrade: Premium', user: 'admin@stmarks.sz', ip: '196.24.15.82', timestamp: '2023-11-23 11:45' },
+    { id: '3', action: 'Bulk Image Upload', user: 'info@uniswa.sz', ip: '41.78.22.10', timestamp: '2023-11-23 13:02' },
+  ];
+
+  return (
+    <div className="max-w-7xl mx-auto px-6 lg:px-8 py-12">
+      <div className="flex flex-col md:flex-row justify-between items-center mb-16 gap-8">
+        <div>
+          <h1 className="text-5xl font-black text-slate-900 tracking-tighter leading-none">Global Operations</h1>
+          <p className="text-slate-500 font-bold uppercase tracking-widest text-[10px] mt-3 flex items-center gap-2">
+            <span className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse" />
+            Infrastructure Status: Operational
+          </p>
+        </div>
+        <div className="flex gap-4">
+           <div className="bg-white border p-6 rounded-[32px] shadow-sm">
+              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Monthly Recurring Revenue</p>
+              <p className="text-2xl font-black text-slate-900">SZL {mrr.toLocaleString()}</p>
+           </div>
+        </div>
+      </div>
+
+      <div className="flex gap-4 mb-10 border-b border-slate-100 overflow-x-auto">
+        <button 
+          onClick={() => setActiveTab('overview')}
+          className={`pb-4 text-[10px] font-black uppercase tracking-widest transition-all border-b-2 whitespace-nowrap ${activeTab === 'overview' ? 'border-blue-600 text-blue-600' : 'border-transparent text-slate-400'}`}
+        >
+          Overview
+        </button>
+        <button 
+          onClick={() => setActiveTab('institutions')}
+          className={`pb-4 text-[10px] font-black uppercase tracking-widest transition-all border-b-2 whitespace-nowrap ${activeTab === 'institutions' ? 'border-blue-600 text-blue-600' : 'border-transparent text-slate-400'}`}
+        >
+          Institutions ({institutions.length})
+        </button>
+        <button 
+          onClick={() => setActiveTab('verification')}
+          className={`pb-4 text-[10px] font-black uppercase tracking-widest transition-all border-b-2 whitespace-nowrap ${activeTab === 'verification' ? 'border-blue-600 text-blue-600' : 'border-transparent text-slate-400'}`}
+        >
+          Verification ({institutions.filter(i => i.verificationStatus === 'pending').length})
+        </button>
+        <button 
+          onClick={() => setActiveTab('analytics')}
+          className={`pb-4 text-[10px] font-black uppercase tracking-widest transition-all border-b-2 whitespace-nowrap ${activeTab === 'analytics' ? 'border-blue-600 text-blue-600' : 'border-transparent text-slate-400'}`}
+        >
+          Analytics
+        </button>
+        <button 
+          onClick={() => setActiveTab('security')}
+          className={`pb-4 text-[10px] font-black uppercase tracking-widest transition-all border-b-2 whitespace-nowrap ${activeTab === 'security' ? 'border-blue-600 text-blue-600' : 'border-transparent text-slate-400'}`}
+        >
+          Security
+        </button>
+        <button 
+          onClick={() => setActiveTab('performance')}
+          className={`pb-4 text-[10px] font-black uppercase tracking-widest transition-all border-b-2 whitespace-nowrap ${activeTab === 'performance' ? 'border-blue-600 text-blue-600' : 'border-transparent text-slate-400'}`}
+        >
+          Performance
+        </button>
+        <button 
+          onClick={() => setActiveTab('users')}
+          className={`pb-4 text-[10px] font-black uppercase tracking-widest transition-all border-b-2 whitespace-nowrap ${activeTab === 'users' ? 'border-blue-600 text-blue-600' : 'border-transparent text-slate-400'}`}
+        >
+          Users
+        </button>
+        <button 
+          onClick={() => setActiveTab('moderation')}
+          className={`pb-4 text-[10px] font-black uppercase tracking-widest transition-all border-b-2 whitespace-nowrap ${activeTab === 'moderation' ? 'border-blue-600 text-blue-600' : 'border-transparent text-slate-400'}`}
+        >
+          Moderation
+        </button>
+      </div>
+
+      {activeTab === 'overview' ? (
+        <>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-10 mb-10">
+            <div className="bg-white p-10 rounded-[48px] border border-slate-100 shadow-sm col-span-1 flex flex-col items-center">
+               <h3 className="text-sm font-black text-slate-900 uppercase tracking-widest mb-10 text-center">Plan Distribution</h3>
+               <div className="h-64 w-full">
+                  <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
+                     <PieChart>
+                        <Pie data={planData} innerRadius={60} outerRadius={80} paddingAngle={5} dataKey="value">
+                           {planData.map((entry, index) => <Cell key={`cell-${index}`} fill={entry.color} />)}
+                        </Pie>
+                        <Tooltip contentStyle={{ borderRadius: '24px', border: 'none' }} />
+                     </PieChart>
+                  </ResponsiveContainer>
+               </div>
+               <div className="flex gap-4 mt-6">
+                  {planData.map(p => (
+                    <div key={p.name} className="flex items-center gap-2">
+                       <div className="w-3 h-3 rounded-full" style={{backgroundColor: p.color}} />
+                       <span className="text-[10px] font-black uppercase text-slate-500">{p.name}</span>
+                    </div>
+                  ))}
+               </div>
+            </div>
+
+            <div className="bg-white p-10 rounded-[48px] border border-slate-100 shadow-sm col-span-2 overflow-hidden">
+               <h3 className="text-sm font-black text-slate-900 uppercase tracking-widest mb-10">Security Activity Feed</h3>
+               <div className="space-y-6">
+                  {securityLogs.map(log => (
+                    <div key={log.id} className="flex items-center justify-between p-6 bg-slate-50 rounded-3xl group hover:bg-slate-100 transition-colors">
+                       <div className="flex items-center gap-4">
+                          <div className="w-10 h-10 bg-white rounded-2xl flex items-center justify-center text-xl shadow-sm">🔒</div>
+                          <div>
+                             <p className="text-xs font-black text-slate-900">{log.action}</p>
+                             <p className="text-[10px] text-slate-500 font-medium">{log.user}</p>
+                          </div>
+                       </div>
+                       <div className="text-right">
+                          <p className="text-[10px] font-black text-slate-400">{log.ip}</p>
+                          <p className="text-[10px] font-bold text-slate-400 uppercase">{log.timestamp}</p>
+                       </div>
+                    </div>
+                  ))}
+               </div>
+            </div>
+          </div>
+          
+          <div className="bg-slate-900 text-white p-12 rounded-[48px] shadow-2xl flex flex-col md:flex-row justify-between items-center gap-8">
+             <div className="max-w-md">
+                <h3 className="text-2xl font-black mb-4 tracking-tight">Enterprise Infrastructure Support</h3>
+                <p className="text-slate-400 text-sm font-medium leading-relaxed">System backups are performed every 6 hours. Disaster recovery clusters are active in Southern Africa (JHB-1) and Europe (FRA-1).</p>
+             </div>
+             <div className="flex flex-col sm:flex-row gap-4">
+                {onSeed && (
+                  <button 
+                    onClick={onSeed}
+                    className="bg-amber-500 text-white px-10 py-5 rounded-[24px] font-black uppercase tracking-widest text-[10px] hover:bg-amber-600 transition-all shadow-xl shadow-amber-900/50"
+                  >
+                    Seed Database
+                  </button>
+                )}
+                <button className="bg-blue-600 text-white px-10 py-5 rounded-[24px] font-black uppercase tracking-widest text-[10px] hover:bg-blue-700 transition-all shadow-xl shadow-blue-900/50">Run System Audit</button>
+             </div>
+          </div>
+        </>
+      ) : activeTab === 'institutions' ? (
+        <div className="bg-white p-10 rounded-[48px] border border-slate-100 shadow-sm">
+          <h3 className="text-sm font-black text-slate-900 uppercase tracking-widest mb-10">Institution Directory</h3>
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="border-b border-slate-100">
+                  <th className="pb-6 text-[10px] font-black text-slate-400 uppercase tracking-widest">Institution</th>
+                  <th className="pb-6 text-[10px] font-black text-slate-400 uppercase tracking-widest">Region</th>
+                  <th className="pb-6 text-[10px] font-black text-slate-400 uppercase tracking-widest">Plan</th>
+                  <th className="pb-6 text-[10px] font-black text-slate-400 uppercase tracking-widest">Status</th>
+                  <th className="pb-6 text-[10px] font-black text-slate-400 uppercase tracking-widest">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-50">
+                {institutions.map(inst => (
+                  <tr key={inst.id} className="group hover:bg-slate-50 transition-colors">
+                    <td className="py-6">
+                      <div className="flex items-center gap-4">
+                        <img src={inst.logo || undefined} className="w-10 h-10 rounded-xl object-contain border bg-white p-1" />
+                        <div>
+                          <p className="text-sm font-black text-slate-900">{inst.name}</p>
+                          <p className="text-[10px] text-slate-400 font-bold uppercase">{inst.slug}</p>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="py-6 text-[10px] font-black text-slate-600 uppercase tracking-widest">{inst.region}</td>
+                    <td className="py-6">
+                      <span className={`px-3 py-1 rounded-full text-[8px] font-black uppercase tracking-widest ${inst.plan === SubscriptionPlan.FREE ? 'bg-slate-100' : 'bg-blue-600 text-white'}`}>{inst.plan}</span>
+                    </td>
+                    <td className="py-6">
+                      <span className={`px-3 py-1 rounded-full text-[8px] font-black uppercase tracking-widest ${inst.status === 'published' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}`}>{inst.status}</span>
+                    </td>
+                    <td className="py-6">
+                      <div className="flex gap-2">
+                        <button 
+                          onClick={() => onUpdate({ ...inst, status: inst.status === 'published' ? 'pending' : 'published' })}
+                          className="p-2 bg-slate-100 rounded-xl hover:bg-blue-100 hover:text-blue-600 transition-all"
+                        >
+                          {inst.status === 'published' ? '⏸' : '▶️'}
+                        </button>
+                        <button 
+                          onClick={() => onDelete(inst.id)}
+                          className="p-2 bg-slate-100 rounded-xl hover:bg-rose-100 hover:text-rose-600 transition-all"
+                        >
+                          🗑
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      ) : activeTab === 'verification' ? (
+        <div className="bg-white p-10 rounded-[48px] border border-slate-100 shadow-sm">
+          <h3 className="text-sm font-black text-slate-900 uppercase tracking-widest mb-10">Verification Requests</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {institutions.filter(i => i.verificationStatus === 'pending').map(inst => (
+              <div key={inst.id} className="border border-slate-100 p-6 rounded-3xl shadow-sm">
+                <div className="flex items-center gap-4 mb-4">
+                  <img src={inst.logo || undefined} className="w-12 h-12 rounded-xl object-contain border bg-white p-1" />
+                  <div>
+                    <h4 className="font-black text-slate-900">{inst.name}</h4>
+                    <p className="text-[10px] uppercase tracking-widest text-slate-500">{inst.moetRegistration}</p>
+                  </div>
+                </div>
+                <div className="mb-6">
+                  <p className="text-xs font-bold text-slate-700 mb-2">Submitted Documents:</p>
+                  <ul className="space-y-2">
+                    {inst.verificationDocuments?.map((doc, idx) => (
+                      <li key={idx} className="text-xs text-blue-600 hover:underline cursor-pointer flex items-center gap-2">
+                        📄 Document {idx + 1}
+                      </li>
+                    )) || <li className="text-xs text-slate-400">No documents uploaded</li>}
+                  </ul>
+                </div>
+                <div className="flex gap-4">
+                  <button 
+                    onClick={() => onUpdate({ ...inst, verificationStatus: 'verified', isVerified: true, trustScore: 100 })}
+                    className="flex-1 bg-emerald-500 text-white py-3 rounded-xl font-black uppercase tracking-widest text-[10px] hover:bg-emerald-600 transition-all"
+                  >
+                    Approve
+                  </button>
+                  <button 
+                    onClick={() => onUpdate({ ...inst, verificationStatus: 'rejected', isVerified: false, trustScore: 0 })}
+                    className="flex-1 bg-rose-500 text-white py-3 rounded-xl font-black uppercase tracking-widest text-[10px] hover:bg-rose-600 transition-all"
+                  >
+                    Reject
+                  </button>
+                </div>
+              </div>
+            ))}
+            {institutions.filter(i => i.verificationStatus === 'pending').length === 0 && (
+              <div className="col-span-full text-center py-12 text-slate-400 font-medium">
+                No pending verification requests.
+              </div>
+            )}
+          </div>
+        </div>
+      ) : activeTab === 'analytics' ? (
+        <div className="space-y-10">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
+            <div className="bg-white p-10 rounded-[48px] border border-slate-100 shadow-sm">
+              <h3 className="text-sm font-black text-slate-900 uppercase tracking-widest mb-10">Regional Growth Trends</h3>
+              <div className="h-64">
+                <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
+                  <BarChart data={[
+                    { name: 'Hhohho', schools: institutions.filter(i => i.region === Region.HHOHHO).length },
+                    { name: 'Manzini', schools: institutions.filter(i => i.region === Region.MANZINI).length },
+                    { name: 'Lubombo', schools: institutions.filter(i => i.region === Region.LUBOMBO).length },
+                    { name: 'Shiselweni', schools: institutions.filter(i => i.region === Region.SHISELWENI).length },
+                  ]}>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                    <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#94a3b8', fontWeight: 800 }} />
+                    <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#94a3b8', fontWeight: 800 }} />
+                    <Tooltip cursor={{ fill: '#f8fafc' }} contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }} />
+                    <Bar dataKey="schools" fill="#3b82f6" radius={[4, 4, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+            <div className="bg-white p-10 rounded-[48px] border border-slate-100 shadow-sm">
+              <h3 className="text-sm font-black text-slate-900 uppercase tracking-widest mb-10">Application Volume (Last 6 Months)</h3>
+              <div className="h-64">
+                <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
+                  <LineChart data={[
+                    { name: 'Oct', applications: 120 }, { name: 'Nov', applications: 250 },
+                    { name: 'Dec', applications: 400 }, { name: 'Jan', applications: 850 },
+                    { name: 'Feb', applications: 600 }, { name: 'Mar', applications: 350 }
+                  ]}>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                    <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#94a3b8', fontWeight: 800 }} />
+                    <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#94a3b8', fontWeight: 800 }} />
+                    <Tooltip contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }} />
+                    <Line type="monotone" dataKey="applications" stroke="#10b981" strokeWidth={3} dot={{ r: 4, fill: '#10b981', strokeWidth: 2, stroke: '#fff' }} activeDot={{ r: 6 }} />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+          </div>
+          <div className="bg-white p-10 rounded-[48px] border border-slate-100 shadow-sm">
+            <h3 className="text-sm font-black text-slate-900 uppercase tracking-widest mb-10">Most Searched Institutions</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {institutions.sort((a, b) => b.stats.views - a.stats.views).slice(0, 6).map((inst, idx) => (
+                <div key={inst.id} className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl">
+                  <div className="flex items-center gap-4">
+                    <span className="text-lg font-black text-slate-300">#{idx + 1}</span>
+                    <div>
+                      <p className="text-sm font-black text-slate-900">{inst.name}</p>
+                      <p className="text-[10px] text-slate-500 uppercase tracking-widest">{inst.region}</p>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-sm font-black text-blue-600">{inst.stats.views.toLocaleString()}</p>
+                    <p className="text-[10px] text-slate-400 uppercase tracking-widest">Views</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      ) : activeTab === 'security' ? (
+        <SecurityDashboard />
+      ) : activeTab === 'performance' ? (
+        <div className="space-y-10">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+            <div className="bg-white p-8 rounded-[40px] border border-slate-100 shadow-sm">
+              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Avg. Response Time</p>
+              <p className="text-3xl font-black text-slate-900">{perfStats?.avgResponseTime || '45ms'}</p>
+            </div>
+            <div className="bg-white p-8 rounded-[40px] border border-slate-100 shadow-sm">
+              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">System Uptime</p>
+              <p className="text-3xl font-black text-emerald-600">{perfStats?.uptime || '99.99%'}</p>
+            </div>
+            <div className="bg-white p-8 rounded-[40px] border border-slate-100 shadow-sm">
+              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">CDN Cache Hit Rate</p>
+              <p className="text-3xl font-black text-blue-600">94.2%</p>
+            </div>
+            <div className="bg-white p-8 rounded-[40px] border border-slate-100 shadow-sm">
+              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Image Compression</p>
+              <p className="text-3xl font-black text-indigo-600">65% Saved</p>
+            </div>
+          </div>
+
+          <div className="bg-white p-10 rounded-[48px] border border-slate-100 shadow-sm">
+            <h3 className="text-sm font-black text-slate-900 uppercase tracking-widest mb-10">Infrastructure Nodes</h3>
+            <div className="space-y-4">
+              {[
+                { name: 'API Gateway (JHB-1)', status: 'Healthy', load: '12%', latency: '15ms' },
+                { name: 'Database Cluster (Primary)', status: 'Healthy', load: '24%', latency: '8ms' },
+                { name: 'CDN Edge (CPT-1)', status: 'Healthy', load: '8%', latency: '12ms' },
+                { name: 'Asset Storage (S3-Compatible)', status: 'Healthy', load: '45%', latency: '22ms' },
+              ].map(node => (
+                <div key={node.name} className="flex items-center justify-between p-6 bg-slate-50 rounded-3xl">
+                  <div className="flex items-center gap-4">
+                    <div className="w-3 h-3 bg-emerald-500 rounded-full animate-pulse" />
+                    <p className="text-sm font-bold text-slate-900">{node.name}</p>
+                  </div>
+                  <div className="flex gap-8 text-right">
+                    <div>
+                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Load</p>
+                      <p className="text-xs font-bold text-slate-900">{node.load}</p>
+                    </div>
+                    <div>
+                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Latency</p>
+                      <p className="text-xs font-bold text-slate-900">{node.latency}</p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      ) : activeTab === 'users' ? (
+        <div className="bg-white p-10 rounded-[48px] border border-slate-100 shadow-sm">
+          <div className="flex justify-between items-center mb-10">
+            <h3 className="text-sm font-black text-slate-900 uppercase tracking-widest">User Management</h3>
+            <button className="bg-slate-900 text-white px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest">Add New Admin</button>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="border-b border-slate-100">
+                  <th className="pb-6 text-[10px] font-black text-slate-400 uppercase tracking-widest">User</th>
+                  <th className="pb-6 text-[10px] font-black text-slate-400 uppercase tracking-widest">Role</th>
+                  <th className="pb-6 text-[10px] font-black text-slate-400 uppercase tracking-widest">Institution</th>
+                  <th className="pb-6 text-[10px] font-black text-slate-400 uppercase tracking-widest">Last Active</th>
+                  <th className="pb-6 text-[10px] font-black text-slate-400 uppercase tracking-widest">Status</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-50">
+                {[
+                  { name: 'Sipho Mamba', email: 'sipho@uneswa.ac.sz', role: 'Institution Admin', inst: 'University of Eswatini', lastActive: '2 mins ago', status: 'Active' },
+                  { name: 'Jane Dlamini', email: 'jane@waterford.sz', role: 'Institution Admin', inst: 'Waterford Kamhlaba', lastActive: '1 hour ago', status: 'Active' },
+                  { name: 'Thabo Simelane', email: 'thabo@stmarks.sz', role: 'Content Editor', inst: "St. Mark's High", lastActive: 'Yesterday', status: 'Inactive' },
+                ].map((u, idx) => (
+                  <tr key={idx} className="group hover:bg-slate-50 transition-colors">
+                    <td className="py-6">
+                      <div className="flex items-center gap-4">
+                        <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center font-black text-slate-400">{u.name[0]}</div>
+                        <div>
+                          <p className="text-sm font-black text-slate-900">{u.name}</p>
+                          <p className="text-[10px] text-slate-500 font-bold uppercase">{u.email}</p>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="py-6 text-[10px] font-black text-slate-600 uppercase tracking-widest">{u.role}</td>
+                    <td className="py-6 text-[10px] font-black text-slate-600 uppercase tracking-widest">{u.inst}</td>
+                    <td className="py-6 text-[10px] font-black text-slate-400 uppercase tracking-widest">{u.lastActive}</td>
+                    <td className="py-6">
+                      <span className={`px-3 py-1 rounded-full text-[8px] font-black uppercase tracking-widest ${u.status === 'Active' ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-500'}`}>{u.status}</span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      ) : activeTab === 'moderation' ? (
+        <div className="bg-white p-10 rounded-[48px] border border-slate-100 shadow-sm">
+          <h3 className="text-sm font-black text-slate-900 uppercase tracking-widest mb-10">Reports & Moderation</h3>
+          <div className="space-y-6">
+            {[
+              { id: '1', type: 'Review', reason: 'Inappropriate Language', target: 'Waterford Kamhlaba Review #42', reporter: 'user-882', status: 'Pending' },
+              { id: '2', type: 'Institution', reason: 'Misleading Information', target: 'Mock School X', reporter: 'user-112', status: 'Under Review' },
+              { id: '3', type: 'Media', reason: 'Copyright Violation', target: 'UNESWA Gallery Image #12', reporter: 'user-554', status: 'Resolved' },
+            ].map(report => (
+              <div key={report.id} className="p-6 bg-slate-50 rounded-3xl border border-slate-100 flex items-center justify-between">
+                <div className="flex items-center gap-6">
+                  <div className={`w-12 h-12 rounded-2xl flex items-center justify-center text-xl ${
+                    report.status === 'Pending' ? 'bg-rose-100 text-rose-600' : 
+                    report.status === 'Under Review' ? 'bg-amber-100 text-amber-600' : 'bg-emerald-100 text-emerald-600'
+                  }`}>
+                    {report.type === 'Review' ? '💬' : report.type === 'Institution' ? '🏛' : '🖼'}
+                  </div>
+                  <div>
+                    <h4 className="font-black text-slate-900">{report.reason}</h4>
+                    <p className="text-xs text-slate-500 font-medium">Target: {report.target} • Reporter: {report.reporter}</p>
+                  </div>
+                </div>
+                <div className="flex gap-4">
+                  <span className={`px-3 py-1 rounded-full text-[8px] font-black uppercase tracking-widest ${
+                    report.status === 'Pending' ? 'bg-rose-100 text-rose-700' : 
+                    report.status === 'Under Review' ? 'bg-amber-100 text-amber-700' : 'bg-emerald-100 text-emerald-700'
+                  }`}>
+                    {report.status}
+                  </span>
+                  <button className="text-[10px] font-black text-blue-600 uppercase tracking-widest hover:underline">View Details</button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      ) : null}
+    </div>
+  );
+};
+
+export default SuperAdminDashboard;

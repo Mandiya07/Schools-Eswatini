@@ -1,0 +1,7 @@
+{
+  "name": "Schools Eswatini",
+  "description": "A comprehensive directory and website builder for educational institutions in Eswatini, featuring regional filtering, institutional mini-sites, and AI-powered discovery.",
+  "requestFramePermissions": [
+    "geolocation"
+  ]
+}

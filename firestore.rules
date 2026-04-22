@@ -1,0 +1,226 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // ===============================================================
+    // Assumed Data Model
+    // ===============================================================
+    //
+    // Collection: users
+    // Document ID: {userId}
+    // Fields:
+    //   - id: string (required)
+    //   - email: string (required, email format)
+    //   - name: string (required)
+    //   - role: string (required, enum: Super Admin, Institution Admin, Visitor)
+    //   - institutionId: string (optional)
+    //   - isVerified: boolean (optional)
+    //
+    // Collection: institutions
+    // Document ID: {institutionId}
+    // Fields:
+    //   - id: string (required)
+    //   - name: string (required)
+    //   - slug: string (required)
+    //   - region: string (required)
+    //   - status: string (required, enum: pending, published, suspended)
+    //   - adminId: string (optional)
+    //
+    // ===============================================================
+
+    // ===============================================================
+    // Helper Functions
+    // ===============================================================
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function isAdmin() {
+      return isAuthenticated() && 
+        (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'Super Admin' ||
+         (request.auth.token.email == "siphom.yati@gmail.com" && request.auth.token.email_verified == true));
+    }
+
+    function isInstitutionAdmin(institutionId) {
+      return isAuthenticated() && 
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.institutionId == institutionId;
+    }
+
+    function isValidUser(data) {
+      return data.keys().hasAll(['id', 'email', 'name', 'role']) &&
+             data.id is string &&
+             data.email is string &&
+             data.name is string &&
+             data.role in ['Super Admin', 'Institution Admin', 'Visitor', 'MoET Official', 'Parent', 'Teacher'];
+    }
+
+    function isValidInstitution(data) {
+      return data.keys().hasAll(['id', 'name', 'slug', 'region', 'status']) &&
+             data.id is string &&
+             data.name is string &&
+             data.slug is string &&
+             data.region in ['Hhohho', 'Manzini', 'Lubombo', 'Shiselweni'] &&
+             data.status in ['pending', 'published', 'suspended'];
+    }
+
+    function isValidReview(data) {
+      return data.keys().hasAll(['id', 'institutionId', 'userId', 'userName', 'rating', 'comment', 'status', 'createdAt']) &&
+             data.id is string &&
+             data.institutionId is string &&
+             data.userId is string &&
+             data.userName is string &&
+             data.rating is number && data.rating >= 1 && data.rating <= 5 &&
+             data.comment is string && data.comment.size() <= 2000 &&
+             data.status in ['pending', 'approved', 'rejected'] &&
+             data.createdAt is string;
+    }
+
+    function isValidMessage(data) {
+      return data.keys().hasAll(['id', 'institutionId', 'senderName', 'senderEmail', 'subject', 'body', 'status', 'createdAt']) &&
+             data.id is string &&
+             data.institutionId is string &&
+             data.senderName is string &&
+             data.senderEmail is string &&
+             data.subject is string &&
+             data.body is string &&
+             data.status in ['unread', 'read', 'archived'] &&
+             data.createdAt is string;
+    }
+
+    function isValidAlumniProfile(data) {
+      return data.keys().hasAll(['id', 'userId', 'institutionId', 'graduationYear', 'createdAt']) &&
+             data.id is string &&
+             data.userId is string &&
+             data.institutionId is string &&
+             data.graduationYear is number &&
+             data.createdAt is string;
+    }
+
+    function isValidSuccessStory(data) {
+      return data.keys().hasAll(['id', 'institutionId', 'alumniName', 'title', 'story', 'createdAt']) &&
+             data.id is string &&
+             data.institutionId is string &&
+             data.alumniName is string &&
+             data.title is string &&
+             data.story is string &&
+             data.createdAt is string;
+    }
+
+    function isValidFundraisingCampaign(data) {
+      return data.keys().hasAll(['id', 'institutionId', 'title', 'description', 'goalAmount', 'currentAmount', 'createdAt']) &&
+             data.id is string &&
+             data.institutionId is string &&
+             data.title is string &&
+             data.description is string &&
+             data.goalAmount is number &&
+             data.currentAmount is number &&
+             data.createdAt is string;
+    }
+
+    function isValidAuditLog(data) {
+      return data.keys().hasAll(['id', 'userId', 'action', 'resource', 'createdAt']) &&
+             data.id is string &&
+             data.userId is string &&
+             data.action is string &&
+             data.resource is string &&
+             data.createdAt is string;
+    }
+
+    function isValidActivityHistory(data) {
+      return data.keys().hasAll(['id', 'userId', 'type', 'description', 'createdAt']) &&
+             data.id is string &&
+             data.userId is string &&
+             data.type in ['login', 'logout', 'profile_update', 'review_submit', 'inquiry_send'] &&
+             data.description is string &&
+             data.createdAt is string;
+    }
+
+    function isValidStudentProgress(data) {
+      return data.keys().hasAll(['id', 'studentId', 'studentName', 'institutionId', 'teacherId', 'parentId', 'term', 'year', 'academics', 'behavior', 'participation', 'lastUpdated']) &&
+             data.id is string &&
+             data.studentId is string &&
+             data.studentName is string &&
+             data.institutionId is string &&
+             data.teacherId is string &&
+             data.parentId is string &&
+             data.term is string &&
+             data.year is number &&
+             data.academics is list &&
+             data.behavior is map &&
+             data.participation is map &&
+             data.lastUpdated is string;
+    }
+
+    // ===============================================================
+    // Rules
+    // ===============================================================
+
+    match /users/{userId} {
+      allow read: if isOwner(userId) || isAdmin();
+      allow create: if isAuthenticated() && isOwner(userId) && isValidUser(request.resource.data) && (request.resource.data.role != 'Super Admin' || isAdmin());
+      allow update: if (isOwner(userId) || isAdmin()) && isValidUser(request.resource.data) && (request.resource.data.role == resource.data.role || isAdmin());
+    }
+
+    match /institutions/{institutionId} {
+      allow read: if true; // Publicly readable
+      allow create: if isAdmin();
+      allow update: if isAdmin() || (isInstitutionAdmin(institutionId) && resource.data.status == 'published');
+      allow delete: if isAdmin();
+    }
+
+    match /reviews/{reviewId} {
+      allow read: if resource.data.status == 'approved' || (isAuthenticated() && (isOwner(resource.data.userId) || isInstitutionAdmin(resource.data.institutionId) || isAdmin()));
+      allow create: if isAuthenticated() && isValidReview(request.resource.data) && isOwner(request.resource.data.userId);
+      allow update: if (isInstitutionAdmin(resource.data.institutionId) || isAdmin()) && isValidReview(request.resource.data);
+      allow delete: if isAdmin() || isOwner(resource.data.userId);
+    }
+
+    match /messages/{messageId} {
+      allow read: if isAuthenticated() && (isOwner(resource.data.senderId) || isInstitutionAdmin(resource.data.institutionId) || isAdmin());
+      allow create: if isValidMessage(request.resource.data);
+      allow update: if isAuthenticated() && (isInstitutionAdmin(resource.data.institutionId) || isAdmin()) && isValidMessage(request.resource.data);
+      allow delete: if isAdmin();
+    }
+
+    match /alumni_profiles/{profileId} {
+      allow read: if resource.data.isPublic == true || (isAuthenticated() && (isOwner(resource.data.userId) || isInstitutionAdmin(resource.data.institutionId) || isAdmin()));
+      allow create: if isAuthenticated() && isValidAlumniProfile(request.resource.data) && isOwner(request.resource.data.userId);
+      allow update: if isAuthenticated() && isOwner(resource.data.userId) && isValidAlumniProfile(request.resource.data);
+      allow delete: if isAdmin() || (isAuthenticated() && isOwner(resource.data.userId));
+    }
+
+    match /success_stories/{storyId} {
+      allow read: if true;
+      allow create: if isAuthenticated() && (isInstitutionAdmin(request.resource.data.institutionId) || isAdmin());
+      allow update: if isAuthenticated() && (isInstitutionAdmin(resource.data.institutionId) || isAdmin());
+      allow delete: if isAdmin();
+    }
+
+    match /fundraising_campaigns/{campaignId} {
+      allow read: if true;
+      allow create: if isAuthenticated() && (isInstitutionAdmin(request.resource.data.institutionId) || isAdmin());
+      allow update: if isAuthenticated() && (isInstitutionAdmin(resource.data.institutionId) || isAdmin());
+      allow delete: if isAdmin();
+    }
+
+    match /audit_logs/{logId} {
+      allow read: if isAdmin();
+      allow create: if isAuthenticated() && isValidAuditLog(request.resource.data) && request.resource.data.userId == request.auth.uid;
+    }
+
+    match /activity_history/{historyId} {
+      allow read: if isAuthenticated() && (isOwner(resource.data.userId) || isAdmin());
+      allow create: if isAuthenticated() && isValidActivityHistory(request.resource.data) && request.resource.data.userId == request.auth.uid;
+    }
+
+    match /student_progress/{progressId} {
+      allow read: if isAuthenticated() && (request.auth.uid == resource.data.teacherId || request.auth.uid == resource.data.parentId || isInstitutionAdmin(resource.data.institutionId) || isAdmin());
+      allow create: if isAuthenticated() && (request.auth.uid == request.resource.data.teacherId || isAdmin()) && isValidStudentProgress(request.resource.data);
+      allow update: if isAuthenticated() && (request.auth.uid == resource.data.teacherId || isAdmin()) && isValidStudentProgress(request.resource.data);
+      allow delete: if isAdmin();
+    }
+  }
+}

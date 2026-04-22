@@ -1,0 +1,472 @@
+
+import React, { useState } from 'react';
+import { useParams, Navigate } from 'react-router-dom';
+import { Institution, InstitutionType } from '../types';
+import { ReviewsSection, AlumniSection, InquiryForm } from '../components/EngagementFeatures';
+import { getOptimizedImageUrl } from '../src/services/performanceService';
+import SEO from '../src/components/SEO';
+import MinistryIntegration from '../src/components/MinistryIntegration';
+import HistorySection from '../src/components/HistorySection';
+import VisionSection from '../src/components/VisionSection';
+import MissionSection from '../src/components/MissionSection';
+import CoreValuesSection from '../src/components/CoreValuesSection';
+import LeadershipSection from '../src/components/LeadershipSection';
+import AccreditationSection from '../src/components/AccreditationSection';
+import StatisticsPanel from '../src/components/StatisticsPanel';
+import CampusOverview from '../src/components/CampusOverview';
+import CommunityImpact from '../src/components/CommunityImpact';
+import DownloadCenter from '../src/components/DownloadCenter';
+import AdmissionsSection from '../src/components/AdmissionsSection';
+import AcademicsSection from '../src/components/AcademicsSection';
+import PortalSection from '../src/components/PortalSection';
+import NewsEventsSection from '../src/components/NewsEventsSection';
+import StudentLifeSection from '../src/components/StudentLifeSection';
+import ContactSection from '../src/components/ContactSection';
+
+interface InstitutionProfileProps {
+  institutions: Institution[];
+  favorites: string[];
+  onToggleFavorite: (id: string) => void;
+  lang: 'en' | 'ss';
+}
+
+const InstitutionProfile: React.FC<InstitutionProfileProps> = ({ institutions, favorites, onToggleFavorite, lang }) => {
+  const { slug } = useParams<{ slug: string }>();
+  const inst = institutions.find(i => i.slug === slug);
+  const [activeSection, setActiveSection] = useState<string>('homepage');
+  const [selectedDept, setSelectedDept] = useState<number | null>(null);
+
+  if (!inst) return <Navigate to="/browse" />;
+
+  const isTertiary = inst.type && inst.type.includes(InstitutionType.TERTIARY);
+
+  const themeStyle = {
+    '--primary': inst.theme.primaryColor,
+    '--radius': inst.theme.borderRadius === 'none' ? '0' : inst.theme.borderRadius === 'md' ? '12px' : inst.theme.borderRadius === '2xl' ? '40px' : '9999px',
+    'fontFamily': inst.theme.fontFamily === 'Inter' ? 'Inter, sans-serif' : 
+                  inst.theme.fontFamily === 'Playfair Display' ? '"Playfair Display", serif' : 
+                  inst.theme.fontFamily === 'Space Grotesk' ? '"Space Grotesk", sans-serif' : 
+                  inst.theme.fontFamily === 'Outfit' ? 'Outfit, sans-serif' : 'Inter, sans-serif'
+  } as React.CSSProperties;
+
+  const labels = {
+    en: { 
+      welcome: inst.type.includes(InstitutionType.ASSOCIATION) ? 'Leadership Message' : 'Principal\'s Welcome', 
+      acad: inst.type.includes(InstitutionType.ASSOCIATION) ? 'Professional Development' : 'Academics', 
+      news: 'News & Media', 
+      life: inst.type.includes(InstitutionType.ASSOCIATION) ? 'Member Life' : 'Student Life', 
+      contact: 'Contact Us',
+      about: 'About Us',
+      admissions: inst.type.includes(InstitutionType.ASSOCIATION) ? 'Membership' : 'Admissions',
+      reviews: 'Reviews & Ratings',
+      alumni: 'Alumni Network',
+      portal: inst.type.includes(InstitutionType.ASSOCIATION) ? 'Member Portal' : 'Student Portal',
+      quickTitle: 'Quick Actions',
+      upcoming: 'What\'s Happening'
+    },
+    ss: { 
+      welcome: inst.type.includes(InstitutionType.ASSOCIATION) ? 'Siyakwemukela' : 'Umlayeto wePrincipal', 
+      acad: inst.type.includes(InstitutionType.ASSOCIATION) ? 'Tebucwepheshe' : 'Imfundvo', 
+      news: 'Tindzaba', 
+      life: inst.type.includes(InstitutionType.ASSOCIATION) ? 'Imphilo yeMalunga' : 'Imphilo yeSikolwa', 
+      contact: 'Tsintsana Natsi',
+      about: 'Mayelana Natsi',
+      admissions: inst.type.includes(InstitutionType.ASSOCIATION) ? 'Bulunga' : 'Kungeniswa',
+      reviews: 'Kubuyeketa',
+      alumni: 'Inkhundla ye-Alumni',
+      portal: inst.type.includes(InstitutionType.ASSOCIATION) ? 'Iphothali yeSikolwa' : 'Iphothali yeSikolwa',
+      quickTitle: 'Tento Letisheshako',
+      upcoming: 'Lokwentekako'
+    }
+  }[lang];
+
+  const defaultOrder = ['homepage', 'about', 'admissions', 'academics', 'news', 'studentLife', 'portal', 'reviews', 'alumni', 'contact'];
+  const orderedSections = (inst.theme.sectionOrder || defaultOrder).map(id => {
+    return {
+      id,
+      label: id === 'homepage' ? 'Home' : 
+             id === 'about' ? labels.about : 
+             id === 'admissions' ? labels.admissions : 
+             id === 'academics' ? labels.acad : 
+             id === 'news' ? labels.news : 
+             id === 'studentLife' ? labels.life : 
+             id === 'portal' ? labels.portal :
+             id === 'reviews' ? labels.reviews :
+             id === 'alumni' ? labels.alumni :
+             id === 'contact' ? labels.contact : id
+    };
+  }).filter(Boolean) as { id: string, label: string }[];
+
+  // Ensure contact is always present if not in order
+  if (!orderedSections.find(s => s.id === 'contact')) {
+    orderedSections.push({ id: 'contact', label: labels.contact });
+  }
+
+  const sections = orderedSections;
+
+  const acad = inst.sections.academics;
+  const about = inst.sections.about;
+  const admin = inst.sections.admissions;
+  const news = inst.sections.news;
+  const life = inst.sections.studentLife;
+
+  return (
+    <div className="min-h-screen bg-white pb-20" style={themeStyle}>
+      <SEO 
+        title={inst.name} 
+        description={inst.seo.description} 
+        institution={inst} 
+      />
+      {/* Hero Header */}
+      <div className="relative h-[500px] md:h-[750px] overflow-hidden">
+        <img src={getOptimizedImageUrl(inst.sections.homepage.heroBanner || inst.coverImage, 1920, 1080) || undefined} className="w-full h-full object-cover scale-105" loading="lazy" />
+        <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/40 to-transparent" />
+        <div className="absolute bottom-0 left-0 w-full p-8 md:p-20">
+          <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-end gap-12">
+            <div className="w-48 h-48 bg-white p-6 shadow-2xl shrink-0 mb-[-120px] md:mb-[-180px] z-10 overflow-hidden" style={{ borderRadius: themeStyle['--radius' as any] }}>
+              <img src={getOptimizedImageUrl(inst.logo, 400, 400) || undefined} className="w-full h-full object-contain" loading="lazy" />
+            </div>
+            <div className="flex-1 pb-6 text-white space-y-6">
+               <div className="flex items-center gap-4">
+                  {inst.isVerified && (
+                    <span className="px-4 py-1.5 bg-emerald-500 rounded-full text-[10px] font-black uppercase tracking-widest shadow-xl flex items-center gap-2">
+                      <span className="text-white">✅</span> Verified Institution
+                    </span>
+                  )}
+                  <span className="px-4 py-1.5 bg-white/20 backdrop-blur-md rounded-full text-[10px] font-black uppercase tracking-widest">{inst.region} Region</span>
+               </div>
+               <h1 className="text-6xl md:text-9xl font-black tracking-tighter leading-none">{inst.name}</h1>
+               <p className="text-2xl md:text-3xl font-medium text-slate-300 max-w-3xl leading-snug">{acad.overview.headline}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Sticky Navigation */}
+      <div className="bg-white/80 backdrop-blur-xl border-b sticky top-0 z-50 shadow-sm overflow-x-auto scrollbar-hide">
+        <div className="max-w-7xl mx-auto px-8 md:px-20 flex space-x-12 h-28 items-center">
+           <div className="w-48 shrink-0 hidden md:block" />
+           {sections.map(s => (
+             <button 
+               key={s.id} 
+               onClick={() => setActiveSection(s.id)} 
+               className={`text-[11px] font-black uppercase tracking-[0.2em] border-b-4 h-full flex items-center px-2 transition-all whitespace-nowrap ${activeSection === s.id ? 'text-slate-900' : 'text-slate-400 hover:text-slate-600'}`} 
+               style={{ borderBottomColor: activeSection === s.id ? inst.theme.primaryColor : 'transparent' }}
+             >
+               {s.label}
+             </button>
+           ))}
+        </div>
+      </div>
+
+      <div className="max-w-[1440px] mx-auto px-4 sm:px-8 md:px-12 lg:px-20 py-12 md:py-24">
+         {/* Ministry Integration Section (Authoritative) */}
+         <div className="mb-16 md:mb-24">
+           <MinistryIntegration institution={inst} />
+         </div>
+
+         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-16">
+            <div className="lg:col-span-9 space-y-20 md:space-y-32">
+               
+               {/* --- HOMEPAGE SECTION --- */}
+               {activeSection === 'homepage' && (
+                 <div className="space-y-32 animate-in fade-in slide-in-from-bottom-8 duration-700">
+                   {/* 1. Statistics Grid Strip */}
+                   <section className="grid grid-cols-2 md:grid-cols-4 gap-8">
+                      <div className="p-10 bg-slate-50 rounded-[48px] text-center border border-slate-100 group hover:bg-white hover:shadow-xl transition-all">
+                         <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">Pass Rate</p>
+                         <p className="text-4xl font-black text-blue-600 tracking-tight">{acad.performance.passRate}</p>
+                      </div>
+                      <div className="p-10 bg-slate-50 rounded-[48px] text-center border border-slate-100 group hover:bg-white hover:shadow-xl transition-all">
+                         <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">Enrollment</p>
+                         <p className="text-4xl font-black text-slate-900 tracking-tight">{inst.metadata.studentCount}</p>
+                      </div>
+                      <div className="p-10 bg-slate-50 rounded-[48px] text-center border border-slate-100 group hover:bg-white hover:shadow-xl transition-all">
+                         <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">Staff</p>
+                         <p className="text-4xl font-black text-slate-900 tracking-tight">{acad.staff.totalCount}</p>
+                      </div>
+                      <div className="p-10 bg-slate-50 rounded-[48px] text-center border border-slate-100 group hover:bg-white hover:shadow-xl transition-all">
+                         <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">Est. Year</p>
+                         <p className="text-4xl font-black text-slate-900 tracking-tight">{inst.metadata.establishedYear}</p>
+                      </div>
+                   </section>
+
+                   {/* 2. Welcome Message */}
+                   <section className="space-y-16">
+                      <div className="flex items-center gap-6">
+                         <span className="h-[2px] w-16 bg-blue-600 rounded-full" />
+                         <h2 className="text-[11px] font-black text-blue-600 uppercase tracking-[0.3em]">{labels.welcome}</h2>
+                      </div>
+                      <p className="text-4xl md:text-6xl font-black text-slate-900 tracking-tight leading-[1.05]">{inst.sections.homepage.welcomeMessage}</p>
+                      
+                      <div className="bg-white p-14 rounded-[64px] border border-slate-100 flex flex-col lg:flex-row gap-16 items-center shadow-sm relative overflow-hidden">
+                         <div className="absolute top-0 right-0 p-12 opacity-5 text-[10rem] font-black">"</div>
+                         <div className="w-56 h-72 shrink-0 overflow-hidden rounded-[40px] bg-slate-100 shadow-2xl z-10">
+                            <img src={getOptimizedImageUrl(inst.sections.homepage.principalMessage.photo, 400, 600) || undefined} className="w-full h-full object-cover" loading="lazy" />
+                         </div>
+                         <div className="relative z-10">
+                            <blockquote className="text-3xl font-medium text-slate-600 italic leading-relaxed mb-10">"{inst.sections.homepage.principalMessage.text}"</blockquote>
+                            <div className="flex items-center gap-6">
+                               <div className="w-12 h-1 bg-blue-600" />
+                               <div>
+                                  <p className="text-lg font-black text-slate-900 uppercase tracking-widest">{inst.sections.homepage.principalMessage.name}</p>
+                                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] mt-1">Head of Institution</p>
+                               </div>
+                            </div>
+                         </div>
+                      </div>
+                   </section>
+
+                   {/* 3. Quick Actions Grid */}
+                   <section className="space-y-12">
+                      <h3 className="text-2xl font-black text-slate-900 uppercase tracking-widest">{labels.quickTitle}</h3>
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+                         <button onClick={() => setActiveSection('admissions')} className="group p-6 md:p-10 bg-blue-600 text-white rounded-[48px] shadow-2xl shadow-blue-200 flex flex-col items-center text-center transition-all hover:-translate-y-3">
+                            <span className="text-4xl mb-6 group-hover:scale-125 transition-transform duration-500">📄</span>
+                            <span className="text-[10px] font-black uppercase tracking-[0.2em]">Apply Now</span>
+                         </button>
+                         <button onClick={() => setActiveSection('admissions')} className="group p-10 bg-white border border-slate-100 rounded-[48px] shadow-sm flex flex-col items-center text-center transition-all hover:-translate-y-3">
+                            <span className="text-4xl mb-6 group-hover:scale-125 transition-transform duration-500">🎓</span>
+                            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-900">Scholarships</span>
+                         </button>
+                         <a href={inst.sections.portal.url} target="_blank" rel="noreferrer" className="group p-10 bg-white border border-slate-100 rounded-[48px] shadow-sm flex flex-col items-center text-center transition-all hover:-translate-y-3">
+                            <span className="text-4xl mb-6 group-hover:scale-125 transition-transform duration-500">🔑</span>
+                            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-900">Portal</span>
+                         </a>
+                         <button onClick={() => setActiveSection('contact')} className="group p-6 md:p-10 bg-slate-900 text-white rounded-[48px] shadow-2xl flex flex-col items-center text-center transition-all hover:-translate-y-3">
+                            <span className="text-4xl mb-6 group-hover:scale-125 transition-transform duration-500">📞</span>
+                            <span className="text-[10px] font-black uppercase tracking-[0.2em]">Contact</span>
+                         </button>
+                      </div>
+                   </section>
+
+                   {/* 4. News Carousel Teaser */}
+                   <section className="space-y-16">
+                      <div className="flex justify-between items-end">
+                         <h3 className="text-3xl font-black text-slate-900 uppercase tracking-tight">Latest Announcements</h3>
+                         <button onClick={() => setActiveSection('news')} className="text-[10px] font-black uppercase tracking-widest text-blue-600 border-b-2 border-blue-600 pb-1">Read All News</button>
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+                         {[...(inst.sections.homepage.announcements || [])]
+                           .sort((a, b) => {
+                             if (a.isFeatured && !b.isFeatured) return -1;
+                             if (!a.isFeatured && b.isFeatured) return 1;
+                             return new Date(b.date).getTime() - new Date(a.date).getTime();
+                           })
+                           .slice(0, 2).map(ann => (
+                           <div key={ann.id} className={`p-12 border rounded-[56px] relative overflow-hidden group transition-all ${ann.isFeatured ? 'bg-slate-900 text-white border-transparent' : 'bg-white border-slate-100 hover:border-blue-500'}`}>
+                              <div className="absolute -top-10 -right-10 p-12 opacity-[0.03] text-9xl group-hover:opacity-[0.06] transition-opacity">
+                                 {ann.isFeatured ? '⭐️' : '📢'}
+                              </div>
+                              <div className="flex gap-4 items-center mb-6">
+                                 <span className={`px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest ${ann.isFeatured ? 'bg-white text-slate-900' : 'bg-blue-50 text-blue-600'}`}>{ann.date}</span>
+                                 {ann.isFeatured && (
+                                    <span className="px-3 py-1 bg-amber-400 text-slate-900 rounded-full text-[8px] font-black uppercase tracking-widest flex items-center gap-1.5 shadow-lg">
+                                       <span className="inline-block animate-pulse">★</span> Featured Notice
+                                    </span>
+                                 )}
+                              </div>
+                              <h4 className={`text-3xl font-black mb-6 leading-tight transition-colors ${ann.isFeatured ? 'text-white' : 'text-slate-900 group-hover:text-blue-600'}`}>{ann.title}</h4>
+                              <p className={`text-lg font-medium leading-relaxed mb-10 ${ann.isFeatured ? 'text-slate-400' : 'text-slate-500'}`}>{ann.content}</p>
+                              <button className={`text-[10px] font-black uppercase tracking-widest group-hover:translate-x-2 transition-transform ${ann.isFeatured ? 'text-white' : 'text-slate-900'}`}>Read Full Post →</button>
+                           </div>
+                         ))}
+                      </div>
+                   </section>
+                 </div>
+               )}
+
+               {/* --- ABOUT SECTION --- */}
+               {activeSection === 'about' && (
+                 <div className="space-y-32 animate-in fade-in slide-in-from-bottom-8 duration-700">
+                    <section className="space-y-10">
+                       <h2 className="text-7xl font-black text-slate-900 tracking-tighter">Our Legacy</h2>
+                       <p className="text-2xl text-slate-500 font-medium leading-relaxed max-w-3xl">{about.overview}</p>
+                    </section>
+
+                     <section className="space-y-16">
+                        <h3 className="text-3xl font-black text-slate-900 uppercase tracking-tight">Our Mission</h3>
+                        <MissionSection mission={about.mission} primaryColor={inst.theme.primaryColor} />
+                     </section>
+
+                     <section className="space-y-16">
+                        <h3 className="text-3xl font-black text-slate-900 uppercase tracking-tight">The Vision</h3>
+                        <VisionSection vision={about.vision} primaryColor={inst.theme.primaryColor} />
+                     </section>
+
+                     <section className="space-y-16">
+                        <h3 className="text-3xl font-black text-slate-900 uppercase tracking-tight">Core Values</h3>
+                        <CoreValuesSection values={about.coreValues} primaryColor={inst.theme.primaryColor} />
+                     </section>
+
+                     <section className="space-y-16">
+                        <h3 className="text-3xl font-black text-slate-900 uppercase tracking-tight">Leadership Profile</h3>
+                        <LeadershipSection leadership={about.leadership} primaryColor={inst.theme.primaryColor} />
+                     </section>
+
+                     <section className="space-y-16">
+                        <h3 className="text-3xl font-black text-slate-900 uppercase tracking-tight">Accreditation & Compliance</h3>
+                        <AccreditationSection accreditation={about.accreditation} primaryColor={inst.theme.primaryColor} />
+                     </section>
+
+                     <section className="space-y-16">
+                        <h3 className="text-3xl font-black text-slate-900 uppercase tracking-tight">Institutional Statistics</h3>
+                        <StatisticsPanel statistics={about.statistics} primaryColor={inst.theme.primaryColor} />
+                     </section>
+
+                     <section className="space-y-16">
+                        <h3 className="text-3xl font-black text-slate-900 uppercase tracking-tight">Campus Overview</h3>
+                        <CampusOverview facilities={about.facilities} primaryColor={inst.theme.primaryColor} />
+                     </section>
+
+                     <section className="space-y-16">
+                        <h3 className="text-3xl font-black text-slate-900 uppercase tracking-tight">Community Impact</h3>
+                        <CommunityImpact community={about.community} primaryColor={inst.theme.primaryColor} />
+                     </section>
+
+                     <section className="space-y-16">
+                        <h3 className="text-3xl font-black text-slate-900 uppercase tracking-tight">Download Center</h3>
+                        <DownloadCenter downloads={about.downloads} primaryColor={inst.theme.primaryColor} />
+                     </section>
+
+                    <section className="space-y-16">
+                       <h3 className="text-3xl font-black text-slate-900 uppercase tracking-tight">Our Journey</h3>
+                       <HistorySection history={about.history} primaryColor={inst.theme.primaryColor} />
+                    </section>
+                 </div>
+               )}
+
+               {/* --- ADMISSIONS SECTION --- */}
+               {activeSection === 'admissions' && (
+                 <div className="animate-in fade-in slide-in-from-bottom-8 duration-700">
+                    <AdmissionsSection admissions={admin} primaryColor={inst.theme.primaryColor} />
+                 </div>
+               )}
+
+               {/* --- ACADEMICS SECTION --- */}
+               {activeSection === 'academics' && (
+                 <div className="animate-in fade-in slide-in-from-bottom-8 duration-700">
+                    <AcademicsSection academics={acad} primaryColor={inst.theme.primaryColor} />
+                 </div>
+               )}
+
+               {/* --- NEWS & MEDIA SECTION --- */}
+               {activeSection === 'news' && (
+                 <div className="animate-in fade-in slide-in-from-bottom-8 duration-700">
+                    <NewsEventsSection news={inst.sections.news} primaryColor={inst.theme.primaryColor} />
+                 </div>
+               )}
+
+               {/* --- STUDENT LIFE SECTION --- */}
+               {activeSection === 'studentLife' && (
+                 <div className="animate-in fade-in slide-in-from-bottom-8 duration-700">
+                    <StudentLifeSection life={inst.sections.studentLife} primaryColor={inst.theme.primaryColor} />
+                 </div>
+               )}
+
+               {/* --- REVIEWS SECTION --- */}
+               {activeSection === 'reviews' && (
+                 <div className="animate-in fade-in slide-in-from-bottom-8 duration-700">
+                   <ReviewsSection institution={inst} lang={lang} />
+                 </div>
+               )}
+
+               {/* --- ALUMNI SECTION --- */}
+               {activeSection === 'alumni' && (
+                 <div className="animate-in fade-in slide-in-from-bottom-8 duration-700">
+                   <AlumniSection institution={inst} lang={lang} />
+                 </div>
+               )}
+
+               {/* --- PORTAL SECTION --- */}
+               {activeSection === 'portal' && (
+                 <div className="animate-in fade-in slide-in-from-bottom-8 duration-700">
+                    <PortalSection portal={inst.sections.portal} primaryColor={inst.theme.primaryColor} />
+                 </div>
+               )}
+
+               {/* --- CONTACT SECTION --- */}
+               {activeSection === 'contact' && (
+                 <ContactSection institution={inst} primaryColor={inst.theme.primaryColor} lang={lang} />
+               )}
+
+            </div>
+
+            {/* Sticky Sidebar Profile Context */}
+            <aside className="lg:col-span-3 space-y-6 md:space-y-8 lg:sticky lg:top-36 self-start max-h-[calc(100vh-9rem)] overflow-y-auto scrollbar-hide pb-10">
+               <div className="p-6 md:p-10 bg-white border border-slate-100 shadow-3xl overflow-hidden relative" style={{borderRadius: themeStyle['--radius' as any]}}>
+                  <div className="absolute -top-12 -right-12 w-48 h-48 bg-blue-50 rounded-full blur-[80px] opacity-40" />
+                  <h3 className="text-[10px] font-black text-slate-300 uppercase tracking-[0.3em] mb-6 md:mb-8 relative z-10">Institutional Profile</h3>
+                  <div className="space-y-6 md:space-y-8 relative z-10">
+                     <div className="grid grid-cols-1 gap-6 md:gap-8">
+                        <div className="group">
+                           <p className="text-[10px] font-black text-blue-500 uppercase tracking-widest mb-1 md:mb-2">Registry Status</p>
+                           <p className="text-sm font-black text-slate-900 group-hover:text-blue-600 transition-colors">{inst.moetRegistration}</p>
+                        </div>
+                        <div>
+                           <p className="text-[10px] font-black text-blue-500 uppercase tracking-widest mb-1 md:mb-2">History</p>
+                           <p className="text-xl md:text-2xl font-black text-slate-900 tracking-tighter">Est. {inst.metadata.establishedYear}</p>
+                        </div>
+                        <div>
+                           <p className="text-[10px] font-black text-blue-500 uppercase tracking-widest mb-1 md:mb-2">Capacity</p>
+                           <p className="text-xl md:text-2xl font-black text-slate-900 tracking-tighter">{inst.metadata.studentCount} Pupils</p>
+                        </div>
+                        <div>
+                           <p className="text-[10px] font-black text-blue-500 uppercase tracking-widest mb-1 md:mb-2">Region</p>
+                           <p className="text-xl md:text-2xl font-black text-slate-900 tracking-tighter">{inst.region}</p>
+                        </div>
+                     </div>
+                     <div className="pt-6 md:pt-8 border-t border-slate-100">
+                        <button onClick={() => onToggleFavorite(inst.id)} className={`w-full py-4 md:py-5 font-black uppercase tracking-[0.2em] text-[9px] rounded-[24px] transition-all shadow-xl ${favorites.includes(inst.id) ? 'bg-rose-50 text-rose-600 border border-rose-100' : 'bg-slate-900 text-white hover:bg-blue-600 hover:scale-[1.02]'}`}>
+                           {favorites.includes(inst.id) ? '♥ Saved in Directory' : 'Save to Favorites'}
+                        </button>
+                     </div>
+                  </div>
+               </div>
+
+               {/* Quick Info Card */}
+               <div className="p-8 md:p-10 bg-slate-50 rounded-[40px] border border-slate-100 space-y-6">
+                  <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Quick Facts</h4>
+                  <div className="space-y-4">
+                     <div className="flex justify-between items-center">
+                        <span className="text-xs font-medium text-slate-500">Ownership</span>
+                        <span className="text-xs font-bold text-slate-900">{inst.type.join(', ')}</span>
+                     </div>
+                     <div className="flex justify-between items-center">
+                        <span className="text-xs font-medium text-slate-500">Gender</span>
+                        <span className="text-xs font-bold text-slate-900">{inst.metadata.gender}</span>
+                     </div>
+                     <div className="flex justify-between items-center">
+                        <span className="text-xs font-medium text-slate-500">Boarding</span>
+                        <span className="text-xs font-bold text-slate-900">{inst.metadata.isBoarding ? 'Yes' : 'No'}</span>
+                     </div>
+                  </div>
+               </div>
+
+               {/* Quick Map Link */}
+               <div className="p-8 md:p-12 bg-slate-900 text-white rounded-[48px] md:rounded-[64px] shadow-3xl group cursor-pointer overflow-hidden relative">
+                  <div className="absolute top-0 right-0 p-8 md:p-12 opacity-5 text-7xl md:text-9xl">🗺</div>
+                  <div className="flex justify-between items-start mb-6 md:mb-8">
+                     <h3 className="text-[10px] font-black uppercase tracking-[0.3em] opacity-50">Navigation</h3>
+                     <span className="w-8 h-8 md:w-10 md:h-10 bg-white/10 rounded-xl md:rounded-2xl flex items-center justify-center text-lg md:text-xl group-hover:bg-blue-500 transition-colors">📍</span>
+                  </div>
+                  <p className="text-base md:text-lg font-bold mb-8 md:mb-10 leading-snug">Get direct route to {inst.name} campus.</p>
+                  <a href={inst.contact.googleMapsUrl} target="_blank" rel="noreferrer" className="text-[9px] font-black uppercase tracking-[0.3em] underline decoration-[2px] md:decoration-[3px] underline-offset-8 decoration-blue-500">Launch Google Maps</a>
+               </div>
+
+               {/* Inquiry Teaser */}
+               <div className="p-8 md:p-10 bg-blue-600 text-white rounded-[40px] shadow-2xl shadow-blue-200">
+                  <h4 className="text-[10px] font-black uppercase tracking-widest mb-4">Have Questions?</h4>
+                  <p className="text-sm font-medium mb-6 opacity-90">Send a direct inquiry to the admissions office.</p>
+                  <button onClick={() => setActiveSection('contact')} className="w-full py-4 bg-white text-blue-600 rounded-full text-[10px] font-black uppercase tracking-widest hover:bg-slate-50 transition-colors">
+                     Send Message
+                  </button>
+               </div>
+            </aside>
+         </div>
+      </div>
+    </div>
+  );
+};
+
+export default InstitutionProfile;
