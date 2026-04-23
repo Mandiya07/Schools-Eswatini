@@ -512,7 +512,9 @@ const InstitutionProfile: React.FC<InstitutionProfileProps> = ({ institutions, f
 
                {/* --- CONTACT SECTION --- */}
                {activeSection === 'contact' && (
-                 <ContactSection institution={inst} primaryColor={inst.theme.primaryColor} lang={lang} />
+                 <div className="space-y-20 animate-in fade-in slide-in-from-bottom-8 duration-700">
+                   <ContactSection institution={inst} primaryColor={inst.theme.primaryColor} lang={lang} />
+                 </div>
                )}
 
             </div>

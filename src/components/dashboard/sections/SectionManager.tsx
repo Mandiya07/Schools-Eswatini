@@ -12,7 +12,7 @@ import { Layout, Info, UserPlus, GraduationCap, Newspaper, Users, Globe } from '
 
 interface SectionManagerProps {
   institution: Institution;
-  onUpdate: (updatedSections: Institution['sections']) => void;
+  onUpdate: (updatedInst: Institution) => void;
 }
 
 const SectionManager: React.FC<SectionManagerProps> = ({ institution, onUpdate }) => {
@@ -28,15 +28,22 @@ const SectionManager: React.FC<SectionManagerProps> = ({ institution, onUpdate }
     { id: 'portal', label: 'Student Portal', icon: <Globe className="w-4 h-4" /> }
   ];
 
+  const updateSection = (updatedSections: Institution['sections']) => {
+    onUpdate({
+      ...institution,
+      sections: updatedSections
+    });
+  };
+
   const renderEditor = () => {
     switch (activeSection) {
-      case 'homepage': return <HomepageEditor institution={institution} onUpdate={onUpdate} />;
-      case 'about': return <AboutEditor institution={institution} onUpdate={onUpdate} />;
+      case 'homepage': return <HomepageEditor institution={institution} onUpdate={updateSection} />;
+      case 'about': return <AboutEditor institution={institution} onUpdate={updateSection} />;
       case 'admissions': return <AdmissionsEditor institution={institution} onUpdate={onUpdate} />;
-      case 'academics': return <AcademicsEditor institution={institution} onUpdate={onUpdate} />;
-      case 'news': return <NewsEditor institution={institution} onUpdate={onUpdate} />;
-      case 'studentLife': return <StudentLifeEditor institution={institution} onUpdate={onUpdate} />;
-      case 'portal': return <PortalEditor institution={institution} onUpdate={onUpdate} />;
+      case 'academics': return <AcademicsEditor institution={institution} onUpdate={updateSection} />;
+      case 'news': return <NewsEditor institution={institution} onUpdate={updateSection} />;
+      case 'studentLife': return <StudentLifeEditor institution={institution} onUpdate={updateSection} />;
+      case 'portal': return <PortalEditor institution={institution} onUpdate={updateSection} />;
       default: return null;
     }
   };

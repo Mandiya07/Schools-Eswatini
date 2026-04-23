@@ -156,6 +156,24 @@
         "createdAt": { "type": "string", "format": "date-time" }
       },
       "required": ["id", "userId", "type", "description", "createdAt"]
+    },
+    "Student": {
+      "title": "Student",
+      "description": "Student record managed by institution",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "institutionId": { "type": "string" },
+        "name": { "type": "string" },
+        "email": { "type": "string", "format": "email" },
+        "grade": { "type": "string" },
+        "class": { "type": "string" },
+        "studentId": { "type": "string" },
+        "dob": { "type": "string", "format": "date" },
+        "parentEmails": { "type": "array", "items": { "type": "string" } },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "institutionId", "name", "studentId", "parentEmails"]
     }
   },
   "firestore": {
@@ -166,6 +184,10 @@
     "/institutions/{institutionId}": {
       "schema": "Institution",
       "description": "Institution details"
+    },
+    "/students/{studentId}": {
+      "schema": "Student",
+      "description": "Student records"
     },
     "/reviews/{reviewId}": {
       "schema": "Review",

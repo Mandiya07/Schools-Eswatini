@@ -87,7 +87,15 @@ service cloud.firestore {
              data.subject is string &&
              data.body is string &&
              data.status in ['unread', 'read', 'archived'] &&
-             data.createdAt is string;
+             data.createdAt is string &&
+             (!data.keys().contains('adminReply') || (
+               data.adminReply is map &&
+               data.adminReply.keys().hasAll(['body', 'adminName', 'createdAt', 'adminId']) &&
+               data.adminReply.body is string &&
+               data.adminReply.adminName is string &&
+               data.adminReply.createdAt is string &&
+               data.adminReply.adminId is string
+             ));
     }
 
     function isValidAlumniProfile(data) {

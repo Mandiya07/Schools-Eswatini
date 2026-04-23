@@ -48,58 +48,108 @@ const StudentLifeEditor: React.FC<StudentLifeEditorProps> = ({ institution, onUp
             />
           </div>
 
-          <div className="space-y-6">
-            <div className="flex items-center justify-between">
-              <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Clubs & Activities</h4>
-              <button 
-                onClick={() => updateField('clubs', [...studentLife.clubs, { id: Date.now(), name: 'New Club', description: '', icon: '🌟', category: 'General' }])}
-                className="text-[10px] font-black text-blue-600 uppercase tracking-widest hover:underline"
-              >
-                + Add Club
-              </button>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {studentLife.clubs.map((club, idx) => (
-                <div key={club.id} className="bg-slate-50 p-6 rounded-3xl border border-slate-100 space-y-4">
-                  <div className="flex justify-between items-center">
+          {/* Existing Clubs Editor followed by new Facilities Editor */}
+          <div className="space-y-12">
+            {/* Clubs & Activities */}
+            <div className="space-y-6">
+              <div className="flex items-center justify-between">
+                <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Clubs & Activities</h4>
+                <button 
+                  onClick={() => updateField('clubs', [...studentLife.clubs, { id: Date.now(), name: 'New Club', description: '', icon: '🌟', category: 'General' }])}
+                  className="text-[10px] font-black text-blue-600 uppercase tracking-widest hover:underline"
+                >
+                  + Add Club
+                </button>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {studentLife.clubs.map((club, idx) => (
+                  <div key={club.id} className="bg-slate-50 p-6 rounded-3xl border border-slate-100 space-y-4">
+                    <div className="flex justify-between items-center">
+                      <input 
+                        className="bg-transparent border-none font-black text-slate-900 p-0 focus:ring-0 text-sm" 
+                        value={club.name} 
+                        onChange={e => {
+                          const newClubs = [...studentLife.clubs];
+                          newClubs[idx].name = e.target.value;
+                          updateField('clubs', newClubs);
+                        }}
+                      />
+                      <button 
+                        onClick={() => updateField('clubs', studentLife.clubs.filter((_, i) => i !== idx))}
+                        className="text-rose-500 hover:text-rose-700"
+                      >
+                        ✕
+                      </button>
+                    </div>
                     <input 
-                      className="bg-transparent border-none font-black text-slate-900 p-0 focus:ring-0 text-sm" 
-                      value={club.name} 
+                      className="w-full bg-white border rounded-xl px-4 py-2 text-[10px] font-bold" 
+                      placeholder="Icon (Emoji)" 
+                      value={club.icon} 
                       onChange={e => {
                         const newClubs = [...studentLife.clubs];
-                        newClubs[idx].name = e.target.value;
+                        newClubs[idx].icon = e.target.value;
                         updateField('clubs', newClubs);
                       }}
                     />
-                    <button 
-                      onClick={() => updateField('clubs', studentLife.clubs.filter((_, i) => i !== idx))}
-                      className="text-rose-500 hover:text-rose-700"
-                    >
-                      ✕
-                    </button>
                   </div>
-                  <input 
-                    className="w-full bg-white border rounded-xl px-4 py-2 text-[10px] font-bold" 
-                    placeholder="Icon (Emoji)" 
-                    value={club.icon} 
-                    onChange={e => {
-                      const newClubs = [...studentLife.clubs];
-                      newClubs[idx].icon = e.target.value;
-                      updateField('clubs', newClubs);
-                    }}
-                  />
-                </div>
-              ))}
+                ))}
+              </div>
+            </div>
+
+            {/* Campus Facilities */}
+            <div className="space-y-6">
+              <div className="flex items-center justify-between">
+                <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Campus Facilities</h4>
+                <button 
+                  onClick={() => updateField('facilities', [...studentLife.facilities, { name: 'New Facility', description: '' }])}
+                  className="text-[10px] font-black text-blue-600 uppercase tracking-widest hover:underline"
+                >
+                  + Add Facility
+                </button>
+              </div>
+              <div className="grid grid-cols-1 gap-4">
+                {studentLife.facilities.map((fac, idx) => (
+                  <div key={idx} className="bg-slate-50 p-6 rounded-3xl border border-slate-100 space-y-4">
+                    <div className="flex justify-between items-center">
+                      <input 
+                        className="bg-transparent border-none font-black text-slate-900 p-0 focus:ring-0 text-sm" 
+                        value={fac.name} 
+                        onChange={e => {
+                          const newFacs = [...studentLife.facilities];
+                          newFacs[idx].name = e.target.value;
+                          updateField('facilities', newFacs);
+                        }}
+                      />
+                      <button 
+                        onClick={() => updateField('facilities', studentLife.facilities.filter((_, i) => i !== idx))}
+                        className="text-rose-500 hover:text-rose-700"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                    <textarea 
+                      className="w-full bg-white border rounded-xl px-4 py-2 text-[10px] font-bold" 
+                      placeholder="Description"
+                      value={fac.description} 
+                      onChange={e => {
+                        const newFacs = [...studentLife.facilities];
+                        newFacs[idx].description = e.target.value;
+                        updateField('facilities', newFacs);
+                      }}
+                    />
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         </div>
       </div>
-
+      
       <div className="space-y-8">
         <header>
           <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Student Life Preview</h3>
         </header>
-        
+
         <div className="sticky top-8 space-y-6">
           <div className="bg-white p-10 rounded-[40px] border border-slate-100 shadow-sm space-y-8">
             <div className="space-y-4">
@@ -112,6 +162,15 @@ const StudentLifeEditor: React.FC<StudentLifeEditorProps> = ({ institution, onUp
                 <div key={club.id} className="p-6 bg-slate-50 rounded-3xl flex flex-col items-center text-center gap-3 group hover:bg-blue-50 transition-colors cursor-pointer">
                   <span className="text-3xl group-hover:scale-125 transition-transform duration-500">{club.icon}</span>
                   <p className="text-[10px] font-black text-slate-900 uppercase tracking-widest">{club.name}</p>
+                </div>
+              ))}
+            </div>
+            
+            <div className="space-y-4">
+              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Campus Facilities</p>
+              {studentLife.facilities.slice(0, 3).map((fac, idx) => (
+                <div key={idx} className="p-4 bg-slate-50 rounded-2xl">
+                  <p className="text-[10px] font-black text-slate-900 uppercase tracking-widest">{fac.name}</p>
                 </div>
               ))}
             </div>

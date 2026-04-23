@@ -234,6 +234,26 @@ const AdmissionsSection: React.FC<AdmissionsSectionProps> = ({ admissions, prima
               </a>
             )}
           </div>
+          
+          {admissions.scholarshipOpportunities && admissions.scholarshipOpportunities.length > 0 && (
+            <div className="mt-10 space-y-4">
+              <h4 className="text-sm font-black text-blue-200 uppercase tracking-widest">Available Opportunities</h4>
+              <div className="grid gap-4">
+                {admissions.scholarshipOpportunities.map((s, i) => (
+                  <div key={i} className="p-6 bg-white/10 rounded-2xl border border-white/10 flex justify-between items-center text-white">
+                    <div>
+                      <p className="font-bold text-white">{s.name}</p>
+                      <p className="text-xs text-blue-100 mt-1">{s.criteria} | <span className="font-bold text-emerald-300">{s.amount}</span></p>
+                      <p className="text-[10px] text-blue-200 mt-1">Deadline: {s.deadline}</p>
+                    </div>
+                    {s.applicationLink && (
+                      <a href={s.applicationLink} target="_blank" rel="noopener" className="px-4 py-2 bg-white text-blue-800 rounded-lg text-xs font-black uppercase tracking-widest hover:bg-blue-50">Apply</a>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </section>
       </div>
 

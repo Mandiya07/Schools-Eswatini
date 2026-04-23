@@ -382,18 +382,22 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({ user }) => {
 
       {/* Global Tabs */}
       <div className="flex flex-wrap gap-4 mb-8">
-        <button 
-          onClick={() => setActiveTab('classroom')}
-          className={`px-6 py-4 rounded-full text-[10px] font-black uppercase tracking-widest flex items-center gap-3 transition-all ${activeTab === 'classroom' ? 'bg-blue-600 text-white shadow-xl shadow-blue-600/20' : 'bg-white text-slate-500 hover:bg-slate-100 border border-slate-200'}`}
-        >
-          <BookOpen className="w-4 h-4" /> Reports
-        </button>
-        <button 
-          onClick={() => setActiveTab('management')}
-          className={`px-6 py-4 rounded-full text-[10px] font-black uppercase tracking-widest flex items-center gap-3 transition-all ${activeTab === 'management' ? 'bg-rose-600 text-white shadow-xl shadow-rose-600/20' : 'bg-white text-slate-500 hover:bg-slate-100 border border-slate-200'}`}
-        >
-          <Users className="w-4 h-4" /> Classroom Management
-        </button>
+        {user.institutionId && (
+          <>
+            <button 
+              onClick={() => setActiveTab('classroom')}
+              className={`px-6 py-4 rounded-full text-[10px] font-black uppercase tracking-widest flex items-center gap-3 transition-all ${activeTab === 'classroom' ? 'bg-blue-600 text-white shadow-xl shadow-blue-600/20' : 'bg-white text-slate-500 hover:bg-slate-100 border border-slate-200'}`}
+            >
+              <BookOpen className="w-4 h-4" /> Reports
+            </button>
+            <button 
+              onClick={() => setActiveTab('management')}
+              className={`px-6 py-4 rounded-full text-[10px] font-black uppercase tracking-widest flex items-center gap-3 transition-all ${activeTab === 'management' ? 'bg-rose-600 text-white shadow-xl shadow-rose-600/20' : 'bg-white text-slate-500 hover:bg-slate-100 border border-slate-200'}`}
+            >
+              <Users className="w-4 h-4" /> Classroom Management
+            </button>
+          </>
+        )}
         <button 
           onClick={() => setActiveTab('resources')}
           className={`px-6 py-4 rounded-full text-[10px] font-black uppercase tracking-widest flex items-center gap-3 transition-all ${activeTab === 'resources' ? 'bg-indigo-600 text-white shadow-xl shadow-indigo-600/20' : 'bg-white text-slate-500 hover:bg-slate-100 border border-slate-200'}`}
@@ -419,6 +423,19 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({ user }) => {
           <Briefcase className="w-4 h-4" /> Marketplace
         </button>
       </div>
+
+      {/* Independent Teacher Notice */}
+      {!user.institutionId && (
+        <div className="mb-8 p-6 bg-amber-50 border border-amber-100 rounded-3xl flex items-center gap-6">
+          <div className="w-12 h-12 bg-amber-400 text-white rounded-2xl flex items-center justify-center shrink-0">
+             <Star className="w-6 h-6" />
+          </div>
+          <div>
+            <h4 className="text-sm font-black text-amber-900 uppercase tracking-widest">Independent Educator Account</h4>
+            <p className="text-xs text-amber-700 font-medium">You are currently using the platform as an independent educator. Connect to a school to access internal classroom management and reporting tools.</p>
+          </div>
+        </div>
+      )}
 
       {loading ? (
         <div className="flex flex-col items-center justify-center py-32 space-y-4">

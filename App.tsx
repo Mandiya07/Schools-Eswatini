@@ -130,18 +130,22 @@ const App: React.FC = () => {
 
           let updatedRole = currentUser.role;
 
-          // Role assignment logic
+          // Role assignment and verification logic
           if (firebaseUser.email?.toLowerCase() === 'siphom.yati@gmail.com') {
             updatedRole = UserRole.SUPER_ADMIN;
-          } else if (updatedRole !== UserRole.SUPER_ADMIN) {
+          } else if (firebaseUser.email?.toLowerCase().endsWith('@moet.gov.sz')) {
+            updatedRole = UserRole.MOET_OFFICIAL;
+          } else {
+            // Institutional Check: Only overwrite if they don't have a high-privilege role 
+            // or if we find a specific matching institutional record.
             const instQuery = query(collection(db, 'institutions'));
             const instSnapshot = await getDocs(instQuery);
             
             let foundInstitutionalRole = false;
+            const userEmail = firebaseUser.email?.toLowerCase();
 
             for (const instDoc of instSnapshot.docs) {
               const data = instDoc.data() as Institution;
-              const userEmail = firebaseUser.email?.toLowerCase();
               
               // Check if Institution Admin
               if (data.contact?.email?.toLowerCase() === userEmail || data.adminId === firebaseUser.uid) {
@@ -151,8 +155,12 @@ const App: React.FC = () => {
                 break;
               }
               
-              // Check if Teacher
-              if (data.teacherEmails?.some(email => email.toLowerCase() === userEmail)) {
+              // Check if Teacher assigned by Institution
+              const isInstitutionalTeacher = 
+                data.teacherEmails?.some(email => email.toLowerCase() === userEmail) ||
+                data.administrativeDetails?.staffManagement?.members?.some((m: any) => m.email?.toLowerCase() === userEmail);
+
+              if (isInstitutionalTeacher) {
                 updatedRole = UserRole.TEACHER;
                 currentUser.institutionId = data.id;
                 foundInstitutionalRole = true;
@@ -160,9 +168,10 @@ const App: React.FC = () => {
               }
             }
 
-            if (!foundInstitutionalRole && updatedRole !== UserRole.PARENT) {
-               // Default visitor logic if no institutional role found
-               // (Except if they are already a parent, which we keep)
+            // If no institutional role found, keep their registered role (Parent or Independent Teacher)
+            if (!foundInstitutionalRole) {
+              // Independent Teacher is still a TEACHER role, just without an institutionId
+              // Parent is already set during registration
             }
           }
 
@@ -334,7 +343,7 @@ const App: React.FC = () => {
             <Route path="/campus-life" element={<CommunityHub />} />
             <Route path="/governance" element={<GovernancePage />} />
             <Route path="/ministry-corner" element={<MinistryCorner />} />
-            <Route path="/ai-tutor" element={<AIStudyAssistant />} />
+            <Route path="/ai-tutor" element={<AIStudyAssistant user={user} />} />
             <Route path="/student" element={<StudentDashboard user={user} />} />
             <Route 
               path="/school/:slug" 
@@ -365,6 +374,7 @@ const App: React.FC = () => {
                     onUpdate={updateInstitution} 
                     onDelete={deleteInstitution} 
                     onSeed={seedDatabase}
+                    onAdd={addInstitution}
                   /> : 
                 user.role === UserRole.INSTITUTION_ADMIN ?
                   <InstitutionAdminDashboard 

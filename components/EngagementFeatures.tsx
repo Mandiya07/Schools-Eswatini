@@ -446,7 +446,7 @@ export const InquiryForm: React.FC<EngagementFeaturesProps> = ({ institution, la
     setError(null);
 
     try {
-      await addDoc(collection(db, 'messages'), {
+      const messageData = {
         institutionId: institution.id,
         senderId: auth.currentUser?.uid || null,
         senderName: formData.name,
@@ -457,7 +457,25 @@ export const InquiryForm: React.FC<EngagementFeaturesProps> = ({ institution, la
         status: 'unread',
         isDirectInquiry: true,
         createdAt: new Date().toISOString()
-      });
+      };
+
+      await addDoc(collection(db, 'messages'), messageData);
+
+      // Send Email Notification to School Admin
+      try {
+        await fetch('/api/notify/new-inquiry', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            schoolEmail: institution.contact.email,
+            schoolName: institution.name,
+            previewText: formData.body.substring(0, 100)
+          })
+        });
+      } catch (notifyErr) {
+        console.error("Failed to notify school via email:", notifyErr);
+      }
+
       setSuccess(true);
       setFormData({ name: '', email: '', phone: '', subject: 'General Inquiry', body: '' });
       setTimeout(() => setSuccess(false), 5000);

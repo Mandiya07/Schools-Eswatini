@@ -4,12 +4,15 @@ import { Institution, User, Region, SubscriptionPlan, AcademicDepartment, Academ
 import { GoogleGenAI } from "@google/genai";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, LineChart, Line, CartesianGrid } from 'recharts';
 import SubscriptionPlans from '../src/components/SubscriptionPlans';
-import { Search, Globe, Share2, Award, Zap, Shield, Star, Layout, CreditCard, Lock, CheckCircle, AlertCircle, Sparkles, TrendingUp, Image as ImageIcon, Eye, Users, FileText, ClipboardList, Package, QrCode, Trash2, Plus, Calendar, Stethoscope, GraduationCap, Send, Bus, BarChart2, Megaphone, Newspaper, MapPin, Tag, Image as GalleryIcon, DollarSign, Download, ExternalLink } from 'lucide-react';
+import { Search, Globe, Share2, Award, Zap, Shield, Star, Layout, CreditCard, Lock, CheckCircle, AlertCircle, Sparkles, TrendingUp, Image as ImageIcon, Eye, Users, FileText, ClipboardList, Package, QrCode, Trash2, Plus, Calendar, Stethoscope, GraduationCap, Send, Bus, BarChart2, Megaphone, Newspaper, MapPin, Tag, Image as GalleryIcon, DollarSign, Download, ExternalLink, Mail } from 'lucide-react';
 import AIContentAssistant from '../src/components/AIContentAssistant';
 import MonetizationHub from '../src/components/dashboard/sections/MonetizationHub';
 import SectionManager from '../src/components/dashboard/sections/SectionManager';
+import AcademicsEditor from '../src/components/dashboard/sections/AcademicsEditor';
 import MediaManager from '../src/components/MediaManager';
 import { useWorkflow } from '../src/context/WorkflowContext';
+
+import InboxManager from '../src/components/dashboard/sections/InboxManager';
 
 interface InstitutionAdminDashboardProps {
   user: User;
@@ -21,7 +24,7 @@ interface InstitutionAdminDashboardProps {
 const InstitutionAdminDashboard: React.FC<InstitutionAdminDashboardProps> = ({ user, institutions, onUpdate, onAdd }) => {
   const inst = institutions.find(i => i.id === (user.institutionId || institutions.find(i => i.adminId === user.id)?.id));
   const { tasks, notifications, markNotificationAsRead } = useWorkflow();
-  const [activeTab, setActiveTab] = useState<'identity' | 'theme' | 'sections' | 'media' | 'seo' | 'plan' | 'security' | 'analytics' | 'compliance' | 'academic' | 'finance' | 'ai' | 'workflows' | 'staff' | 'inventory' | 'timetabling' | 'health' | 'alumni' | 'logistics' | 'benchmarking' | 'marketing' | 'news' | 'monetization' | 'applications'>('identity');
+  const [activeTab, setActiveTab] = useState<'identity' | 'theme' | 'sections' | 'media' | 'seo' | 'plan' | 'security' | 'analytics' | 'compliance' | 'academic' | 'academicsContent' | 'finance' | 'ai' | 'workflows' | 'staff' | 'inventory' | 'timetabling' | 'health' | 'alumni' | 'logistics' | 'benchmarking' | 'marketing' | 'news' | 'monetization' | 'applications' | 'inbox'>('identity');
   const [showPreview, setShowPreview] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
 
@@ -96,6 +99,7 @@ const InstitutionAdminDashboard: React.FC<InstitutionAdminDashboardProps> = ({ u
     { id: 'sections', label: 'Site Modules', icon: '🎨' },
     { id: 'media', label: 'Media Manager', icon: <ImageIcon className="w-5 h-5" /> },
     { id: 'academic', label: 'Academic Tools', icon: '📅' },
+    { id: 'academicsContent', label: 'Academics Content', icon: '📝' },
     { id: 'timetabling', label: 'AI Timetable', icon: <Calendar className="w-5 h-5" /> },
     { id: 'staff', label: 'Staff Room', icon: <Users className="w-5 h-5" /> },
     { id: 'inventory', label: 'Inventory', icon: <Package className="w-5 h-5" /> },
@@ -103,6 +107,7 @@ const InstitutionAdminDashboard: React.FC<InstitutionAdminDashboardProps> = ({ u
     { id: 'logistics', label: 'Trip Planner', icon: <Bus className="w-5 h-5" /> },
     { id: 'benchmarking', label: 'Peer Benchmarking', icon: <BarChart2 className="w-5 h-5" /> },
     { id: 'alumni', label: 'Alumni Portal', icon: <GraduationCap className="w-5 h-5" /> },
+    { id: 'students', label: 'Student Records', icon: <Users className="w-5 h-5 text-indigo-600" /> },
     { id: 'news', label: 'News & Media', icon: <Newspaper className="w-5 h-5" /> },
     { id: 'marketing', label: 'Marketing Hub', icon: <Megaphone className="w-5 h-5" /> },
     { id: 'finance', label: 'Finance Hub', icon: '💳' },
@@ -112,6 +117,7 @@ const InstitutionAdminDashboard: React.FC<InstitutionAdminDashboardProps> = ({ u
     { id: 'workflows', label: 'Workflows', icon: <TrendingUp className="w-5 h-5" /> },
     { id: 'compliance', label: 'MoET Compliance', icon: <ClipboardList className="w-5 h-5" /> },
     { id: 'monetization', label: 'Revenue & Billing', icon: <DollarSign className="w-5 h-5 text-emerald-500" /> },
+    { id: 'inbox', label: 'Portal Inbox', icon: <Mail className="w-5 h-5 text-blue-600" /> },
     { id: 'applications', label: 'Applications', icon: <FileText className="w-5 h-5" /> },
     { id: 'security', label: 'Security', icon: <Lock className="w-5 h-5" /> }
   ];
@@ -432,7 +438,7 @@ const InstitutionAdminDashboard: React.FC<InstitutionAdminDashboardProps> = ({ u
             {activeTab === 'sections' && (
               <SectionManager 
                 institution={inst} 
-                onUpdate={(updatedSections) => handleUpdate({ ...inst, sections: updatedSections })} 
+                onUpdate={handleUpdate} 
               />
             )}
             {activeTab === 'media' && (
@@ -485,6 +491,13 @@ const InstitutionAdminDashboard: React.FC<InstitutionAdminDashboardProps> = ({ u
                   </div>
                 </section>
               </div>
+            )}
+
+            {activeTab === 'academicsContent' && (
+              <AcademicsEditor 
+                institution={inst} 
+                onUpdate={(sections) => handleUpdate({ ...inst, sections })} 
+              />
             )}
 
             {activeTab === 'staff' && (
@@ -623,6 +636,125 @@ const InstitutionAdminDashboard: React.FC<InstitutionAdminDashboardProps> = ({ u
                     <div className="text-center py-12 bg-slate-50 rounded-[32px] border border-dashed border-slate-200">
                       <Users className="w-12 h-12 text-slate-200 mx-auto mb-4" />
                       <p className="text-slate-400 font-bold uppercase tracking-widest text-[10px]">No staff members recorded yet.</p>
+                    </div>
+                  )}
+                </section>
+              </div>
+            )}
+
+            {activeTab === 'students' && (
+              <div className="bg-white p-10 rounded-[40px] border border-slate-100 shadow-sm space-y-12 animate-in fade-in">
+                <section>
+                  <div className="flex justify-between items-center mb-8">
+                    <div>
+                      <h3 className="text-xl font-black text-slate-900 flex items-center gap-3">👥 Student Management</h3>
+                      <p className="text-sm text-slate-500 mt-1">Manage official student records and link parent accounts.</p>
+                    </div>
+                    <button 
+                      onClick={() => {
+                        const newStudent = {
+                          id: `stu_${Date.now()}`,
+                          institutionId: inst.id,
+                          name: 'New Student',
+                          studentId: `S-${Math.floor(1000 + Math.random() * 9000)}`,
+                          grade: 'Grade 8',
+                          class: 'A',
+                          dob: '2010-01-01',
+                          parentEmails: [],
+                          createdAt: new Date().toISOString()
+                        };
+                        // Since students might be many, we use a separate collection normally.
+                        // For this demo/impl, we'll store a small list in institutional metadata or simulate.
+                        const students = [...(inst.metadata?.students || []), newStudent];
+                        handleUpdate({ ...inst, metadata: { ...inst.metadata, students } });
+                      }}
+                      className="px-6 py-3 bg-indigo-600 text-white rounded-xl font-black uppercase tracking-widest text-[10px] flex items-center gap-2"
+                    >
+                      <Plus className="w-4 h-4" /> Add Student
+                    </button>
+                  </div>
+
+                  <div className="overflow-x-auto">
+                    <table className="w-full">
+                      <thead>
+                        <tr className="border-b border-slate-100 text-left">
+                          <th className="pb-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Student Details</th>
+                          <th className="pb-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Grade/Class</th>
+                          <th className="pb-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Parent Emails</th>
+                          <th className="pb-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {(inst.metadata?.students || []).map((student: any, idx: number) => (
+                          <tr key={student.id} className="group border-b border-slate-50 last:border-0">
+                            <td className="py-6">
+                              <input 
+                                className="block font-bold text-slate-900 bg-transparent border-none p-0 focus:ring-0 mb-1" 
+                                value={student.name} 
+                                onChange={e => {
+                                  const students = [...inst.metadata!.students];
+                                  students[idx].name = e.target.value;
+                                  handleUpdate({ ...inst, metadata: { ...inst.metadata!, students } });
+                                }}
+                              />
+                              <p className="text-[10px] font-bold text-indigo-600 uppercase tracking-widest">ID: {student.studentId}</p>
+                            </td>
+                            <td className="py-6">
+                              <div className="flex gap-2">
+                                <input 
+                                  className="w-20 bg-slate-50 border-none rounded-lg px-2 py-1 text-xs font-bold" 
+                                  value={student.grade} 
+                                  onChange={e => {
+                                    const students = [...inst.metadata!.students];
+                                    students[idx].grade = e.target.value;
+                                    handleUpdate({ ...inst, metadata: { ...inst.metadata!, students } });
+                                  }}
+                                />
+                                <input 
+                                  className="w-12 bg-slate-50 border-none rounded-lg px-2 py-1 text-xs font-bold" 
+                                  value={student.class} 
+                                  onChange={e => {
+                                    const students = [...inst.metadata!.students];
+                                    students[idx].class = e.target.value;
+                                    handleUpdate({ ...inst, metadata: { ...inst.metadata!, students } });
+                                  }}
+                                />
+                              </div>
+                            </td>
+                            <td className="py-6">
+                               <input 
+                                className="w-full text-xs text-slate-500 bg-transparent border-none p-0 focus:ring-0" 
+                                value={student.parentEmails?.join(', ')} 
+                                onChange={e => {
+                                  const students = [...inst.metadata!.students];
+                                  students[idx].parentEmails = e.target.value.split(',').map(s => s.trim()).filter(s => s !== '');
+                                  handleUpdate({ ...inst, metadata: { ...inst.metadata!, students } });
+                                }}
+                                placeholder="parent@email.com, ..."
+                              />
+                              <p className="text-[9px] text-slate-400 italic">Parents with these emails will see this student.</p>
+                            </td>
+                            <td className="py-6">
+                              <button 
+                                onClick={() => {
+                                  const students = inst.metadata!.students.filter((s: any) => s.id !== student.id);
+                                  handleUpdate({ ...inst, metadata: { ...inst.metadata!, students } });
+                                }}
+                                className="text-slate-300 hover:text-rose-500 opacity-0 group-hover:opacity-100 transition-all"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+
+                  {(!inst.metadata?.students || inst.metadata.students.length === 0) && (
+                    <div className="text-center py-12 bg-slate-50 rounded-[32px] border border-dashed border-slate-200">
+                      <Users className="w-12 h-12 text-slate-200 mx-auto mb-4" />
+                      <p className="text-slate-400 font-bold uppercase tracking-widest text-[10px]">No student records in this institution.</p>
                     </div>
                   )}
                 </section>
@@ -1587,6 +1719,9 @@ const InstitutionAdminDashboard: React.FC<InstitutionAdminDashboardProps> = ({ u
               </div>
             )}
 
+            {activeTab === 'inbox' && (
+              <InboxManager institution={inst} />
+            )}
             {activeTab === 'applications' && (
               <div className="bg-white p-10 rounded-[40px] border border-slate-100 shadow-sm space-y-12 animate-in fade-in">
                 <section>

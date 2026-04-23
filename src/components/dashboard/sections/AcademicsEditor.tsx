@@ -254,19 +254,32 @@ const AcademicsEditor: React.FC<AcademicsEditorProps> = ({ institution, onUpdate
                         />
                       </div>
                       <div>
-                        <label className="block text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Short Description</label>
-                        <textarea 
-                          rows={3}
-                          className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-xs font-medium outline-none focus:border-blue-500 resize-none" 
-                          placeholder="Brief description of the curriculum and goals..." 
-                          value={prog.description || ''} 
+                        <label className="block text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Syllabus PDF URL</label>
+                        <input 
+                          className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-xs font-bold outline-none focus:border-blue-500" 
+                          placeholder="e.g. https://example.com/syllabus.pdf" 
+                          value={prog.syllabusUrl || ''} 
                           onChange={e => {
                             const newProgs = [...academics.programs];
-                            newProgs[idx].description = e.target.value;
+                            newProgs[idx].syllabusUrl = e.target.value;
                             updateField('programs', newProgs);
                           }}
                         />
                       </div>
+                    </div>
+                    <div>
+                      <label className="block text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Short Description</label>
+                      <textarea 
+                        rows={3}
+                        className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-xs font-medium outline-none focus:border-blue-500 resize-none" 
+                        placeholder="Brief description of the curriculum and goals..." 
+                        value={prog.description || ''} 
+                        onChange={e => {
+                          const newProgs = [...academics.programs];
+                          newProgs[idx].description = e.target.value;
+                          updateField('programs', newProgs);
+                        }}
+                      />
                     </div>
                     <div className="flex flex-col gap-2">
                         <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Syllabus URL</label>

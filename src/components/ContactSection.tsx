@@ -10,9 +10,8 @@ import {
   ChevronDown,
   AlertCircle,
   Navigation,
-  Info 
+  Info
 } from 'lucide-react';
-import * as Icons from 'lucide-react';
 import { Institution } from '../../types';
 import { InquiryForm } from '../../components/EngagementFeatures';
 
@@ -131,27 +130,27 @@ const ContactSection: React.FC<ContactSectionProps> = ({ institution, primaryCol
             <div className="flex flex-wrap gap-6">
               {contact.facebook && (
                 <a href={contact.facebook} target="_blank" rel="noreferrer" className="w-16 h-16 bg-white border border-slate-100 rounded-2xl flex items-center justify-center text-slate-600 hover:bg-blue-600 hover:text-white transition-all shadow-sm">
-                  <Icons.Facebook className="w-6 h-6" />
+                  <Globe className="w-6 h-6" />
                 </a>
               )}
               {contact.twitter && (
                 <a href={contact.twitter} target="_blank" rel="noreferrer" className="w-16 h-16 bg-white border border-slate-100 rounded-2xl flex items-center justify-center text-slate-600 hover:bg-sky-500 hover:text-white transition-all shadow-sm">
-                  <Icons.Twitter className="w-6 h-6" />
+                  <Globe className="w-6 h-6" />
                 </a>
               )}
               {contact.linkedin && (
                 <a href={contact.linkedin} target="_blank" rel="noreferrer" className="w-16 h-16 bg-white border border-slate-100 rounded-2xl flex items-center justify-center text-slate-600 hover:bg-blue-700 hover:text-white transition-all shadow-sm">
-                  <Icons.Linkedin className="w-6 h-6" />
+                  <Globe className="w-6 h-6" />
                 </a>
               )}
               {contact.instagram && (
                 <a href={contact.instagram} target="_blank" rel="noreferrer" className="w-16 h-16 bg-white border border-slate-100 rounded-2xl flex items-center justify-center text-slate-600 hover:bg-pink-600 hover:text-white transition-all shadow-sm">
-                  <Icons.Instagram className="w-6 h-6" />
+                  <Globe className="w-6 h-6" />
                 </a>
               )}
               {contact.youtube && (
                 <a href={contact.youtube} target="_blank" rel="noreferrer" className="w-16 h-16 bg-white border border-slate-100 rounded-2xl flex items-center justify-center text-slate-600 hover:bg-red-600 hover:text-white transition-all shadow-sm">
-                  <Icons.Youtube className="w-6 h-6" />
+                  <Globe className="w-6 h-6" />
                 </a>
               )}
             </div>
@@ -238,8 +237,9 @@ const ContactSection: React.FC<ContactSectionProps> = ({ institution, primaryCol
         )}
       </section>
 
-      {/* Map & Directions */}
+      {/* Campus Location */}
       <section className="space-y-16">
+        <h3 className="text-4xl font-black text-slate-900 tracking-tight">Campus Location</h3>
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
           <div className="lg:col-span-2 h-[600px] bg-slate-100 rounded-[64px] overflow-hidden border border-slate-200 relative group">
             {contact.googleMapsUrl ? (

@@ -137,6 +137,12 @@ export interface Message {
   status: 'unread' | 'read' | 'archived';
   isDirectInquiry: boolean;
   createdAt: string;
+  adminReply?: {
+    body: string;
+    adminName: string;
+    createdAt: string;
+    adminId: string;
+  };
 }
 
 export interface AlumniProfile {
@@ -171,6 +177,14 @@ export interface FundraisingCampaign {
   currentAmount: number;
   deadline: string;
   createdAt: string;
+}
+
+export interface ScholarshipDetail {
+  name: string;
+  amount: string;
+  criteria: string;
+  deadline: string;
+  applicationLink?: string;
 }
 
 export interface ScholarshipItem {
@@ -530,6 +544,7 @@ export interface Institution {
     };
     about: {
       overview: string;
+      foundingBackground: string;
       history: {
         foundingStory: {
           yearEstablished: number;
@@ -539,6 +554,7 @@ export interface Institution {
           firstCampusLocation: string;
         };
         milestones: Milestone[];
+        growthSummary: string;
         transformationNarrative: {
           adaptationToChange: string;
           technologicalUpgrades: string;
@@ -556,13 +572,14 @@ export interface Institution {
       vision: {
         headline: string;
         supportingParagraph: string;
+        explanation?: string;
         nationalAlignment?: string;
         keywords?: string[];
         visualRepresentation?: string;
       };
       mission: {
         statement: string;
-        description: string;
+        description?: string;
         pillars?: {
           title: string;
           description: string;
@@ -634,6 +651,7 @@ export interface Institution {
         eligibility: string;
         howToApply: string;
       };
+      scholarshipOpportunities?: ScholarshipDetail[];
       boardingInfo?: {
         available: boolean;
         description: string;
@@ -759,9 +777,9 @@ export interface Institution {
         development?: string;
       };
       facilities: {
-        list: string[];
+        name: string;
         description: string;
-      };
+      }[];
       support: {
         services: string[];
         description: string;
@@ -838,8 +856,11 @@ export interface User {
   name: string;
   role: UserRole;
   institutionId?: string;
+  linkedStudentIds?: string[]; // For parents to track their children
   isVerified: boolean;
   twoFactorEnabled: boolean;
+  aiCredits?: number; // Free tier credits
+  isAiPro?: boolean; // Premium unlocked status
   tutorProfile?: {
     isEnabled: boolean;
     subjects: string[];
@@ -873,6 +894,22 @@ export interface ActivityHistory {
   type: 'login' | 'logout' | 'profile_update' | 'review_submit' | 'inquiry_send';
   description: string;
   metadata?: any;
+  createdAt: string;
+}
+
+export interface Student {
+  id: string;
+  institutionId: string;
+  name: string;
+  email?: string;
+  grade: string;
+  class: string;
+  studentId: string; // School-provided ID
+  dob: string;
+  parentName?: string;
+  parentRelationship?: string;
+  parentPhone?: string;
+  parentEmails: string[]; // Used for auto-reconciliation
   createdAt: string;
 }
 

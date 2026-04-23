@@ -30,6 +30,7 @@ const Navbar: React.FC<NavbarProps> = ({ user, onLogout, compareCount = 0 }) => 
       <Link to="/compare" onClick={closeMobileMenu} className="text-slate-600 hover:text-blue-600 font-medium text-sm flex items-center gap-2 px-2 py-1 transition-colors">
         Compare {compareCount > 0 && <span className="bg-blue-100 text-blue-600 w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-semibold">{compareCount}</span>}
       </Link>
+      <Link to="/ministry-corner" onClick={closeMobileMenu} className="text-slate-600 hover:text-blue-600 font-medium text-sm px-2 py-1 transition-colors">Ministry Corner</Link>
     </>
   );
 

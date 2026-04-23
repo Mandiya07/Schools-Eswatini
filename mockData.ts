@@ -256,6 +256,7 @@ export const MOCK_INSTITUTIONS: Institution[] = [
       },
       about: {
         overview: 'Waterford Kamhlaba UWCSA is a premier international boarding school in Southern Africa, providing high-quality education to students from over 60 countries. We offer a world-class IB curriculum focused on leadership, service, and academic rigor.',
+        foundingBackground: 'Founded in 1963 as a multi-racial institution.',
         history: {
           foundingStory: {
             yearEstablished: 1963,
@@ -270,6 +271,7 @@ export const MOCK_INSTITUTIONS: Institution[] = [
             { year: '2010', event: 'New Arts Center inaugurated.' },
             { year: '2023', event: 'Celebrated 60 years of academic excellence.' }
           ],
+          growthSummary: 'Waterford Kamhlaba has grown from 16 boys to a premier international boarding school with hundreds of students.',
           transformationNarrative: {
             adaptationToChange: 'Over six decades, the campus has evolved from a small house to a state-of-the-art academic hub featuring multiple science labs, an Olympic-size pool, and extensive residential facilities.',
             technologicalUpgrades: 'Implementation of smart classrooms, high-speed fiber across campus, and digital learning platforms.',
@@ -294,6 +296,7 @@ export const MOCK_INSTITUTIONS: Institution[] = [
         vision: {
           headline: 'To become a leading institution of academic excellence and character development in Eswatini and beyond.',
           supportingParagraph: 'We believe in fostering a community where students develop the skills and values necessary to become courageous leaders who make a difference in the world.',
+          explanation: 'Our vision is to empower global citizens.',
           nationalAlignment: 'Aligned with Eswatini National Development Plan (NDP) 2023-2027, focusing on human capital development and quality education for all.',
           keywords: ['Excellence', 'Innovation', 'Integrity', 'Leadership'],
           visualRepresentation: 'https://picsum.photos/seed/vision1/1200/600'
@@ -686,10 +689,13 @@ export const MOCK_INSTITUTIONS: Institution[] = [
           roles: 'Students take active roles in school governance and community leadership.',
           development: 'Regular leadership workshops and training programs for student leaders.'
         },
-        facilities: {
-          list: ['Modern Library', 'Science Laboratories', 'Computer Centers', 'Student Lounge', 'Hostels'],
-          description: 'Our campus features world-class facilities designed to support both learning and recreation.'
-        },
+        facilities: [
+          { name: 'Modern Library', description: 'World-class library with digital resources.' },
+          { name: 'Science Laboratories', description: 'Advanced labs for physics, chemistry, and biology.' },
+          { name: 'Computer Centers', description: 'High-speed internet and modern computing facilities.' },
+          { name: 'Student Lounge', description: 'Relaxing space for student socialization.' },
+          { name: 'Hostels', description: 'Safe and comfortable on-campus accommodation.' }
+        ],
         support: {
           services: ['Academic Counseling', 'Career Guidance', 'Psychological Support', 'Health Services'],
           description: 'We provide comprehensive support to ensure the well-being and success of every student.'
@@ -860,6 +866,7 @@ export const MOCK_INSTITUTIONS: Institution[] = [
       },
       about: {
         overview: 'Sifundzani Primary School provides a nurturing environment for early childhood and primary education. Established in 1981, we have a long history of academic excellence and holistic development.',
+        foundingBackground: 'Established in 1981.',
         history: { 
           foundingStory: { 
             yearEstablished: 1981, 
@@ -873,6 +880,7 @@ export const MOCK_INSTITUTIONS: Institution[] = [
             { year: '1995', event: 'Expansion of the upper primary wing.' },
             { year: '2010', event: 'Introduction of the digital learning program.' }
           ], 
+          growthSummary: 'Steady historical growth.',
           transformationNarrative: { 
             adaptationToChange: 'We have continuously updated our curriculum to include modern pedagogical approaches.', 
             technologicalUpgrades: 'Every classroom is now equipped with interactive smart boards.', 
@@ -1036,10 +1044,11 @@ export const MOCK_INSTITUTIONS: Institution[] = [
           opportunities: ['Prefects', 'Class Monitors', 'Library Assistants'], 
           roles: 'Grade 7 students take on leadership roles to serve the school community.' 
         }, 
-        facilities: { 
-          list: ['Playground', 'Assembly Hall', 'Tuck Shop'], 
-          description: 'Safe and engaging spaces for students to interact.' 
-        }, 
+        facilities: [
+          { name: 'Playground', description: 'Safe and fun play area for students.' },
+          { name: 'Assembly Hall', description: 'Central gathering space for events.' },
+          { name: 'Tuck Shop', description: 'Convenient on-campus snack shop.' }
+        ], 
         support: { 
           services: ['School Counselor', 'First Aid'], 
           description: 'Ensuring the emotional and physical well-being of our students.' 
@@ -1136,6 +1145,7 @@ export const MOCK_INSTITUTIONS: Institution[] = [
       },
       about: {
         overview: 'Manzini Nazarene High School is a leading public school committed to academic and spiritual growth. Founded in 1950, we have a rich tradition of producing well-rounded individuals who excel in various fields.',
+        foundingBackground: 'Founded in 1950.',
         history: { 
           foundingStory: { 
             yearEstablished: 1950, 
@@ -1149,6 +1159,7 @@ export const MOCK_INSTITUTIONS: Institution[] = [
             { year: '1975', event: 'First science laboratory built.' },
             { year: '2005', event: 'Named Top Performing School in Manzini.' }
           ], 
+          growthSummary: 'Consistent growth.',
           transformationNarrative: { 
             adaptationToChange: 'We have embraced the SGCSE curriculum and integrated technology into our teaching.', 
             technologicalUpgrades: 'Expansion of the computer center and campus-wide Wi-Fi.', 
@@ -1314,10 +1325,11 @@ export const MOCK_INSTITUTIONS: Institution[] = [
           opportunities: ['Prefect Body', 'SRC', 'Club Executives'], 
           roles: 'Students are given responsibility to lead and serve their peers.' 
         }, 
-        facilities: { 
-          list: ['Student Center', 'Sports Grounds', 'Canteen'], 
-          description: 'Spaces for relaxation and social interaction.' 
-        }, 
+        facilities: [
+          { name: 'Student Center', description: 'Spaces for relaxation and social interaction.' },
+          { name: 'Sports Grounds', description: 'Available for various sports activities.' },
+          { name: 'Canteen', description: 'Serving balanced meals for students.' }
+        ], 
         support: { 
           services: ['Guidance & Counseling', 'Spiritual Mentorship'], 
           description: 'Holistic support for student well-being.' 
@@ -1415,6 +1427,7 @@ export const MOCK_INSTITUTIONS: Institution[] = [
       },
       about: {
         overview: 'UNESWA is the national university of Eswatini, offering a wide range of undergraduate and postgraduate programs. Established in 1982, it has grown to become the premier center for higher learning and research in the country.',
+        foundingBackground: 'Established in 1982.',
         history: { 
           foundingStory: { 
             yearEstablished: 1982, 
@@ -1428,6 +1441,7 @@ export const MOCK_INSTITUTIONS: Institution[] = [
             { year: '1988', event: 'Opening of the Luyengo campus for Agriculture.' },
             { year: '2018', event: 'Name changed to University of Eswatini.' }
           ], 
+          growthSummary: 'Significant growth.',
           transformationNarrative: { 
             adaptationToChange: 'We have expanded our program offerings to include modern fields like ICT and Renewable Energy.', 
             technologicalUpgrades: 'Implementation of the Moodle LMS and high-speed campus connectivity.', 
@@ -1594,10 +1608,11 @@ export const MOCK_INSTITUTIONS: Institution[] = [
           opportunities: ['Student Representative Council (SRC)', 'Faculty Representatives'], 
           roles: 'Students play a key role in university governance.' 
         }, 
-        facilities: { 
-          list: ['Student Union Building', 'Cafeterias', 'Health Center'], 
-          description: 'Essential services for student well-being.' 
-        }, 
+        facilities: [
+          { name: 'Student Union Building', description: 'Essential services for student well-being.' },
+          { name: 'Cafeterias', description: 'Multiple dining options across campus.' },
+          { name: 'Health Center', description: 'Basic medical services for students.' }
+        ], 
         support: { 
           services: ['Counseling Services', 'Career Center', 'Financial Aid Office'], 
           description: 'Holistic support for all students.' 
@@ -1694,6 +1709,7 @@ export const MOCK_INSTITUTIONS: Institution[] = [
       },
       about: {
         overview: 'Evelyn Baring High School is a historic institution in Nhlangano providing quality secondary education. Founded in 1955, it has a long-standing reputation for academic excellence and leadership development in the Shiselweni region.',
+        foundingBackground: 'Established in 1955.',
         history: { 
           foundingStory: { 
             yearEstablished: 1955, 
@@ -1707,6 +1723,7 @@ export const MOCK_INSTITUTIONS: Institution[] = [
             { year: '1980', event: 'Introduction of the boarding facilities.' },
             { year: '2015', event: 'Celebrated 60 years of excellence.' }
           ], 
+          growthSummary: 'Historical growth.',
           transformationNarrative: { 
             adaptationToChange: 'We have transitioned through various curriculum changes, always maintaining high standards.', 
             technologicalUpgrades: 'Renovation of the computer lab and introduction of e-learning tools.', 
@@ -1872,10 +1889,11 @@ export const MOCK_INSTITUTIONS: Institution[] = [
           opportunities: ['Prefects', 'Dormitory Captains', 'Club Leaders'], 
           roles: 'Developing leadership skills through responsibility.' 
         }, 
-        facilities: { 
-          list: ['Dining Hall', 'Boarding Houses', 'Sports Grounds'], 
-          description: 'Facilities that support a vibrant boarding community.' 
-        }, 
+        facilities: [
+          { name: 'Dining Hall', description: 'Facilities that support a vibrant boarding community.' },
+          { name: 'Boarding Houses', description: 'Home away from home for our students.' },
+          { name: 'Sports Grounds', description: 'Ample space for outdoor activities.' }
+        ], 
         support: { 
           services: ['School Nurse', 'Guidance Counselor'], 
           description: 'Caring for the physical and emotional health of our students.' 
@@ -1932,9 +1950,10 @@ export const MOCK_INSTITUTIONS: Institution[] = [
       homepage: { heroBanner: 'https://picsum.photos/seed/smhero/1600/600', welcomeMessage: 'Welcome to St. Mark\'s High School.', principalMessage: { text: 'Building a legacy of excellence.', name: 'Principal' }, quickLinks: [], announcements: [] },
       about: {
         overview: 'St. Mark\'s High School is a premier public school in Mbabane.',
-        history: { foundingStory: { yearEstablished: 1950, founders: [], originalPurpose: '', initialStudentPopulation: '', firstCampusLocation: '' }, milestones: [], transformationNarrative: { adaptationToChange: '', technologicalUpgrades: '', communityImpact: '', alumniInfluence: '' } },
-        vision: { headline: 'Excellence in all we do', supportingParagraph: '' },
-        mission: { statement: 'To provide quality education for all.', description: '' },
+        foundingBackground: 'Established in 1950 to provide secondary education.',
+        history: { foundingStory: { yearEstablished: 1950, founders: [], originalPurpose: '', initialStudentPopulation: '', firstCampusLocation: '' }, milestones: [], growthSummary: 'Steady growth over 7 decades.', transformationNarrative: { adaptationToChange: '', technologicalUpgrades: '', communityImpact: '', alumniInfluence: '' } },
+        vision: { headline: 'Excellence in all we do', supportingParagraph: '', explanation: '' },
+        mission: { statement: 'To provide quality education for all.' },
         coreValues: [],
         leadership: { principal: { name: 'Principal', title: 'Principal' }, seniorTeam: [] },
         accreditation: { registeredWith: 'MoET', registrationNumber: '', examinationBody: 'SGCSE/A-Level', affiliations: [], awards: [] },
@@ -1947,7 +1966,7 @@ export const MOCK_INSTITUTIONS: Institution[] = [
       admissions: { headline: 'Join St. Mark\'s', introduction: 'We admit students based on academic merit.', programs: [], requirements: { academic: [], documents: [], additional: [] }, processSteps: [], applicationFee: { amount: 'SZL 150', methods: [] }, processingTime: '', importantDates: [], tuitionFees: { perTerm: '', perYear: '', additional: [] }, scholarships: { types: [], eligibility: '', howToApply: '' }, faqs: [], contact: { name: '', phone: '', email: '', hours: '' }, allowOnlineApplications: false },
       academics: { overview: { headline: '', introduction: '' }, curriculum: { structure: '', examinationBody: '', description: '' }, departments: [], programs: [], calendar: { startDate: '', terms: [], examPeriods: '', holidays: '' }, assessment: { approach: '', gradingSystem: '' }, support: { services: [], description: '' }, staff: { head: { name: '', qualifications: '', experience: '' }, totalCount: 0, avgExperience: '', certifications: [] }, performance: { passRate: '98%', ranking: '', distinctions: '', awards: [] }, facilities: { description: '', list: [] }, digital: { platform: '', features: [] }, partnerships: { internships: '', collaborations: '' } },
       news: { overview: { title: '', description: '' }, posts: [], events: [], gallery: [], newsletterCta: '' },
-      studentLife: { overview: { headline: '', introduction: '' }, sports: { list: [], facilities: [], description: '' }, clubs: [], arts: { activities: [], description: '' }, leadership: { opportunities: [], roles: '' }, facilities: { list: [], description: '' }, support: { services: [], description: '' }, activities: { list: [], description: '' }, community: { programs: [], description: '' } },
+      studentLife: { overview: { headline: '', introduction: '' }, sports: { list: [], facilities: [], description: '' }, clubs: [], arts: { activities: [], description: '' }, leadership: { opportunities: [], roles: '' }, facilities: [], support: { services: [], description: '' }, activities: { list: [], description: '' }, community: { programs: [], description: '' } },
       portal: { enabled: true, name: 'Portal', headline: '', description: '', url: '#', loginRequirements: [], rolesSupported: [], accountCreationProcess: '', features: { dashboard: { list: [], description: '' }, learning: { list: [], description: '' }, assessments: { list: [], description: '' }, records: { list: [], accessLevel: '' }, scheduling: { list: [], description: '' }, collaboration: [] }, tools: { list: [], platforms: [] }, mobileAccess: { list: [], devices: [] }, security: [], support: { email: '', phone: '', hours: '', resources: [] }, usageGuidelines: { policy: '', rules: '', expectations: '' } }
     },
     stats: { views: 12000, applications: 500, engagementRate: 15 }
@@ -1991,9 +2010,10 @@ export const MOCK_INSTITUTIONS: Institution[] = [
       homepage: { heroBanner: 'https://picsum.photos/seed/shhero/1600/600', welcomeMessage: 'Welcome to Salesian High School.', principalMessage: { text: 'Educating the heart and mind.', name: 'Principal' }, quickLinks: [], announcements: [] },
       about: {
         overview: 'Salesian High School is a Catholic boys school in Manzini.',
-        history: { foundingStory: { yearEstablished: 1960, founders: [], originalPurpose: '', initialStudentPopulation: '', firstCampusLocation: '' }, milestones: [], transformationNarrative: { adaptationToChange: '', technologicalUpgrades: '', communityImpact: '', alumniInfluence: '' } },
-        vision: { headline: 'Honest citizens and good Christians', supportingParagraph: '' },
-        mission: { statement: 'To provide holistic education for young men.', description: '' },
+        foundingBackground: 'Established in 1960.',
+        history: { foundingStory: { yearEstablished: 1960, founders: ['Salesian Fathers'], originalPurpose: 'To provide Catholic education.', initialStudentPopulation: '100 Students', firstCampusLocation: 'Manzini' }, milestones: [], growthSummary: 'Strong community focus.', transformationNarrative: { adaptationToChange: '', technologicalUpgrades: '', communityImpact: '', alumniInfluence: '' } },
+        vision: { headline: 'Honest citizens and good Christians', supportingParagraph: '', explanation: '' },
+        mission: { statement: 'To provide holistic education for young men.' },
         coreValues: [],
         leadership: { principal: { name: 'Principal', title: 'Principal' }, seniorTeam: [] },
         accreditation: { registeredWith: 'MoET', registrationNumber: '', examinationBody: 'SGCSE', affiliations: [], awards: [] },
@@ -2006,7 +2026,7 @@ export const MOCK_INSTITUTIONS: Institution[] = [
       admissions: { headline: 'Join Salesian', introduction: 'Admissions open for Form 1 and Form 4.', programs: [], requirements: { academic: [], documents: [], additional: [] }, processSteps: [], applicationFee: { amount: 'SZL 200', methods: [] }, processingTime: '', importantDates: [], tuitionFees: { perTerm: '', perYear: '', additional: [] }, scholarships: { types: [], eligibility: '', howToApply: '' }, faqs: [], contact: { name: '', phone: '', email: '', hours: '' }, allowOnlineApplications: false },
       academics: { overview: { headline: '', introduction: '' }, curriculum: { structure: '', examinationBody: '', description: '' }, departments: [], programs: [], calendar: { startDate: '', terms: [], examPeriods: '', holidays: '' }, assessment: { approach: '', gradingSystem: '' }, support: { services: [], description: '' }, staff: { head: { name: '', qualifications: '', experience: '' }, totalCount: 0, avgExperience: '', certifications: [] }, performance: { passRate: '96%', ranking: '', distinctions: '', awards: [] }, facilities: { description: '', list: [] }, digital: { platform: '', features: [] }, partnerships: { internships: '', collaborations: '' } },
       news: { overview: { title: '', description: '' }, posts: [], events: [], gallery: [], newsletterCta: '' },
-      studentLife: { overview: { headline: '', introduction: '' }, sports: { list: [], facilities: [], description: '' }, clubs: [], arts: { activities: [], description: '' }, leadership: { opportunities: [], roles: '' }, facilities: { list: [], description: '' }, support: { services: [], description: '' }, activities: { list: [], description: '' }, community: { programs: [], description: '' } },
+      studentLife: { overview: { headline: '', introduction: '' }, sports: { list: [], facilities: [], description: '' }, clubs: [], arts: { activities: [], description: '' }, leadership: { opportunities: [], roles: '' }, facilities: [], support: { services: [], description: '' }, activities: { list: [], description: '' }, community: { programs: [], description: '' } },
       portal: { enabled: false, name: '', headline: '', description: '', url: '', loginRequirements: [], rolesSupported: [], accountCreationProcess: '', features: { dashboard: { list: [], description: '' }, learning: { list: [], description: '' }, assessments: { list: [], description: '' }, records: { list: [], accessLevel: '' }, scheduling: { list: [], description: '' }, collaboration: [] }, tools: { list: [], platforms: [] }, mobileAccess: { list: [], devices: [] }, security: [], support: { email: '', phone: '', hours: '', resources: [] }, usageGuidelines: { policy: '', rules: '', expectations: '' } }
     },
     stats: { views: 7000, applications: 250, engagementRate: 9 }
@@ -2050,9 +2070,10 @@ export const MOCK_INSTITUTIONS: Institution[] = [
       homepage: { heroBanner: 'https://picsum.photos/seed/gvhero/1600/600', welcomeMessage: 'Welcome to Gwamile VOCTIM.', principalMessage: { text: 'Empowering through skills.', name: 'Principal' }, quickLinks: [], announcements: [] },
       about: {
         overview: 'Gwamile VOCTIM is a leading vocational training institute in Matsapha.',
-        history: { foundingStory: { yearEstablished: 1987, founders: [], originalPurpose: '', initialStudentPopulation: '', firstCampusLocation: '' }, milestones: [], transformationNarrative: { adaptationToChange: '', technologicalUpgrades: '', communityImpact: '', alumniInfluence: '' } },
-        vision: { headline: 'A center of excellence in vocational training', supportingParagraph: '' },
-        mission: { statement: 'To provide relevant technical skills.', description: '' },
+        foundingBackground: 'Established in 1987.',
+        history: { foundingStory: { yearEstablished: 1987, founders: ['Government/Industry'], originalPurpose: 'Skilled labor development.', initialStudentPopulation: '100 Students', firstCampusLocation: 'Matsapha' }, milestones: [], growthSummary: 'Key vocational trainer.', transformationNarrative: { adaptationToChange: '', technologicalUpgrades: '', communityImpact: '', alumniInfluence: '' } },
+        vision: { headline: 'A center of excellence in vocational training', supportingParagraph: '', explanation: '' },
+        mission: { statement: 'To provide relevant technical skills.' },
         coreValues: [],
         leadership: { principal: { name: 'Principal', title: 'Principal' }, seniorTeam: [] },
         accreditation: { registeredWith: 'MoET', registrationNumber: '', examinationBody: 'DTE', affiliations: [], awards: [] },
@@ -2065,7 +2086,7 @@ export const MOCK_INSTITUTIONS: Institution[] = [
       admissions: { headline: 'Apply to VOCTIM', introduction: 'Applications open for January intake.', programs: [], requirements: { academic: [], documents: [], additional: [] }, processSteps: [], applicationFee: { amount: 'SZL 100', methods: [] }, processingTime: '', importantDates: [], tuitionFees: { perTerm: '', perYear: '', additional: [] }, scholarships: { types: [], eligibility: '', howToApply: '' }, faqs: [], contact: { name: '', phone: '', email: '', hours: '' }, allowOnlineApplications: false },
       academics: { overview: { headline: '', introduction: '' }, curriculum: { structure: '', examinationBody: '', description: '' }, departments: [], programs: [], calendar: { startDate: '', terms: [], examPeriods: '', holidays: '' }, assessment: { approach: '', gradingSystem: '' }, support: { services: [], description: '' }, staff: { head: { name: '', qualifications: '', experience: '' }, totalCount: 0, avgExperience: '', certifications: [] }, performance: { passRate: '85%', ranking: '', distinctions: '', awards: [] }, facilities: { description: '', list: [] }, digital: { platform: '', features: [] }, partnerships: { internships: '', collaborations: '' } },
       news: { overview: { title: '', description: '' }, posts: [], events: [], gallery: [], newsletterCta: '' },
-      studentLife: { overview: { headline: '', introduction: '' }, sports: { list: [], facilities: [], description: '' }, clubs: [], arts: { activities: [], description: '' }, leadership: { opportunities: [], roles: '' }, facilities: { list: [], description: '' }, support: { services: [], description: '' }, activities: { list: [], description: '' }, community: { programs: [], description: '' } },
+      studentLife: { overview: { headline: '', introduction: '' }, sports: { list: [], facilities: [], description: '' }, clubs: [], arts: { activities: [], description: '' }, leadership: { opportunities: [], roles: '' }, facilities: [], support: { services: [], description: '' }, activities: { list: [], description: '' }, community: { programs: [], description: '' } },
       portal: { enabled: false, name: '', headline: '', description: '', url: '', loginRequirements: [], rolesSupported: [], accountCreationProcess: '', features: { dashboard: { list: [], description: '' }, learning: { list: [], description: '' }, assessments: { list: [], description: '' }, records: { list: [], accessLevel: '' }, scheduling: { list: [], description: '' }, collaboration: [] }, tools: { list: [], platforms: [] }, mobileAccess: { list: [], devices: [] }, security: [], support: { email: '', phone: '', hours: '', resources: [] }, usageGuidelines: { policy: '', rules: '', expectations: '' } }
     },
     stats: { views: 5000, applications: 150, engagementRate: 6 }
@@ -2109,9 +2130,10 @@ export const MOCK_INSTITUTIONS: Institution[] = [
       homepage: { heroBanner: 'https://picsum.photos/seed/gshero/1600/600', welcomeMessage: 'Welcome to Good Shepherd High School.', principalMessage: { text: 'Excellence through faith.', name: 'Principal' }, quickLinks: [], announcements: [] },
       about: {
         overview: 'Good Shepherd High School is a Catholic school in Siteki.',
-        history: { foundingStory: { yearEstablished: 1965, founders: [], originalPurpose: '', initialStudentPopulation: '', firstCampusLocation: '' }, milestones: [], transformationNarrative: { adaptationToChange: '', technologicalUpgrades: '', communityImpact: '', alumniInfluence: '' } },
-        vision: { headline: 'Academic success and spiritual growth', supportingParagraph: '' },
-        mission: { statement: 'To provide quality education.', description: '' },
+        foundingBackground: 'Established in 1965.',
+        history: { foundingStory: { yearEstablished: 1965, founders: ['Catholic Mission'], originalPurpose: 'Secondary education.', initialStudentPopulation: '100 Students', firstCampusLocation: 'Siteki' }, milestones: [], growthSummary: 'Steady development.', transformationNarrative: { adaptationToChange: '', technologicalUpgrades: '', communityImpact: '', alumniInfluence: '' } },
+        vision: { headline: 'Academic success and spiritual growth', supportingParagraph: '', explanation: '' },
+        mission: { statement: 'To provide quality education.' },
         coreValues: [],
         leadership: { principal: { name: 'Principal', title: 'Principal' }, seniorTeam: [] },
         accreditation: { registeredWith: 'MoET', registrationNumber: '', examinationBody: 'SGCSE', affiliations: [], awards: [] },
@@ -2124,7 +2146,7 @@ export const MOCK_INSTITUTIONS: Institution[] = [
       admissions: { headline: 'Join Good Shepherd', introduction: 'Admissions open for all forms.', programs: [], requirements: { academic: [], documents: [], additional: [] }, processSteps: [], applicationFee: { amount: 'SZL 100', methods: [] }, processingTime: '', importantDates: [], tuitionFees: { perTerm: '', perYear: '', additional: [] }, scholarships: { types: [], eligibility: '', howToApply: '' }, faqs: [], contact: { name: '', phone: '', email: '', hours: '' }, allowOnlineApplications: false },
       academics: { overview: { headline: '', introduction: '' }, curriculum: { structure: '', examinationBody: '', description: '' }, departments: [], programs: [], calendar: { startDate: '', terms: [], examPeriods: '', holidays: '' }, assessment: { approach: '', gradingSystem: '' }, support: { services: [], description: '' }, staff: { head: { name: '', qualifications: '', experience: '' }, totalCount: 0, avgExperience: '', certifications: [] }, performance: { passRate: '92%', ranking: '', distinctions: '', awards: [] }, facilities: { description: '', list: [] }, digital: { platform: '', features: [] }, partnerships: { internships: '', collaborations: '' } },
       news: { overview: { title: '', description: '' }, posts: [], events: [], gallery: [], newsletterCta: '' },
-      studentLife: { overview: { headline: '', introduction: '' }, sports: { list: [], facilities: [], description: '' }, clubs: [], arts: { activities: [], description: '' }, leadership: { opportunities: [], roles: '' }, facilities: { list: [], description: '' }, support: { services: [], description: '' }, activities: { list: [], description: '' }, community: { programs: [], description: '' } },
+      studentLife: { overview: { headline: '', introduction: '' }, sports: { list: [], facilities: [], description: '' }, clubs: [], arts: { activities: [], description: '' }, leadership: { opportunities: [], roles: '' }, facilities: [], support: { services: [], description: '' }, activities: { list: [], description: '' }, community: { programs: [], description: '' } },
       portal: { enabled: false, name: '', headline: '', description: '', url: '', loginRequirements: [], rolesSupported: [], accountCreationProcess: '', features: { dashboard: { list: [], description: '' }, learning: { list: [], description: '' }, assessments: { list: [], description: '' }, records: { list: [], accessLevel: '' }, scheduling: { list: [], description: '' }, collaboration: [] }, tools: { list: [], platforms: [] }, mobileAccess: { list: [], devices: [] }, security: [], support: { email: '', phone: '', hours: '', resources: [] }, usageGuidelines: { policy: '', rules: '', expectations: '' } }
     },
     stats: { views: 4000, applications: 120, engagementRate: 5 }
@@ -2168,9 +2190,10 @@ export const MOCK_INSTITUTIONS: Institution[] = [
       homepage: { heroBanner: 'https://picsum.photos/seed/nthero/1600/600', welcomeMessage: 'Welcome to Ngwane Teacher\'s Training College.', principalMessage: { text: 'Shaping the future of education.', name: 'Principal' }, quickLinks: [], announcements: [] },
       about: {
         overview: 'Ngwane Teacher\'s Training College is a premier teacher training institution in Nhlangano.',
-        history: { foundingStory: { yearEstablished: 1982, founders: [], originalPurpose: '', initialStudentPopulation: '', firstCampusLocation: '' }, milestones: [], transformationNarrative: { adaptationToChange: '', technologicalUpgrades: '', communityImpact: '', alumniInfluence: '' } },
-        vision: { headline: 'Excellence in teacher education', supportingParagraph: '' },
-        mission: { statement: 'To produce competent primary school teachers.', description: '' },
+        foundingBackground: 'Established in 1982.',
+        history: { foundingStory: { yearEstablished: 1982, founders: ['Government'], originalPurpose: 'Teacher training.', initialStudentPopulation: '200 Students', firstCampusLocation: 'Nhlangano' }, milestones: [], growthSummary: 'Core teacher educator.', transformationNarrative: { adaptationToChange: '', technologicalUpgrades: '', communityImpact: '', alumniInfluence: '' } },
+        vision: { headline: 'Excellence in teacher education', supportingParagraph: '', explanation: '' },
+        mission: { statement: 'To produce competent primary school teachers.' },
         coreValues: [],
         leadership: { principal: { name: 'Principal', title: 'Principal' }, seniorTeam: [] },
         accreditation: { registeredWith: 'MoET', registrationNumber: '', examinationBody: 'UNESWA', affiliations: [], awards: [] },
@@ -2183,7 +2206,7 @@ export const MOCK_INSTITUTIONS: Institution[] = [
       admissions: { headline: 'Apply to Ngwane', introduction: 'Applications open for the Diploma in Primary Education.', programs: [], requirements: { academic: [], documents: [], additional: [] }, processSteps: [], applicationFee: { amount: 'SZL 250', methods: [] }, processingTime: '', importantDates: [], tuitionFees: { perTerm: '', perYear: '', additional: [] }, scholarships: { types: [], eligibility: '', howToApply: '' }, faqs: [], contact: { name: '', phone: '', email: '', hours: '' }, allowOnlineApplications: false },
       academics: { overview: { headline: '', introduction: '' }, curriculum: { structure: '', examinationBody: '', description: '' }, departments: [], programs: [], calendar: { startDate: '', terms: [], examPeriods: '', holidays: '' }, assessment: { approach: '', gradingSystem: '' }, support: { services: [], description: '' }, staff: { head: { name: '', qualifications: '', experience: '' }, totalCount: 0, avgExperience: '', certifications: [] }, performance: { passRate: '95%', ranking: '', distinctions: '', awards: [] }, facilities: { description: '', list: [] }, digital: { platform: '', features: [] }, partnerships: { internships: '', collaborations: '' } },
       news: { overview: { title: '', description: '' }, posts: [], events: [], gallery: [], newsletterCta: '' },
-      studentLife: { overview: { headline: '', introduction: '' }, sports: { list: [], facilities: [], description: '' }, clubs: [], arts: { activities: [], description: '' }, leadership: { opportunities: [], roles: '' }, facilities: { list: [], description: '' }, support: { services: [], description: '' }, activities: { list: [], description: '' }, community: { programs: [], description: '' } },
+      studentLife: { overview: { headline: '', introduction: '' }, sports: { list: [], facilities: [], description: '' }, clubs: [], arts: { activities: [], description: '' }, leadership: { opportunities: [], roles: '' }, facilities: [], support: { services: [], description: '' }, activities: { list: [], description: '' }, community: { programs: [], description: '' } },
       portal: { enabled: true, name: 'Student Portal', headline: '', description: '', url: '#', loginRequirements: [], rolesSupported: [], accountCreationProcess: '', features: { dashboard: { list: [], description: '' }, learning: { list: [], description: '' }, assessments: { list: [], description: '' }, records: { list: [], accessLevel: '' }, scheduling: { list: [], description: '' }, collaboration: [] }, tools: { list: [], platforms: [] }, mobileAccess: { list: [], devices: [] }, security: [], support: { email: '', phone: '', hours: '', resources: [] }, usageGuidelines: { policy: '', rules: '', expectations: '' } }
     },
     stats: { views: 6000, applications: 300, engagementRate: 8 }
@@ -2250,7 +2273,8 @@ export const MOCK_INSTITUTIONS: Institution[] = [
       },
       about: {
         overview: 'The Swaziland National Association of Teachers (SNAT) is the premier professional organization for educators in the Kingdom of Eswatini.',
-        history: { foundingStory: { yearEstablished: 1928, founders: [], originalPurpose: '', initialStudentPopulation: '', firstCampusLocation: '' }, milestones: [], transformationNarrative: { adaptationToChange: '', technologicalUpgrades: '', communityImpact: '', alumniInfluence: '' } },
+        foundingBackground: 'Established in 1928.',
+        history: { foundingStory: { yearEstablished: 1928, founders: ['Founding Members'], originalPurpose: 'To unite educators.', initialStudentPopulation: 'N/A', firstCampusLocation: 'Manzini' }, milestones: [], growthSummary: 'Long-standing union union.', transformationNarrative: { adaptationToChange: '', technologicalUpgrades: '', communityImpact: '', alumniInfluence: '' } },
         vision: { headline: 'A unified and empowered teaching force.', supportingParagraph: '' },
         mission: { statement: 'To promote the professional, social, and economic interests of teachers.', description: '' },
         coreValues: [],
@@ -2294,7 +2318,7 @@ export const MOCK_INSTITUTIONS: Institution[] = [
         partnerships: { internships: '', collaborations: '' }
       },
       news: { overview: { title: 'SNAT Bulletins', description: 'Stay informed on union activities.' }, posts: [], events: [], gallery: [], newsletterCta: '' },
-      studentLife: { overview: { headline: '', introduction: '' }, sports: { list: [], facilities: [], description: '' }, clubs: [], arts: { activities: [], description: '' }, leadership: { opportunities: [], roles: '' }, facilities: { list: [], description: '' }, support: { services: [], description: '' }, activities: { list: [], description: '' }, community: { programs: [], description: '' } },
+      studentLife: { overview: { headline: '', introduction: '' }, sports: { list: [], facilities: [], description: '' }, clubs: [], arts: { activities: [], description: '' }, leadership: { opportunities: [], roles: '' }, facilities: [], support: { services: [], description: '' }, activities: { list: [], description: '' }, community: { programs: [], description: '' } },
       portal: { enabled: true, name: 'SNAT Portal', headline: '', description: '', url: '#', loginRequirements: [], rolesSupported: [], accountCreationProcess: '', features: { dashboard: { list: [], description: '' }, learning: { list: [], description: '' }, assessments: { list: [], description: '' }, records: { list: [], accessLevel: '' }, scheduling: { list: [], description: '' }, collaboration: [] }, tools: { list: [], platforms: [] }, mobileAccess: { list: [], devices: [] }, security: [], support: { email: '', phone: '', hours: '', resources: [] }, usageGuidelines: { policy: '', rules: '', expectations: '' } }
     },
     stats: { views: 25000, applications: 450, engagementRate: 25 }

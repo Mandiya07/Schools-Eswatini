@@ -1,19 +1,25 @@
 
 import React, { useState, useEffect } from 'react';
-import { Institution, User, Region, SubscriptionPlan } from '../types';
+import { Institution, User, Region, SubscriptionPlan, InstitutionType, GenderType } from '../types';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, BarChart, Bar, XAxis, YAxis, CartesianGrid, LineChart, Line, AreaChart, Area, Legend } from 'recharts';
 import SecurityDashboard from '../components/SecurityDashboard';
+import { Plus, X } from 'lucide-react';
+import { MOCK_INSTITUTIONS } from '../mockData';
 
 interface SuperAdminDashboardProps {
   institutions: Institution[];
   onUpdate: (inst: Institution) => void;
   onDelete: (id: string) => void;
   onSeed?: () => void;
+  onAdd?: (inst: Institution) => void;
 }
 
-const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({ institutions, onUpdate, onDelete, onSeed }) => {
+const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({ institutions, onUpdate, onDelete, onSeed, onAdd }) => {
   const [activeTab, setActiveTab] = useState<'overview' | 'institutions' | 'verification' | 'analytics' | 'security' | 'performance' | 'users' | 'moderation' | 'forecasting'>('overview');
   const [perfStats, setPerfStats] = useState<any>(null);
+  
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [newSchool, setNewSchool] = useState({ name: '', region: Region.HHOHHO, adminEmail: '' });
 
   useEffect(() => {
     fetch('/api/stats')
@@ -21,6 +27,34 @@ const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({ institutions,
       .then(data => setPerfStats(data))
       .catch(err => console.error("Failed to fetch perf stats", err));
   }, []);
+
+  const handleAddInstitution = () => {
+    if (!onAdd || !newSchool.name) return;
+    
+    // Copy the structure of the first mock institution to ensure all required fields are present
+    const baseInst = JSON.parse(JSON.stringify(MOCK_INSTITUTIONS[0])) as Institution;
+    
+    const id = `inst-${Date.now()}`;
+    const newInst: Institution = {
+      ...baseInst,
+      id,
+      name: newSchool.name,
+      slug: newSchool.name.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
+      region: newSchool.region,
+      status: 'pending',
+      plan: SubscriptionPlan.FREE,
+      isVerified: false,
+      isAccredited: false,
+      adminId: newSchool.adminEmail, // Temporarily using adminId to store email for matching
+      createdAt: new Date().toISOString(),
+      logo: '',
+      coverImage: ''
+    };
+    
+    onAdd(newInst);
+    setShowAddModal(false);
+    setNewSchool({ name: '', region: Region.HHOHHO, adminEmail: '' });
+  };
 
   const planData = [
     { name: 'Free', value: institutions.filter(i => i.plan === SubscriptionPlan.FREE).length, color: '#94a3b8' },
@@ -192,10 +226,19 @@ const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({ institutions,
           </div>
         </>
       ) : activeTab === 'institutions' ? (
-        <div className="bg-white p-10 rounded-[48px] border border-slate-100 shadow-sm">
-          <h3 className="text-sm font-black text-slate-900 uppercase tracking-widest mb-10">Institution Directory</h3>
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
+        <div className="space-y-6">
+          <div className="flex justify-between items-center">
+            <h3 className="text-xl font-black text-slate-900 tracking-tight">Institution Directory</h3>
+            <button 
+              onClick={() => setShowAddModal(true)}
+              className="bg-blue-600 text-white px-6 py-3 rounded-2xl font-black uppercase tracking-widest text-[10px] hover:bg-blue-700 transition-all flex items-center gap-2 shadow-lg shadow-blue-200"
+            >
+              <Plus className="w-4 h-4" /> Add New School
+            </button>
+          </div>
+          <div className="bg-white p-10 rounded-[48px] border border-slate-100 shadow-sm">
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="border-b border-slate-100">
                   <th className="pb-6 text-[10px] font-black text-slate-400 uppercase tracking-widest">Institution</th>
@@ -246,6 +289,7 @@ const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({ institutions,
             </table>
           </div>
         </div>
+      </div>
       ) : activeTab === 'verification' ? (
         <div className="bg-white p-10 rounded-[48px] border border-slate-100 shadow-sm">
           <h3 className="text-sm font-black text-slate-900 uppercase tracking-widest mb-10">Verification Requests</h3>
@@ -586,6 +630,68 @@ const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({ institutions,
           </div>
         </div>
       ) : null}
+
+      {showAddModal && (
+        <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+          <div className="bg-white rounded-[40px] max-w-lg w-full p-10 shadow-2xl animate-in zoom-in-95">
+            <div className="flex justify-between items-center mb-8">
+              <h3 className="text-2xl font-black text-slate-900 tracking-tight">Add New School</h3>
+              <button 
+                onClick={() => setShowAddModal(false)}
+                className="w-10 h-10 bg-slate-100 hover:bg-rose-100 hover:text-rose-600 rounded-full flex items-center justify-center transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            
+            <div className="space-y-6">
+              <div>
+                <label className="block text-[10px] font-black uppercase text-slate-400 tracking-widest mb-2">School Name</label>
+                <input 
+                  type="text" 
+                  value={newSchool.name}
+                  onChange={(e) => setNewSchool({...newSchool, name: e.target.value})}
+                  className="w-full bg-slate-50 border border-slate-200 rounded-2xl p-4 font-bold text-slate-900 focus:ring-4 focus:ring-blue-50 focus:border-blue-200 outline-none transition-all"
+                  placeholder="e.g. Mbabane Central High"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-[10px] font-black uppercase text-slate-400 tracking-widest mb-2">Region</label>
+                <select 
+                  value={newSchool.region}
+                  onChange={(e) => setNewSchool({...newSchool, region: e.target.value as Region})}
+                  className="w-full bg-slate-50 border border-slate-200 rounded-2xl p-4 font-bold text-slate-900 focus:ring-4 focus:ring-blue-50 focus:border-blue-200 outline-none transition-all"
+                >
+                  {Object.values(Region).map(r => (
+                    <option key={r} value={r}>{r}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-[10px] font-black uppercase text-slate-400 tracking-widest mb-2">Administrator Email</label>
+                <input 
+                  type="email" 
+                  value={newSchool.adminEmail}
+                  onChange={(e) => setNewSchool({...newSchool, adminEmail: e.target.value})}
+                  className="w-full bg-slate-50 border border-slate-200 rounded-2xl p-4 font-bold text-slate-900 focus:ring-4 focus:ring-blue-50 focus:border-blue-200 outline-none transition-all"
+                  placeholder="admin@school.sz"
+                />
+                <p className="text-[10px] text-slate-500 mt-2 font-medium">This email will automatically get 'Institution Admin' access.</p>
+              </div>
+            </div>
+
+            <button 
+              onClick={handleAddInstitution}
+              disabled={!newSchool.name || !newSchool.adminEmail}
+              className="w-full mt-10 bg-blue-600 text-white p-5 rounded-2xl font-black uppercase tracking-widest text-[10px] hover:bg-blue-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-xl shadow-blue-200"
+            >
+              Provision School Account
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

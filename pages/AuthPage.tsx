@@ -8,6 +8,7 @@ const AuthPage: React.FC = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<'login' | 'register'>('login');
+  const [selectedRole, setSelectedRole] = useState<UserRole>(UserRole.VISITOR);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -31,9 +32,11 @@ const AuthPage: React.FC = () => {
           id: firebaseUser.uid,
           email: firebaseUser.email || '',
           name: firebaseUser.displayName || 'User',
-          role: UserRole.VISITOR, // Default role
+          role: activeTab === 'register' ? selectedRole : UserRole.VISITOR,
           isVerified: firebaseUser.emailVerified,
-          twoFactorEnabled: false
+          twoFactorEnabled: false,
+          aiCredits: 3,
+          isAiPro: false
         };
         await setDoc(doc(db, 'users', firebaseUser.uid), newUser);
       }
@@ -54,9 +57,36 @@ const AuthPage: React.FC = () => {
             {activeTab === 'login' ? 'Welcome back' : 'Create an account'}
           </h2>
           <p className="mt-2 text-sm text-slate-500">
-            {activeTab === 'login' ? 'Access your institution dashboard' : 'Register your school to build your mini-site'}
+            {activeTab === 'login' 
+              ? 'Access your unified education dashboard' 
+              : 'Join the Eswatini education ecosystem'}
           </p>
         </div>
+
+        {activeTab === 'register' && (
+          <div className="bg-slate-50 p-4 rounded-2xl space-y-3">
+            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest text-center mb-2">Select Your Role</p>
+            <div className="grid grid-cols-2 gap-3">
+              {[
+                { role: UserRole.PARENT, label: 'Parent / Guardian' },
+                { role: UserRole.TEACHER, label: 'Teacher / Educator' },
+              ].map((item) => (
+                <button
+                  key={item.role}
+                  onClick={() => setSelectedRole(item.role)}
+                  className={`py-3 px-4 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
+                    selectedRole === item.role 
+                      ? 'bg-blue-600 text-white shadow-lg shadow-blue-200' 
+                      : 'bg-white text-slate-500 border border-slate-200 hover:border-blue-300'
+                  }`}
+                >
+                  {item.label}
+                </button>
+              ))}
+            </div>
+            <p className="text-[9px] text-slate-400 text-center italic">Institutional admins are verified automatically via school email.</p>
+          </div>
+        )}
 
         <div className="mt-8 space-y-6">
           {error && <div className="p-3 text-sm text-rose-600 bg-rose-50 rounded-lg border border-rose-100">{error}</div>}

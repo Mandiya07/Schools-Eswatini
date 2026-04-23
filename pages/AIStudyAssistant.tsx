@@ -14,16 +14,25 @@ import {
   GraduationCap,
   X,
   CreditCard,
-  Smartphone
+  Smartphone,
+  Lock
 } from 'lucide-react';
 import { GoogleGenAI } from "@google/genai";
+import { User, UserRole } from '../types';
+import { db } from '../src/lib/firebase';
+import { doc, updateDoc } from 'firebase/firestore';
+import { Link } from 'react-router-dom';
 
 interface Message {
   role: 'user' | 'assistant';
   content: string;
 }
 
-const AIStudyAssistant: React.FC = () => {
+interface AIStudyAssistantProps {
+  user: User | null;
+}
+
+const AIStudyAssistant: React.FC<AIStudyAssistantProps> = ({ user }) => {
   const [messages, setMessages] = useState<Message[]>([
     { role: 'assistant', content: 'Sawubona! I am your AI Study Assistant. I can help you understand complex topics, summarize textbook chapters, or even practice for your EGCSE Exams using verified educator materials. What are we studying today?' }
   ]);
@@ -31,11 +40,29 @@ const AIStudyAssistant: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   
-  // Paywall states
-  const [queriesLeft, setQueriesLeft] = useState(3);
+  // Paywall & Limits states
+  const [queriesLeft, setQueriesLeft] = useState<number>(3);
   const [isPro, setIsPro] = useState(false);
   const [showPaywall, setShowPaywall] = useState(false);
+  const [showAuthGate, setShowAuthGate] = useState(!user);
   const [paymentStep, setPaymentStep] = useState<'method' | 'processing' | 'success'>('method');
+
+  // Synchronize state with logged-in user data
+  useEffect(() => {
+    if (user) {
+      setShowAuthGate(false);
+      // Give Premium/Super Admins full access automatically, or if marked as AiPro
+      const isPremiumUser = user.role === UserRole.INSTITUTION_ADMIN || user.role === UserRole.SUPER_ADMIN || user.role === UserRole.MOET_OFFICIAL;
+      const isAiProUser = user.isAiPro || isPremiumUser;
+      
+      setIsPro(isAiProUser);
+      if (!isAiProUser) {
+        setQueriesLeft(user.aiCredits !== undefined ? user.aiCredits : 3);
+      }
+    } else {
+      setShowAuthGate(true);
+    }
+  }, [user]);
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -43,8 +70,24 @@ const AIStudyAssistant: React.FC = () => {
     }
   }, [messages]);
 
+  const updateUserCredits = async (newCredits: number) => {
+    if (!user || isPro) return;
+    try {
+      await updateDoc(doc(db, 'users', user.id), {
+        aiCredits: newCredits
+      });
+    } catch (e) {
+      console.error('Failed to sync credits with database:', e);
+    }
+  };
+
   const handleSend = async () => {
     if (!input.trim() || isLoading) return;
+
+    if (!user) {
+      setShowAuthGate(true);
+      return;
+    }
 
     if (!isPro && queriesLeft <= 0) {
       setShowPaywall(true);
@@ -57,7 +100,9 @@ const AIStudyAssistant: React.FC = () => {
     setIsLoading(true);
 
     if (!isPro) {
-      setQueriesLeft(prev => prev - 1);
+      const newQueriesLeft = queriesLeft - 1;
+      setQueriesLeft(newQueriesLeft);
+      await updateUserCredits(newQueriesLeft);
     }
 
     try {
@@ -89,14 +134,24 @@ const AIStudyAssistant: React.FC = () => {
     }
   };
 
-  const handlePayment = () => {
+  const handlePayment = async () => {
     setPaymentStep('processing');
-    setTimeout(() => {
+    setTimeout(async () => {
       setPaymentStep('success');
-      setTimeout(() => {
+      setTimeout(async () => {
         setIsPro(true);
         setShowPaywall(false);
         setPaymentStep('method');
+        // Update Firebase
+        if (user) {
+          try {
+            await updateDoc(doc(db, 'users', user.id), {
+              isAiPro: true
+            });
+          } catch(e) {
+            console.error('Failed to upgrade user in DB');
+          }
+        }
       }, 2000);
     }, 2500);
   };
@@ -362,6 +417,45 @@ const AIStudyAssistant: React.FC = () => {
                   <p className="text-sm font-medium text-slate-500">You are now an AI Tutor Pro member.</p>
                 </div>
               )}
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+      {/* Auth Gate Modal */}
+      <AnimatePresence>
+        {showAuthGate && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center px-4 bg-slate-900/60 backdrop-blur-sm">
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 20 }}
+              className="bg-white rounded-[40px] max-w-md w-full p-8 shadow-2xl relative overflow-hidden"
+            >
+              <div className="w-16 h-16 bg-slate-100 text-slate-600 rounded-2xl flex items-center justify-center mb-6 relative">
+                 <Lock className="w-8 h-8" />
+                 <div className="absolute -bottom-2 -right-2 w-8 h-8 bg-fuchsia-100 text-fuchsia-600 rounded-full flex items-center justify-center">
+                    <Sparkles className="w-4 h-4" />
+                 </div>
+              </div>
+              <h2 className="text-3xl font-black text-slate-900 mb-4 tracking-tight">Unlock AI Tutor</h2>
+              <p className="text-sm font-medium text-slate-500 mb-8 leading-relaxed">
+                Create a free account to securely track your <strong className="text-fuchsia-600">3 daily free credits</strong>. If you belong to a verified Premium school, you'll automatically get Unlimited Access.
+              </p>
+
+              <div className="space-y-3">
+                <Link 
+                  to="/auth?tab=register"
+                  className="w-full bg-slate-900 text-white p-4 rounded-xl flex items-center justify-center font-black uppercase tracking-widest text-[10px] hover:bg-slate-800 transition-colors shadow-lg"
+                >
+                  Create Free Account
+                </Link>
+                <Link 
+                  to="/auth"
+                  className="w-full bg-slate-50 text-slate-700 p-4 rounded-xl flex items-center justify-center font-black uppercase tracking-widest text-[10px] hover:bg-slate-100 transition-colors"
+                >
+                  Log In
+                </Link>
+              </div>
             </motion.div>
           </div>
         )}

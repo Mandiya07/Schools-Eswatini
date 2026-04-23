@@ -57,6 +57,11 @@ const ParentPortal: React.FC<ParentPortalProps> = ({ user }) => {
   const [showPinModal, setShowPinModal] = useState<string | null>(null);
   const [pinInput, setPinInput] = useState('');
 
+  // Student Linking States
+  const [searchId, setSearchId] = useState('');
+  const [isSearching, setIsSearching] = useState(false);
+  const [searchError, setSearchError] = useState('');
+
   // AI Translation States
   const [aiTranslatingId, setAiTranslatingId] = useState<string | null>(null);
   const [aiTranslations, setAiTranslations] = useState<{ [key: string]: string }>({});
@@ -181,6 +186,55 @@ const ParentPortal: React.FC<ParentPortalProps> = ({ user }) => {
     }
   };
 
+  const handleLinkStudent = async () => {
+    if (!searchId) return;
+    setIsSearching(true);
+    setSearchError('');
+    try {
+      // In a real app, query 'students' collection. 
+      // For this prototype, we check all institutions' metadata.students
+      const instSnapshot = await getDocs(collection(db, 'institutions'));
+      let foundStudent = null;
+      let foundInstId = '';
+
+      for (const instDoc of instSnapshot.docs) {
+        const instData = instDoc.data();
+        const students = instData.metadata?.students || [];
+        const student = students.find((s: any) => s.studentId === searchId);
+        if (student) {
+          // Check if parent email matches
+          if (student.parentEmails?.some((email: string) => email.toLowerCase() === user.email.toLowerCase())) {
+            foundStudent = student;
+            foundInstId = instDoc.id;
+            break;
+          } else {
+             setSearchError("Student ID found, but your email is not registered as a parent for this student. Please contact the school.");
+             setIsSearching(false);
+             return;
+          }
+        }
+      }
+
+      if (foundStudent) {
+        // Link the student to the user profile
+        const updatedLinkedIds = [...(user.linkedStudentIds || []), foundStudent.id];
+        await setDoc(doc(db, 'users', user.id), { linkedStudentIds: updatedLinkedIds }, { merge: true });
+        
+        // Refresh local data would be best, but for now we can just show success or inject it
+        // and notify parent that linkage is complete.
+        alert(`Successfully linked to ${foundStudent.name}! Please refresh to see records.`);
+        setSearchId('');
+      } else {
+        if (!searchError) setSearchError("No student record found with that ID.");
+      }
+    } catch (err) {
+      console.error("Link Error", err);
+      setSearchError("An error occurred during search.");
+    } finally {
+      setIsSearching(false);
+    }
+  };
+
   if (!isTeacher && !isParent) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-50">
@@ -258,6 +312,42 @@ const ParentPortal: React.FC<ParentPortalProps> = ({ user }) => {
            >
              <Vote className="w-4 h-4" /> PTA & Consent
            </button>
+        </div>
+      )}
+
+      {/* Connection Help for Parents */}
+      {!isTeacher && !loading && (
+        <div className="mb-12 p-8 bg-blue-50 border border-blue-100 rounded-[40px] flex flex-col md:flex-row items-center gap-8">
+           <div className="w-20 h-20 bg-blue-600 text-white rounded-3xl flex items-center justify-center shrink-0 shadow-lg shadow-blue-200">
+             <Users className="w-10 h-10" />
+           </div>
+           <div className="flex-1 text-center md:text-left">
+             <h3 className="text-xl font-black text-blue-900 tracking-tight">
+               {progressData.length === 0 ? "Need to link your child's account?" : "Add another child?"}
+             </h3>
+             <p className="text-blue-700 font-medium mt-2">
+               Enter the Student ID provided by your school to link their performance records to your account.
+             </p>
+             <div className="mt-4 flex flex-col sm:flex-row gap-3">
+               <div className="flex-1 relative">
+                 <input 
+                   type="text" 
+                   value={searchId}
+                   onChange={e => setSearchId(e.target.value)}
+                   className="w-full bg-white border border-blue-200 rounded-xl px-4 py-3 text-sm font-bold placeholder:text-slate-300 outline-none focus:ring-2 focus:ring-blue-400" 
+                   placeholder="e.g. S-1024"
+                 />
+                 {searchError && <p className="absolute -bottom-5 left-1 text-[9px] text-rose-500 font-bold">{searchError}</p>}
+               </div>
+               <button 
+                 onClick={handleLinkStudent}
+                 disabled={isSearching || !searchId}
+                 className="px-8 py-3 bg-blue-600 text-white rounded-xl font-black uppercase tracking-widest text-[10px] shadow-lg shadow-blue-200 hover:bg-blue-700 transition-all disabled:opacity-50"
+               >
+                 {isSearching ? 'Searching...' : 'Link Student'}
+               </button>
+             </div>
+           </div>
         </div>
       )}
 
