@@ -1,9 +1,10 @@
 
 import React, { useState, useEffect } from 'react';
-import { Institution, User, Region, SubscriptionPlan, InstitutionType, GenderType } from '../types';
+import { Institution, User, Region, SubscriptionPlan, InstitutionType, GenderType, UserRole } from '../types';
+import InstitutionAdminDashboard from './InstitutionAdminDashboard';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, BarChart, Bar, XAxis, YAxis, CartesianGrid, LineChart, Line, AreaChart, Area, Legend } from 'recharts';
 import SecurityDashboard from '../components/SecurityDashboard';
-import { Plus, X } from 'lucide-react';
+import { Plus, X, ArrowLeft, Layout } from 'lucide-react';
 import { MOCK_INSTITUTIONS } from '../mockData';
 
 interface SuperAdminDashboardProps {
@@ -16,6 +17,7 @@ interface SuperAdminDashboardProps {
 
 const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({ institutions, onUpdate, onDelete, onSeed, onAdd }) => {
   const [activeTab, setActiveTab] = useState<'overview' | 'institutions' | 'verification' | 'analytics' | 'security' | 'performance' | 'users' | 'moderation' | 'forecasting'>('overview');
+  const [adminProxy, setAdminProxy] = useState<User | null>(null);
   const [perfStats, setPerfStats] = useState<any>(null);
   
   const [showAddModal, setShowAddModal] = useState(false);
@@ -27,6 +29,25 @@ const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({ institutions,
       .then(data => setPerfStats(data))
       .catch(err => console.error("Failed to fetch perf stats", err));
   }, []);
+
+  if (adminProxy) {
+    return (
+      <div className="min-h-screen bg-slate-50 p-6">
+        <button 
+          onClick={() => setAdminProxy(null)}
+          className="mb-8 flex items-center gap-2 text-slate-500 hover:text-slate-900 font-bold"
+        >
+          <ArrowLeft className="w-5 h-5" /> Back to Global Operations
+        </button>
+        <InstitutionAdminDashboard 
+          user={adminProxy} 
+          institutions={institutions} 
+          onUpdate={onUpdate} 
+          onAdd={onAdd || (() => {})} 
+        />
+      </div>
+    );
+  }
 
   const handleAddInstitution = () => {
     if (!onAdd || !newSchool.name) return;
@@ -274,6 +295,13 @@ const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({ institutions,
                           className="p-2 bg-slate-100 rounded-xl hover:bg-blue-100 hover:text-blue-600 transition-all"
                         >
                           {inst.status === 'published' ? '⏸' : '▶️'}
+                        </button>
+                        <button 
+                          onClick={() => setAdminProxy({ id: 'super-admin-proxy', role: UserRole.INSTITUTION_ADMIN, institutionId: inst.id, email: 'proxy@admin.sz', name: 'Proxy Admin', isVerified: true, twoFactorEnabled: false })}
+                          className="p-2 bg-slate-100 rounded-xl hover:bg-indigo-100 hover:text-indigo-600 transition-all"
+                          title="Switch to Dashboard"
+                        >
+                          <Layout className="w-4 h-4" />
                         </button>
                         <button 
                           onClick={() => onDelete(inst.id)}

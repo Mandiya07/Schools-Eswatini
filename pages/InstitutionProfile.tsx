@@ -409,7 +409,7 @@ const InstitutionProfile: React.FC<InstitutionProfileProps> = ({ institutions, f
 
                     <section className="space-y-16">
                        <h3 className="text-3xl font-black text-slate-900 uppercase tracking-tight">Our Journey</h3>
-                       <HistorySection history={about.history} primaryColor={inst.theme.primaryColor} />
+                       <HistorySection foundingBackground={about.foundingBackground} history={about.history} primaryColor={inst.theme.primaryColor} />
                     </section>
                  </div>
                )}

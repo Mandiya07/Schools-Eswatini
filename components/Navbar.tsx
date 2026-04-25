@@ -20,32 +20,33 @@ const Navbar: React.FC<NavbarProps> = ({ user, onLogout, compareCount = 0 }) => 
   // Reusable Nav Link styling
   const PrimaryLinks = () => (
     <>
-      <Link to="/browse" onClick={closeMobileMenu} className="text-slate-600 hover:text-blue-600 font-medium text-sm px-2 py-1 transition-colors">Directory</Link>
-      <Link to="/scholarships" onClick={closeMobileMenu} className="text-slate-600 hover:text-blue-600 font-medium text-sm px-2 py-1 transition-colors">Scholarships</Link>
-      <Link to="/resources" onClick={closeMobileMenu} className="text-slate-600 hover:text-blue-600 font-medium text-sm px-2 py-1 transition-colors">Resources</Link>
-      <Link to="/marketplace" onClick={closeMobileMenu} className="text-amber-600 hover:text-amber-700 font-medium text-sm px-2 py-1 transition-colors">Marketplace</Link>
-      <Link to="/ai-tutor" onClick={closeMobileMenu} className="text-fuchsia-600 hover:text-fuchsia-700 font-medium text-sm flex items-center gap-1 px-2 py-1 transition-colors">
+      <Link to="/browse" onClick={closeMobileMenu} className="text-slate-600 hover:text-blue-600 font-medium text-[13px] px-1.5 py-1 transition-colors">Directory</Link>
+      <Link to="/scholarships" onClick={closeMobileMenu} className="text-slate-600 hover:text-blue-600 font-medium text-[13px] px-1.5 py-1 transition-colors">Scholarships</Link>
+      <Link to="/resources" onClick={closeMobileMenu} className="text-slate-600 hover:text-blue-600 font-medium text-[13px] px-1.5 py-1 transition-colors">Resources</Link>
+      <Link to="/tutors" onClick={closeMobileMenu} className="text-indigo-600 hover:text-indigo-700 font-medium text-[13px] px-1.5 py-1 transition-colors">Tutoring</Link>
+      <Link to="/marketplace" onClick={closeMobileMenu} className="text-amber-600 hover:text-amber-700 font-medium text-[13px] px-1.5 py-1 transition-colors">Marketplace</Link>
+      <Link to="/ai-tutor" onClick={closeMobileMenu} className="text-fuchsia-600 hover:text-fuchsia-700 font-medium text-[13px] flex items-center gap-1 px-1.5 py-1 transition-colors">
         AI Tutor <span className="text-[10px] bg-fuchsia-100 px-1.5 py-0.5 rounded-full font-semibold">BETA</span>
       </Link>
-      <Link to="/compare" onClick={closeMobileMenu} className="text-slate-600 hover:text-blue-600 font-medium text-sm flex items-center gap-2 px-2 py-1 transition-colors">
-        Compare {compareCount > 0 && <span className="bg-blue-100 text-blue-600 w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-semibold">{compareCount}</span>}
+      <Link to="/compare" onClick={closeMobileMenu} className="text-slate-600 hover:text-blue-600 font-medium text-[13px] flex items-center gap-1.5 px-1.5 py-1 transition-colors">
+        Compare {compareCount > 0 && <span className="bg-blue-100 text-blue-600 w-4 h-4 rounded-full flex items-center justify-center text-[9px] font-semibold">{compareCount}</span>}
       </Link>
-      <Link to="/ministry-corner" onClick={closeMobileMenu} className="text-slate-600 hover:text-blue-600 font-medium text-sm px-2 py-1 transition-colors">Ministry Corner</Link>
+      <Link to="/ministry-corner" onClick={closeMobileMenu} className="text-slate-600 hover:text-blue-600 font-medium text-[13px] px-1.5 py-1 transition-colors">Ministry Corner</Link>
     </>
   );
 
   const UserLinks = () => (
     <>
-      <Link to="/student" onClick={closeMobileMenu} className="text-slate-600 hover:text-blue-600 font-medium text-sm px-2 py-1 transition-colors">Student</Link>
-      <Link to="/portal" onClick={closeMobileMenu} className="text-slate-600 hover:text-blue-600 font-medium text-sm px-2 py-1 transition-colors">Portal</Link>
+      <Link to="/student" onClick={closeMobileMenu} className="text-slate-600 hover:text-blue-600 font-medium text-[13px] px-1.5 py-1 transition-colors">Student</Link>
+      <Link to="/portal" onClick={closeMobileMenu} className="text-slate-600 hover:text-blue-600 font-medium text-[13px] px-1.5 py-1 transition-colors">Portal</Link>
       {(user?.role === UserRole.SUPER_ADMIN || user?.role === UserRole.INSTITUTION_ADMIN) && (
-        <Link to="/dashboard" onClick={closeMobileMenu} className="text-slate-600 hover:text-blue-600 font-medium text-sm px-2 py-1 transition-colors">Dashboard</Link>
+        <Link to="/dashboard" onClick={closeMobileMenu} className="text-slate-600 hover:text-blue-600 font-medium text-[13px] px-1.5 py-1 transition-colors">Dashboard</Link>
       )}
       {(user?.role === UserRole.MOET_OFFICIAL || user?.role === UserRole.SUPER_ADMIN) && (
-        <Link to="/ministry" onClick={closeMobileMenu} className="text-slate-600 hover:text-blue-600 font-medium text-sm px-2 py-1 transition-colors">Ministry Dashboard</Link>
+        <Link to="/ministry" onClick={closeMobileMenu} className="text-slate-600 hover:text-blue-600 font-medium text-[13px] px-1.5 py-1 transition-colors">Ministry Dashboard</Link>
       )}
       {user?.role === UserRole.TEACHER && (
-        <Link to="/teacher/dashboard" onClick={closeMobileMenu} className="text-slate-600 hover:text-blue-600 font-medium text-sm px-2 py-1 transition-colors">Teacher Dashboard</Link>
+        <Link to="/teacher/dashboard" onClick={closeMobileMenu} className="text-slate-600 hover:text-blue-600 font-medium text-[13px] px-1.5 py-1 transition-colors">Teacher Dashboard</Link>
       )}
       <button 
         onClick={() => {
@@ -53,7 +54,7 @@ const Navbar: React.FC<NavbarProps> = ({ user, onLogout, compareCount = 0 }) => 
           closeMobileMenu();
           navigate('/');
         }}
-        className="bg-slate-100 hover:bg-slate-200 text-slate-700 px-4 py-2 flex text-left rounded-lg text-sm font-medium items-center w-max transition-colors"
+        className="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1.5 flex text-left rounded-lg text-[13px] font-medium items-center w-max transition-colors"
       >
         Logout
       </button>
@@ -74,17 +75,17 @@ const Navbar: React.FC<NavbarProps> = ({ user, onLogout, compareCount = 0 }) => 
           </Link>
 
           {/* Desktop Menu */}
-          <div className="hidden lg:flex items-center space-x-4 xl:space-x-6 overflow-x-auto">
+          <div className="hidden lg:flex items-center space-x-1.5 xl:space-x-2.5 overflow-x-auto">
             <PrimaryLinks />
-            <div className="w-px h-6 bg-slate-200 mx-2"></div>
+            <div className="w-px h-6 bg-slate-200 mx-1.5"></div>
             {user ? (
-              <div className="flex items-center space-x-4">
+              <div className="flex items-center space-x-1.5">
                 <UserLinks />
               </div>
             ) : (
-              <div className="flex items-center space-x-4 flex-shrink-0">
-                <Link to="/auth" className="text-slate-600 hover:text-blue-600 font-medium text-sm px-2 transition-colors">Login</Link>
-                <Link to="/auth?tab=register" className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-shadow hover:shadow-md">Register</Link>
+              <div className="flex items-center space-x-2 flex-shrink-0">
+                <Link to="/auth" className="text-slate-600 hover:text-blue-600 font-medium text-[13px] px-1.5 transition-colors">Login</Link>
+                <Link to="/auth?tab=register" className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-lg text-[13px] font-medium transition-shadow hover:shadow-md">Register</Link>
               </div>
             )}
           </div>

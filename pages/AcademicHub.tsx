@@ -27,42 +27,33 @@ const MOCK_FILES = [
   { id: 5, title: 'Form 5 Biology Comprehensive Revision Pack', year: 2024, subject: 'Biology', level: 'EGCSE', type: 'Study Guide', size: '12.4 MB', price: 120 },
 ];
 
-const MOCK_TUTORS = [
+const MOCK_PEER_TUTORS = [
   { 
     id: 1, 
-    name: 'Sipho Dlamini', 
+    name: 'Banele Gamedze', 
     subjects: ['Mathematics', 'Physics'], 
     grade: 'Form 5', 
-    rating: 4.8, 
-    schools: 'St. Mark\'s High School',
-    bio: 'Passionate STEM educator with 10+ years experience in EGCSE and IGCSE curricula.',
-    availability: { days: ['Mon', 'Wed', 'Fri'], timeRange: '16:00 - 18:00', status: 'available' },
-    hourlyRate: 150,
-    connections: 24
+    bio: 'Top-performing Form 5 student aiming to help Form 3s master algebra and basic physics. Passionate about peer support.',
+    status: 'available',
+    isVolunteer: true
   },
   { 
     id: 2, 
-    name: 'Nothando Maseko', 
-    subjects: ['English Language', 'History'], 
-    grade: 'Form 4', 
-    rating: 4.9, 
-    schools: 'Salesian High School',
-    bio: 'Expert in linguistics and humanities, focusing on essay structure and critical analysis.',
-    availability: { days: ['Tue', 'Thu'], timeRange: '15:00 - 17:00', status: 'available' },
-    hourlyRate: 120,
-    connections: 18
+    name: 'Nomvula Simelane', 
+    subjects: ['English', 'Literature'], 
+    grade: 'Form 5', 
+    bio: 'English essay wiz. Happy to help peers structure their writing and analyze novels. Let\'s improve our grades together!',
+    status: 'available',
+    isVolunteer: true
   },
   { 
     id: 3, 
-    name: 'Sanele Zwane', 
-    subjects: ['Biology', 'Chemistry'], 
-    grade: 'A-Level', 
-    rating: 5.0, 
-    schools: 'Waterford Kamhlaba',
-    bio: 'IB/A-Level specialist helping students navigate complex science concepts with ease.',
-    availability: { days: ['Sat', 'Sun'], timeRange: '10:00 - 14:00', status: 'busy' },
-    hourlyRate: 200,
-    connections: 45
+    name: 'Sanele Dlamini', 
+    subjects: ['Biology'], 
+    grade: 'Form 4', 
+    bio: 'Biology enthusiast. I love simplifying complex biological cycles and terms. Let\'s prep for exams!',
+    status: 'busy',
+    isVolunteer: true
   },
 ];
 
@@ -256,8 +247,8 @@ const AcademicHub: React.FC = () => {
               <div>
                 <div className="flex flex-col md:flex-row items-center justify-between mb-12 gap-6">
                   <div>
-                    <h3 className="text-2xl font-black text-slate-900 tracking-tight">Verified Expert Tutors</h3>
-                    <p className="text-slate-500 font-medium">Connect with top-performing teachers for 1-on-1 support.</p>
+                    <h3 className="text-2xl font-black text-slate-900 tracking-tight">Peer-to-Peer Support</h3>
+                    <p className="text-slate-500 font-medium">Students helping students. Looking for a professional? <Link to="/tutors" className="text-blue-600 hover:underline">Visit the Expert Marketplace</Link></p>
                   </div>
                   <div className="flex items-center gap-4">
                     <div className="relative group">
@@ -274,25 +265,21 @@ const AcademicHub: React.FC = () => {
                 </div>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                  {MOCK_TUTORS.map((tutor) => (
+                  {MOCK_PEER_TUTORS.map((tutor) => (
                     <div key={tutor.id} className="p-8 bg-white border border-slate-100 rounded-[40px] flex flex-col group hover:shadow-2xl hover:border-blue-400 transition-all">
                       <div className="flex items-start justify-between mb-6">
                         <div className="w-16 h-16 bg-blue-100 text-blue-600 rounded-2xl flex items-center justify-center text-2xl shadow-sm font-black ring-4 ring-blue-50">
                           {tutor.name.charAt(0)}
                         </div>
-                        <div className="text-right">
-                          <div className="flex items-center gap-1 text-amber-500 font-black">
-                            <Star className="w-4 h-4 fill-current" />
-                            <span className="text-sm">{tutor.rating}</span>
-                          </div>
-                          <p className="text-[10px] font-black text-slate-400 mt-1 uppercase tracking-widest">{tutor.connections} Pupils</p>
-                        </div>
+                        <span className="px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest bg-emerald-100 text-emerald-800">
+                           {tutor.isVolunteer ? 'Volunteer' : tutor.status}
+                        </span>
                       </div>
                       
                       <div className="mb-6">
                         <h4 className="text-xl font-black text-slate-900 leading-tight group-hover:text-blue-600 transition-colors">{tutor.name}</h4>
-                        <p className="text-xs font-bold text-slate-500 mt-1 mb-3">{tutor.schools}</p>
-                        <p className="text-xs text-slate-500 line-clamp-2 font-medium leading-relaxed">{tutor.bio}</p>
+                        <p className="text-xs font-bold text-slate-500 mt-1 mb-3">{tutor.grade} Student</p>
+                        <p className="text-xs text-slate-500 line-clamp-3 font-medium leading-relaxed">{tutor.bio}</p>
                       </div>
 
                       <div className="flex flex-wrap gap-2 mb-8">
@@ -301,33 +288,12 @@ const AcademicHub: React.FC = () => {
                         ))}
                       </div>
 
-                      <div className="mt-auto space-y-6">
-                        <div className="p-5 bg-slate-50 rounded-3xl border border-slate-100 space-y-4">
-                           <div className="flex justify-between items-center">
-                              <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Availability</span>
-                              <span className={`px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-widest ${tutor.availability.status === 'available' ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/20' : 'bg-slate-300 text-white'}`}>
-                                 {tutor.availability.status === 'available' ? 'Open for Bookings' : 'Waitlist Only'}
-                              </span>
-                           </div>
-                           <div className="space-y-2">
-                              <div className="flex items-center justify-between text-xs font-bold text-slate-700">
-                                 <div className="flex flex-wrap gap-1">
-                                    {tutor.availability.days.map(d => <span key={d} className="opacity-60">{d}</span>)}
-                                 </div>
-                                 <span className="text-blue-600 italic">{tutor.availability.timeRange}</span>
-                              </div>
-                           </div>
-                           <div className="pt-3 border-t border-slate-200 flex justify-between items-center">
-                              <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Rate</span>
-                              <span className="text-sm font-black text-slate-900">SZL {tutor.hourlyRate}<span className="text-[10px] font-medium text-slate-400">/hr</span></span>
-                           </div>
-                        </div>
-
+                      <div className="mt-auto">
                         <button 
-                          onClick={() => alert(`Requesting connection with ${tutor.name}... Our AI will match your schedule with theirs.`)}
+                          onClick={() => alert(`Connecting with peer tutor ${tutor.name}...`)}
                           className="w-full bg-slate-900 text-white font-black text-[10px] uppercase tracking-widest py-4 rounded-2xl flex items-center justify-center gap-3 hover:bg-blue-600 transition-all shadow-xl"
                         >
-                          <MessageCircle className="w-4 h-4" /> Request Session
+                          <MessageCircle className="w-4 h-4" /> Request Peer Help
                         </button>
                       </div>
                     </div>

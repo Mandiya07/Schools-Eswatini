@@ -209,28 +209,44 @@ const LeadershipSection: React.FC<LeadershipSectionProps> = ({ leadership, prima
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: idx * 0.1 }}
-              className="group bg-white border border-slate-100 rounded-[48px] p-10 hover:shadow-2xl transition-all duration-500"
+              className="group bg-white border border-slate-200 rounded-[40px] p-8 hover:shadow-xl transition-all duration-300 flex flex-col gap-6"
             >
-              <div className="relative w-24 h-24 rounded-3xl overflow-hidden mb-8 group-hover:scale-110 transition-transform duration-500">
-                <img src={member.photo || `https://picsum.photos/seed/${member.name || undefined}/200/200`} 
-                  alt={member.name}
-                  className="w-full h-full object-cover"
-                  referrerPolicy="no-referrer"
-                />
-              </div>
-              <div className="space-y-4">
-                <div>
-                  <h5 className="text-2xl font-black text-slate-900 tracking-tight">{member.name}</h5>
-                  <p className="text-blue-600 font-bold uppercase tracking-widest text-[10px] mt-1">{member.title}</p>
+              <div className="flex items-center gap-6">
+                <div className="relative w-20 h-20 rounded-2xl overflow-hidden shrink-0">
+                  <img src={member.photo || `https://picsum.photos/seed/${member.name || undefined}/200/200`} 
+                    alt={member.name}
+                    className="w-full h-full object-cover"
+                    referrerPolicy="no-referrer"
+                  />
                 </div>
-                <p className="text-slate-500 font-medium leading-relaxed line-clamp-3">
+                <div>
+                  <h5 className="text-lg font-black text-slate-900 tracking-tight">{member.name}</h5>
+                  <p className="text-blue-600 font-bold uppercase tracking-widest text-[9px] mt-0.5">{member.title}</p>
+                </div>
+              </div>
+              
+              <div className="space-y-4 flex-1">
+                <p className="text-slate-600 font-medium text-sm leading-relaxed line-clamp-3">
                   {member.description}
                 </p>
-                <div className="pt-4 flex items-center gap-4">
-                  <button className="text-xs font-black text-slate-400 uppercase tracking-widest hover:text-slate-900 transition-colors flex items-center gap-1">
-                    View Profile <ChevronRight className="w-3 h-3" />
-                  </button>
+                <div className="flex flex-wrap gap-2">
+                  {member.qualifications && (
+                    <div className="text-[9px] font-black uppercase tracking-tight text-slate-900 bg-slate-100 px-3 py-1.5 rounded-xl border border-slate-200">
+                      {member.qualifications}
+                    </div>
+                  )}
+                  {member.experience && (
+                    <div className="text-[9px] font-black uppercase tracking-tight text-blue-900 bg-blue-50 px-3 py-1.5 rounded-xl border border-blue-100">
+                      {member.experience}
+                    </div>
+                  )}
                 </div>
+              </div>
+              
+              <div className="pt-6 border-t border-slate-100 flex items-center justify-between">
+                <button className="text-[10px] font-black text-slate-400 uppercase tracking-widest hover:text-slate-900 transition-colors flex items-center gap-1">
+                  View Profile <ChevronRight className="w-3 h-3" />
+                </button>
               </div>
             </motion.div>
           ))}

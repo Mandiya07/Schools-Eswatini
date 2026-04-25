@@ -23,6 +23,7 @@ import StudentDashboard from './pages/StudentDashboard';
 import GovernancePage from './pages/GovernancePage';
 import ParentPortal from './pages/ParentPortal';
 import MinistryPortal from './pages/MinistryPortal';
+import TutoringMarketplace from './pages/TutoringMarketplace';
 import MinistryCorner from './pages/MinistryCorner';
 import AIStudyAssistant from './pages/AIStudyAssistant';
 import EducatorMarketplace from './pages/EducatorMarketplace';
@@ -399,6 +400,7 @@ const App: React.FC = () => {
             />
 
             <Route path="/marketplace" element={<EducatorMarketplace />} />
+            <Route path="/tutors" element={<TutoringMarketplace />} />
 
             <Route 
               path="/ministry" 

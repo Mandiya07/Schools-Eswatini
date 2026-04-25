@@ -28,6 +28,15 @@ export const MOCK_USERS: User[] = [
     twoFactorEnabled: false
   },
   {
+    id: 'user-4',
+    email: 'admin@stmarks.sz',
+    name: 'St. Marks High Admin',
+    role: UserRole.INSTITUTION_ADMIN,
+    institutionId: 'inst-3',
+    isVerified: true,
+    twoFactorEnabled: false
+  },
+  {
     id: 'user-moet',
     email: 'official@moet.gov.sz',
     name: 'MoET Administrator',

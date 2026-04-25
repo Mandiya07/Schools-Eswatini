@@ -784,7 +784,7 @@ const InstitutionAdminDashboard: React.FC<InstitutionAdminDashboardProps> = ({ u
                              issuedCount: 0,
                              barcodeRange: '000-000'
                            };
-                           const updatedBooks = [...(inst.administrativeDetails?.inventory.textbooks || []), newBook];
+                           const updatedBooks = [...(inst.administrativeDetails?.inventory?.textbooks || []), newBook];
                            handleUpdate({
                              ...inst,
                              administrativeDetails: {
@@ -805,7 +805,7 @@ const InstitutionAdminDashboard: React.FC<InstitutionAdminDashboardProps> = ({ u
 
                   <div className="space-y-8">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                      {(inst.administrativeDetails?.inventory.textbooks || []).map((book, idx) => (
+                      {(inst.administrativeDetails?.inventory?.textbooks || []).map((book, idx) => (
                         <div key={book.id} className="p-8 bg-slate-50 rounded-[32px] border border-slate-100 hover:border-blue-200 transition-all group">
                           <div className="flex justify-between items-start mb-6">
                             <div>
@@ -813,7 +813,7 @@ const InstitutionAdminDashboard: React.FC<InstitutionAdminDashboardProps> = ({ u
                                 className="block text-lg font-black text-slate-900 bg-transparent border-none p-0 focus:ring-0 mb-1" 
                                 value={book.title}
                                 onChange={e => {
-                                  const textbooks = [...inst.administrativeDetails!.inventory.textbooks];
+                                  const textbooks = [...(inst.administrativeDetails?.inventory?.textbooks || [])];
                                   textbooks[idx].title = e.target.value;
                                   handleUpdate({ ...inst, administrativeDetails: { ...inst.administrativeDetails!, inventory: { ...inst.administrativeDetails!.inventory, textbooks } } });
                                 }}
@@ -825,7 +825,7 @@ const InstitutionAdminDashboard: React.FC<InstitutionAdminDashboardProps> = ({ u
                             </div>
                             <button 
                               onClick={() => {
-                                const textbooks = inst.administrativeDetails!.inventory.textbooks.filter(b => b.id !== book.id);
+                                const textbooks = (inst.administrativeDetails?.inventory?.textbooks || []).filter(b => b.id !== book.id);
                                 handleUpdate({ ...inst, administrativeDetails: { ...inst.administrativeDetails!, inventory: { ...inst.administrativeDetails!.inventory, textbooks } } });
                               }}
                               className="text-slate-300 hover:text-rose-500 opacity-0 group-hover:opacity-100 transition-all"
@@ -854,7 +854,7 @@ const InstitutionAdminDashboard: React.FC<InstitutionAdminDashboardProps> = ({ u
                                 className="w-full bg-white border border-slate-100 rounded-xl px-3 py-2 text-xs font-bold" 
                                 value={book.totalStock}
                                 onChange={e => {
-                                  const textbooks = [...inst.administrativeDetails!.inventory.textbooks];
+                                  const textbooks = [...(inst.administrativeDetails?.inventory?.textbooks || [])];
                                   textbooks[idx].totalStock = Number(e.target.value);
                                   handleUpdate({ ...inst, administrativeDetails: { ...inst.administrativeDetails!, inventory: { ...inst.administrativeDetails!.inventory, textbooks } } });
                                 }}
@@ -867,7 +867,7 @@ const InstitutionAdminDashboard: React.FC<InstitutionAdminDashboardProps> = ({ u
                                 className="w-full bg-white border border-slate-100 rounded-xl px-3 py-2 text-xs font-bold" 
                                 value={book.issuedCount}
                                 onChange={e => {
-                                  const textbooks = [...inst.administrativeDetails!.inventory.textbooks];
+                                  const textbooks = [...(inst.administrativeDetails?.inventory?.textbooks || [])];
                                   textbooks[idx].issuedCount = Number(e.target.value);
                                   handleUpdate({ ...inst, administrativeDetails: { ...inst.administrativeDetails!, inventory: { ...inst.administrativeDetails!.inventory, textbooks } } });
                                 }}
@@ -878,7 +878,7 @@ const InstitutionAdminDashboard: React.FC<InstitutionAdminDashboardProps> = ({ u
                       ))}
                     </div>
 
-                    {(!inst.administrativeDetails?.inventory.textbooks || inst.administrativeDetails.inventory.textbooks.length === 0) && (
+                    {(!inst.administrativeDetails?.inventory?.textbooks || inst.administrativeDetails?.inventory?.textbooks?.length === 0) && (
                       <div className="text-center py-12 bg-slate-50 rounded-[32px] border border-dashed border-slate-200">
                         <Package className="w-12 h-12 text-slate-200 mx-auto mb-4" />
                         <p className="text-slate-400 font-bold uppercase tracking-widest text-[10px]">No inventory items recorded yet.</p>

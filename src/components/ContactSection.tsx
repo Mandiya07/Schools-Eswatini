@@ -237,73 +237,113 @@ const ContactSection: React.FC<ContactSectionProps> = ({ institution, primaryCol
         )}
       </section>
 
-      {/* Campus Location */}
+      {/* Campus Location & Google Maps */}
       <section className="space-y-16">
-        <h3 className="text-4xl font-black text-slate-900 tracking-tight">Campus Location</h3>
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
-          <div className="lg:col-span-2 h-[600px] bg-slate-100 rounded-[64px] overflow-hidden border border-slate-200 relative group">
-            {contact.googleMapsUrl ? (
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+          <div className="space-y-4">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center">
+                <MapPin className="w-6 h-6" />
+              </div>
+              <h3 className="text-4xl font-black text-slate-900 tracking-tight">Visit Our Campus</h3>
+            </div>
+            <p className="text-slate-500 font-medium max-w-xl">
+              We are located in the heart of {institution.region}. Follow the map below for precise directions to our main entrance.
+            </p>
+          </div>
+          <a 
+            href={contact.googleMapsUrl || `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(institution.name + ' ' + institution.region)}`}
+            target="_blank" 
+            rel="noreferrer"
+            className="px-8 py-4 bg-slate-900 text-white rounded-2xl font-black uppercase tracking-widest text-[10px] shadow-xl flex items-center gap-3 hover:bg-blue-600 hover:-translate-y-1 transition-all"
+          >
+            <Navigation className="w-4 h-4" /> Open in Google Maps
+          </a>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
+          {/* Map Container */}
+          <div className="lg:col-span-8">
+            <div className="h-[500px] md:h-[650px] bg-slate-100 rounded-[56px] overflow-hidden border border-slate-200 relative group shadow-2xl shadow-slate-200/50">
               <iframe 
-                src={`https://maps.google.com/maps?q=${encodeURIComponent(institution.name + ' ' + institution.region)}&output=embed`}
+                title="Google Maps Location"
+                src={`https://maps.google.com/maps?q=${encodeURIComponent(institution.name + ' ' + institution.region)}&t=&z=15&ie=UTF8&iwloc=&output=embed`}
                 className="w-full h-full border-0 grayscale hover:grayscale-0 transition-all duration-1000" 
                 allowFullScreen 
                 loading="lazy" 
               />
-            ) : (
-              <div className="w-full h-full flex items-center justify-center">
-                <MapPin className="w-20 h-20 text-slate-300" />
+              <div className="absolute top-6 left-6 px-6 py-3 bg-white/90 backdrop-blur-md rounded-2xl shadow-xl border border-white/50 pointer-events-none">
+                 <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-0.5">Location</p>
+                 <p className="text-sm font-black text-slate-900">{institution.name}</p>
               </div>
-            )}
-            <div className="absolute bottom-10 left-10 right-10 flex justify-between items-center">
-              <a 
-                href={contact.googleMapsUrl} 
-                target="_blank" 
-                rel="noreferrer"
-                className="bg-slate-900 text-white px-10 py-5 rounded-full font-black uppercase tracking-widest text-[10px] shadow-2xl flex items-center gap-3 hover:bg-blue-600 transition-all"
-              >
-                <Navigation className="w-4 h-4" /> Launch Google Maps
-              </a>
             </div>
           </div>
 
-          <div className="space-y-10">
-            <div className="flex items-center gap-6">
-              <div className="w-14 h-14 bg-blue-50 rounded-2xl flex items-center justify-center text-2xl">
-                <Navigation className="w-7 h-7 text-blue-600" />
+          {/* Directions Info */}
+          <div className="lg:col-span-4 space-y-10">
+            <div className="p-10 bg-slate-50 border border-slate-100 rounded-[48px] space-y-10">
+              <div className="space-y-6">
+                <div className="flex items-center gap-4">
+                  <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-sm">
+                    <Navigation className="w-5 h-5 text-blue-600" />
+                  </div>
+                  <h4 className="text-xl font-black text-slate-900 tracking-tight">{labels.directions}</h4>
+                </div>
+                
+                <div className="space-y-8">
+                  {contact.directions?.landmarks && (
+                    <div className="space-y-3">
+                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{labels.landmarks}</p>
+                      <div className="flex flex-wrap gap-2">
+                        {contact.directions.landmarks.map((l, i) => (
+                          <span key={i} className="px-4 py-1.5 bg-white border border-slate-200 rounded-full text-[11px] font-bold text-slate-700 shadow-sm">{l}</span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {contact.directions?.transport && (
+                    <div className="space-y-2">
+                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{labels.transport}</p>
+                      <p className="text-sm font-medium text-slate-600 leading-relaxed">{contact.directions.transport}</p>
+                    </div>
+                  )}
+
+                  {contact.directions?.parking && (
+                    <div className="space-y-2">
+                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{labels.parking}</p>
+                      <p className="text-sm font-medium text-slate-600 leading-relaxed">{contact.directions.parking}</p>
+                    </div>
+                  )}
+                </div>
               </div>
-              <h3 className="text-3xl font-black text-slate-900 tracking-tight">{labels.directions}</h3>
+
+              {contact.directions?.accessibility && (
+                <div className="p-6 bg-emerald-50 border border-emerald-100 rounded-[32px] flex items-start gap-4">
+                  <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center shrink-0 shadow-sm">
+                    <Info className="w-4 h-4 text-emerald-600" />
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-[9px] font-black text-emerald-800 uppercase tracking-widest">{labels.accessibility}</p>
+                    <p className="text-xs font-bold text-emerald-700 leading-relaxed">{contact.directions.accessibility}</p>
+                  </div>
+                </div>
+              )}
             </div>
 
-            {contact.directions && (
-              <div className="space-y-8">
-                <div className="space-y-4">
-                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{labels.landmarks}</p>
-                  <div className="flex flex-wrap gap-3">
-                    {contact.directions.landmarks.map((l, i) => (
-                      <span key={i} className="px-5 py-2 bg-slate-50 border border-slate-100 rounded-full text-sm font-bold text-slate-600">{l}</span>
-                    ))}
+            {/* Quick Contact Card */}
+            <div className="p-10 bg-blue-600 rounded-[48px] text-white shadow-2xl shadow-blue-200 space-y-6">
+              <h4 className="text-lg font-black tracking-tight">Need help finding us?</h4>
+              <p className="text-sm font-medium opacity-80 leading-relaxed">Call our reception desk for immediate assistance with directions.</p>
+              <div className="pt-2">
+                <a href={`tel:${contact.phone}`} className="flex items-center gap-4 group">
+                  <div className="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center group-hover:bg-white group-hover:text-blue-600 transition-all">
+                    <Phone className="w-5 h-5" />
                   </div>
-                </div>
-
-                <div className="space-y-4">
-                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{labels.transport}</p>
-                  <p className="text-slate-600 font-medium leading-relaxed">{contact.directions.transport}</p>
-                </div>
-
-                <div className="space-y-4">
-                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{labels.parking}</p>
-                  <p className="text-slate-600 font-medium leading-relaxed">{contact.directions.parking}</p>
-                </div>
-
-                <div className="space-y-4">
-                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{labels.accessibility}</p>
-                  <div className="flex items-center gap-3 p-6 bg-emerald-50 border border-emerald-100 rounded-3xl text-emerald-700">
-                    <Info className="w-5 h-5 shrink-0" />
-                    <p className="text-sm font-bold">{contact.directions.accessibility}</p>
-                  </div>
-                </div>
+                  <span className="text-xl font-black">{contact.phone}</span>
+                </a>
               </div>
-            )}
+            </div>
           </div>
         </div>
       </section>

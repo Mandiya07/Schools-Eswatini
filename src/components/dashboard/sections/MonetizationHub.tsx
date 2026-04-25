@@ -10,9 +10,9 @@ interface MonetizationHubProps {
 }
 
 const MonetizationHub: React.FC<MonetizationHubProps> = ({ institution, onUpdate, onPlanUpdate }) => {
-  const { monetization, plan, subscription } = institution;
+  const { monetization = {}, plan, subscription } = institution;
 
-  const updateField = (field: keyof Institution['monetization'], value: any) => {
+  const updateField = (field: keyof Institution['monetization'] & string, value: any) => {
     onUpdate({
       ...monetization,
       [field]: value
@@ -81,10 +81,10 @@ const MonetizationHub: React.FC<MonetizationHubProps> = ({ institution, onUpdate
                   <div className="flex items-center gap-2">
                     <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Enabled</span>
                     <button 
-                      onClick={() => updateField('feesEnabled', !monetization.feesEnabled)}
-                      className={`w-10 h-5 rounded-full relative transition-all ${monetization.feesEnabled ? 'bg-amber-400' : 'bg-slate-700'}`}
+                      onClick={() => updateField('feesEnabled', !(monetization.feesEnabled ?? false))}
+                      className={`w-10 h-5 rounded-full relative transition-all ${(monetization.feesEnabled ?? false) ? 'bg-amber-400' : 'bg-slate-700'}`}
                     >
-                      <div className={`absolute top-1 w-3 h-3 bg-white rounded-full transition-all ${monetization.feesEnabled ? 'right-1' : 'left-1'}`} />
+                      <div className={`absolute top-1 w-3 h-3 bg-white rounded-full transition-all ${(monetization.feesEnabled ?? false) ? 'right-1' : 'left-1'}`} />
                     </button>
                   </div>
                 </div>
@@ -96,7 +96,7 @@ const MonetizationHub: React.FC<MonetizationHubProps> = ({ institution, onUpdate
                   <label className="block text-[9px] font-black text-slate-500 uppercase tracking-widest">Eswatini Merchant ID</label>
                   <input 
                     className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm font-bold text-white focus:ring-2 focus:ring-amber-400 outline-none" 
-                    value={monetization.momoMerchantId || ''}
+                    value={monetization.momoMerchantId ?? ''}
                     onChange={e => updateField('momoMerchantId', e.target.value)}
                     placeholder="e.g. SZ_MERCH_45892" 
                   />
@@ -113,10 +113,10 @@ const MonetizationHub: React.FC<MonetizationHubProps> = ({ institution, onUpdate
                      </div>
                    </div>
                    <button 
-                    onClick={() => updateField('scholarshipPremiumEnabled', !monetization.scholarshipPremiumEnabled)}
-                    className={`w-10 h-5 rounded-full relative transition-all ${monetization.scholarshipPremiumEnabled ? 'bg-indigo-600' : 'bg-slate-200'}`}
+                    onClick={() => updateField('scholarshipPremiumEnabled', !(monetization.scholarshipPremiumEnabled ?? false))}
+                    className={`w-10 h-5 rounded-full relative transition-all ${(monetization.scholarshipPremiumEnabled ?? false) ? 'bg-indigo-600' : 'bg-slate-200'}`}
                   >
-                    <div className={`absolute top-1 w-3 h-3 bg-white rounded-full transition-all ${monetization.scholarshipPremiumEnabled ? 'right-1' : 'left-1'}`} />
+                    <div className={`absolute top-1 w-3 h-3 bg-white rounded-full transition-all ${(monetization.scholarshipPremiumEnabled ?? false) ? 'right-1' : 'left-1'}`} />
                   </button>
                 </div>
 
@@ -129,10 +129,10 @@ const MonetizationHub: React.FC<MonetizationHubProps> = ({ institution, onUpdate
                      </div>
                    </div>
                    <button 
-                    onClick={() => updateField('alumniDonationsEnabled', !monetization.alumniDonationsEnabled)}
-                    className={`w-10 h-5 rounded-full relative transition-all ${monetization.alumniDonationsEnabled ? 'bg-rose-600' : 'bg-slate-200'}`}
+                    onClick={() => updateField('alumniDonationsEnabled', !(monetization.alumniDonationsEnabled ?? false))}
+                    className={`w-10 h-5 rounded-full relative transition-all ${(monetization.alumniDonationsEnabled ?? false) ? 'bg-rose-600' : 'bg-slate-200'}`}
                   >
-                    <div className={`absolute top-1 w-3 h-3 bg-white rounded-full transition-all ${monetization.alumniDonationsEnabled ? 'right-1' : 'left-1'}`} />
+                    <div className={`absolute top-1 w-3 h-3 bg-white rounded-full transition-all ${(monetization.alumniDonationsEnabled ?? false) ? 'right-1' : 'left-1'}`} />
                   </button>
                 </div>
 
