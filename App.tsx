@@ -10,7 +10,20 @@ import { requestNotificationPermission } from './src/lib/pwa';
 // Pages
 import HomePage from './pages/HomePage';
 import BrowsePage from './pages/BrowsePage';
-import InstitutionProfile from './pages/InstitutionProfile';
+import { 
+  InstitutionLayout,
+  InstitutionHome,
+  InstitutionAbout,
+  InstitutionAdmissions,
+  InstitutionAcademics,
+  InstitutionNews,
+  InstitutionStudentLife,
+  InstitutionReviews,
+  InstitutionAlumni,
+  InstitutionPortal,
+  InstitutionMinistry,
+  InstitutionContact
+} from './pages/InstitutionPage';
 import AuthPage from './pages/AuthPage';
 import SuperAdminDashboard from './pages/SuperAdminDashboard';
 import InstitutionAdminDashboard from './pages/InstitutionAdminDashboard';
@@ -349,14 +362,26 @@ const App: React.FC = () => {
             <Route 
               path="/school/:slug" 
               element={
-                <InstitutionProfile 
+                <InstitutionLayout 
                   institutions={institutions} 
                   favorites={favorites}
                   onToggleFavorite={toggleFavorite}
                   lang={lang}
                 />
-              } 
-            />
+              }
+            >
+              <Route index element={<InstitutionHome />} />
+              <Route path="about" element={<InstitutionAbout />} />
+              <Route path="admissions" element={<InstitutionAdmissions />} />
+              <Route path="academics" element={<InstitutionAcademics />} />
+              <Route path="news" element={<InstitutionNews />} />
+              <Route path="studentLife" element={<InstitutionStudentLife />} />
+              <Route path="reviews" element={<InstitutionReviews />} />
+              <Route path="alumni" element={<InstitutionAlumni />} />
+              <Route path="portal" element={<InstitutionPortal />} />
+              <Route path="ministry" element={<InstitutionMinistry />} />
+              <Route path="contact" element={<InstitutionContact />} />
+            </Route>
             <Route 
               path="/portal" 
               element={

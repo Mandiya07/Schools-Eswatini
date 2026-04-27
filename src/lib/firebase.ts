@@ -5,20 +5,39 @@ import firebaseConfig from '../../firebase-applet-config.json';
 
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
-export const db = initializeFirestore(app, { experimentalForceLongPolling: true }, firebaseConfig.firestoreDatabaseId);
+const databaseId = (firebaseConfig as any).firestoreDatabaseId || '(default)';
+
+export const db = initializeFirestore(app, { 
+  experimentalForceLongPolling: true 
+}, databaseId);
+
 export const auth = getAuth(app);
 export const googleProvider = new GoogleAuthProvider();
 
-export async function testConnection() {
-  try {
-    await getDocFromServer(doc(db, 'test', 'connection'));
-  } catch (error) {
-    if(error instanceof Error && error.message.includes('the client is offline')) {
-      console.error("Please check your Firebase configuration.");
+export async function testConnection(retries = 3) {
+  for (let i = 0; i < retries; i++) {
+    try {
+      const docRef = doc(db, 'test', 'connection');
+      await getDocFromServer(docRef);
+      console.log("Firebase connection successful.");
+      return;
+    } catch (error) {
+      console.warn(`Firebase connection attempt ${i + 1} failed:`, error);
+      if (i === retries - 1) {
+        if(error instanceof Error && (error.message.includes('the client is offline') || (error as any).code === 'unavailable')) {
+          console.warn("Firebase may not be fully initialized or is offline. Retrying...", error);
+        }
+      }
+      // Wait before retrying
+      await new Promise(resolve => setTimeout(resolve, 2000));
     }
   }
 }
-testConnection();
+
+// Only run testConnection in the browser
+if (typeof window !== 'undefined') {
+  testConnection();
+}
 
 // Error Handling
 export enum OperationType {

@@ -209,9 +209,13 @@ const LeadershipSection: React.FC<LeadershipSectionProps> = ({ leadership, prima
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: idx * 0.1 }}
-              className="group bg-white border border-slate-200 rounded-[40px] p-8 hover:shadow-xl transition-all duration-300 flex flex-col gap-6"
+              className="group bg-white border border-slate-200 rounded-[40px] p-8 hover:shadow-2xl transition-all duration-500 flex flex-col gap-6 relative overflow-hidden"
             >
-              <div className="flex items-center gap-6">
+              <div 
+                className="absolute top-0 left-0 right-0 h-2 opacity-0 group-hover:opacity-100 transition-opacity"
+                style={{ backgroundColor: primaryColor }}
+              />
+              <div className="flex items-center gap-6 relative z-10">
                 <div className="relative w-20 h-20 rounded-2xl overflow-hidden shrink-0">
                   <img src={member.photo || `https://picsum.photos/seed/${member.name || undefined}/200/200`} 
                     alt={member.name}

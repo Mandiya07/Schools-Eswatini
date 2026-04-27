@@ -67,7 +67,7 @@ const Navbar: React.FC<NavbarProps> = ({ user, onLogout, compareCount = 0 }) => 
         <div className="flex justify-between items-center h-16">
           <Link to="/" className="flex items-center space-x-2 flex-shrink-0" onClick={closeMobileMenu}>
             <div className="w-8 h-8 bg-blue-600 rounded-md flex items-center justify-center">
-              <span className="text-white font-bold">E</span>
+              <span className="text-white font-bold text-sm">E</span>
             </div>
             <span className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-700 to-indigo-800 truncate">
               Schools Eswatini

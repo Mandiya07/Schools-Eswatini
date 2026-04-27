@@ -1,0 +1,12 @@
+export { InstitutionLayout } from './Layout';
+export { InstitutionHome } from './Home';
+export { InstitutionAbout } from './About';
+export { InstitutionAdmissions } from './Admissions';
+export { InstitutionAcademics } from './Academics';
+export { InstitutionNews } from './News';
+export { InstitutionStudentLife } from './StudentLife';
+export { InstitutionReviews } from './Reviews';
+export { InstitutionAlumni } from './Alumni';
+export { InstitutionPortal } from './Portal';
+export { InstitutionMinistry } from './Ministry';
+export { InstitutionContact } from './Contact';

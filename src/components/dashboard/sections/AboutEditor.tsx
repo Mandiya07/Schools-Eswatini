@@ -106,13 +106,20 @@ const AboutEditor: React.FC<AboutEditorProps> = ({ institution, onUpdate }) => {
                   onChange={e => updateSubField('vision', 'headline', e.target.value)} 
                   placeholder="Your future aspiration..."
                 />
-                <label className="block text-[10px] font-black text-emerald-800 uppercase tracking-widest">Vision Explanation</label>
+                <label className="block text-[10px] font-black text-emerald-800 uppercase tracking-widest">Vision Supporting Paragraph</label>
                 <textarea 
                   rows={3} 
                   className="w-full bg-white border-2 border-transparent focus:border-emerald-500 rounded-2xl px-5 py-3 font-medium text-emerald-900 text-sm outline-none transition-all resize-none" 
-                  value={about.vision.explanation || ''} 
-                  onChange={e => updateSubField('vision', 'explanation', e.target.value)} 
-                  placeholder="Describe the future state you envision..."
+                  value={about.vision.supportingParagraph || ''} 
+                  onChange={e => updateSubField('vision', 'supportingParagraph', e.target.value)} 
+                  placeholder="A concise vision statement..."
+                />
+                <label className="block text-[10px] font-black text-emerald-800 uppercase tracking-widest">National Alignment</label>
+                <input 
+                  className="w-full bg-white border-2 border-transparent focus:border-emerald-500 rounded-2xl px-5 py-3 font-medium text-emerald-900 text-sm outline-none transition-all" 
+                  value={about.vision.nationalAlignment || ''} 
+                  onChange={e => updateSubField('vision', 'nationalAlignment', e.target.value)} 
+                  placeholder="e.g. Aligned with His Majesty's Vision 2022..."
                 />
               </div>
             </div>
@@ -183,6 +190,100 @@ const AboutEditor: React.FC<AboutEditorProps> = ({ institution, onUpdate }) => {
             </div>
           </div>
 
+          {/* Executive Leadership */}
+          <div className="bg-white p-8 rounded-[40px] border border-slate-100 shadow-sm space-y-8">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <div className="w-10 h-10 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center font-bold">06</div>
+                <h4 className="text-sm font-black text-slate-900 uppercase tracking-widest">Executive Leadership</h4>
+              </div>
+              <button 
+                className="px-4 py-2 bg-indigo-50 text-indigo-600 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-indigo-600 hover:text-white transition-all shadow-sm"
+                onClick={() => updateField('leadership', {
+                  ...about.leadership,
+                  seniorTeam: [...about.leadership.seniorTeam, { name: '', title: '', description: '', photo: '' }]
+                })}
+              >
+                + Add Leader
+              </button>
+            </div>
+            
+            {/* Principal / Headmaster */}
+            <div className="p-8 bg-slate-900 rounded-[40px] text-white space-y-6">
+              <h5 className="text-[10px] font-black text-indigo-400 uppercase tracking-widest">Principal / Head of Institution</h5>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-[8px] font-black text-slate-400 uppercase tracking-widest mb-2">Name</label>
+                  <input 
+                    className="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-2 text-sm font-bold text-white outline-none focus:ring-2 focus:ring-indigo-500 transition-all" 
+                    value={about.leadership.principal.name} 
+                    onChange={e => updateSubField('leadership', 'principal', { ...about.leadership.principal, name: e.target.value })} 
+                  />
+                </div>
+                <div>
+                  <label className="block text-[8px] font-black text-slate-400 uppercase tracking-widest mb-2">Title</label>
+                  <input 
+                    className="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-2 text-sm font-bold text-white outline-none focus:ring-2 focus:ring-indigo-500 transition-all" 
+                    value={about.leadership.principal.title} 
+                    onChange={e => updateSubField('leadership', 'principal', { ...about.leadership.principal, title: e.target.value })} 
+                  />
+                </div>
+                <div className="md:col-span-2">
+                  <label className="block text-[8px] font-black text-slate-400 uppercase tracking-widest mb-2">Leadership Philosophy</label>
+                  <textarea 
+                    rows={2}
+                    className="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-2 text-sm font-medium text-slate-300 outline-none focus:ring-2 focus:ring-indigo-500 transition-all resize-none" 
+                    value={about.leadership.principal.philosophy || ''} 
+                    onChange={e => updateSubField('leadership', 'principal', { ...about.leadership.principal, philosophy: e.target.value })} 
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Senior Team */}
+            <div className="space-y-4">
+              {about.leadership.seniorTeam.map((member, idx) => (
+                <div key={idx} className="p-6 bg-slate-50 rounded-[32px] border border-slate-100 group relative">
+                  <button 
+                    className="absolute top-4 right-4 text-rose-500 opacity-0 group-hover:opacity-100 transition-opacity"
+                    onClick={() => {
+                      const newTeam = about.leadership.seniorTeam.filter((_, i) => i !== idx);
+                      updateSubField('leadership', 'seniorTeam', newTeam);
+                    }}
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+                  </button>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1">Name</label>
+                      <input 
+                        className="w-full bg-white border border-slate-200 rounded-xl px-4 py-2 text-sm font-bold text-slate-900 outline-none focus:ring-2 focus:ring-indigo-500" 
+                        value={member.name} 
+                        onChange={e => {
+                          const newTeam = [...about.leadership.seniorTeam];
+                          newTeam[idx].name = e.target.value;
+                          updateSubField('leadership', 'seniorTeam', newTeam);
+                        }} 
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1">Position</label>
+                      <input 
+                        className="w-full bg-white border border-slate-200 rounded-xl px-4 py-2 text-sm font-bold text-slate-900 outline-none focus:ring-2 focus:ring-indigo-500" 
+                        value={member.title} 
+                        onChange={e => {
+                          const newTeam = [...about.leadership.seniorTeam];
+                          newTeam[idx].title = e.target.value;
+                          updateSubField('leadership', 'seniorTeam', newTeam);
+                        }} 
+                      />
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
           <div className="space-y-8 pt-10 border-t border-slate-100">
             <h4 className="text-sm font-black text-slate-900 uppercase tracking-widest">Legacy, Milestones & Growth</h4>
             <div className="bg-slate-50 p-8 rounded-[40px] space-y-6">
@@ -219,7 +320,7 @@ const AboutEditor: React.FC<AboutEditorProps> = ({ institution, onUpdate }) => {
           <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Section Preview</h3>
         </header>
         
-        <div className="sticky top-8 space-y-8">
+        <div className="space-y-8">
           <div className="bg-white p-10 rounded-[40px] border border-slate-100 shadow-sm space-y-8">
             <div className="space-y-4">
               <div className="w-12 h-1.5 bg-blue-600 rounded-full" />

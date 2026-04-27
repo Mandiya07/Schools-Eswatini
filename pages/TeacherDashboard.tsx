@@ -83,7 +83,8 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({ user }) => {
       timeRange: '08:00 - 17:00',
       status: 'available'
     },
-    hourlyRate: 150
+    hourlyRate: 150,
+    weeklyTeachingLoad: 10
   });
 
   const handleUpdateTutorProfile = async () => {
@@ -583,7 +584,7 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({ user }) => {
                               </div>
                            </div>
 
-                           <div className="grid grid-cols-2 gap-6">
+                           <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
                               <div className="space-y-4">
                                  <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest uppercase">Preferred Time Slot</label>
                                  <input 
@@ -599,7 +600,17 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({ user }) => {
                                    type="number"
                                    className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-6 py-4 font-bold text-slate-900 outline-none"
                                    value={tutorProfileForm?.hourlyRate}
-                                   onChange={(e) => setTutorProfileForm(prev => ({ ...prev!, hourlyRate: parseInt(e.target.value) }))}
+                                   onChange={(e) => setTutorProfileForm(prev => ({ ...prev!, hourlyRate: parseInt(e.target.value) || 0 }))}
+                                 />
+                              </div>
+                              <div className="space-y-4">
+                                 <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest uppercase tracking-widest">Weekly Load (Hrs)</label>
+                                 <input 
+                                   type="number"
+                                   className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-6 py-4 font-bold text-slate-900 outline-none"
+                                   value={tutorProfileForm?.weeklyTeachingLoad || ''}
+                                   placeholder="e.g. 10"
+                                   onChange={(e) => setTutorProfileForm(prev => ({ ...prev!, weeklyTeachingLoad: parseInt(e.target.value) || 0 }))}
                                  />
                               </div>
                            </div>

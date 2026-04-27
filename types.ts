@@ -48,38 +48,54 @@ export interface MoMoTransaction {
 export enum UserRole {
   SUPER_ADMIN = 'Super Admin',
   INSTITUTION_ADMIN = 'Institution Admin',
-  VISITOR = 'Visitor',
-  MOET_OFFICIAL = 'MoET Official',
-  PARENT = 'Parent',
+  DEPARTMENT_HEAD = 'Department Head',
+  FINANCE_OFFICER = 'Finance Officer',
   TEACHER = 'Teacher',
-  STUDENT = 'Student'
+  STUDENT = 'Student',
+  PARENT = 'Parent',
+  MOET_OFFICIAL = 'MoET Official',
+  SYSTEM_AUDITOR = 'System Auditor',
+  VISITOR = 'Visitor'
 }
 
 export interface ExamResult {
+  id?: string;
   year: number;
-  level: 'JC' | 'SGCSE' | 'IGCSE' | 'IB';
+  level: 'JC' | 'SGCSE' | 'IGCSE' | 'IB' | 'EGCSE' | 'EPC';
   passRate: number;
   merits: number;
   credits: number;
   topPerformers?: { name: string; position: number }[];
+  regionalPerformance?: { region: string; average: number }[];
+  averageScore?: number;
+  topStudent?: string;
 }
 
 export interface SchoolPerformance {
+  id?: string;
+  institutionId?: string;
   year: number;
   nationalRanking: number;
   regionalRanking: number;
   valueAddedScore: number;
   studentGrowth: number;
+  academicGrowth?: number;
+  teacherStudentRatio?: string;
+  infrastructureRating?: number;
+  extracurricularBreadth?: number;
+  complianceScore?: number;
+  category?: string;
 }
 
 export interface PolicyAnnouncement {
   id: string;
   title: string;
   content: string;
-  category: 'curriculum' | 'safety' | 'finance' | 'general';
+  category: 'curriculum' | 'safety' | 'finance' | 'general' | 'policy';
   date: string;
   isUrgent: boolean;
   attachmentUrl?: string;
+  author?: string;
 }
 
 export interface AccessibilitySettings {
@@ -844,6 +860,7 @@ export interface Institution {
     views: number;
     applications: number;
     engagementRate: number;
+    performanceRanking?: number;
   };
   adminId: string;
   teacherEmails?: string[];
@@ -873,6 +890,7 @@ export interface User {
     hourlyRate?: number;
     rating?: number;
     connections?: number;
+    weeklyTeachingLoad?: number;
   };
 }
 

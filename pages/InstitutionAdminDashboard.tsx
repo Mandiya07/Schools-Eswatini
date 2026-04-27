@@ -1425,6 +1425,18 @@ const InstitutionAdminDashboard: React.FC<InstitutionAdminDashboardProps> = ({ u
                                      placeholder="Location"
                                    />
                                 </div>
+                                <div className="flex items-center gap-2 bg-white px-3 py-1.5 rounded-xl border border-slate-200">
+                                   <input 
+                                     type="time"
+                                     className="bg-transparent border-none p-0 text-[10px] font-black uppercase text-slate-600 focus:ring-0"
+                                     value={event.time}
+                                     onChange={(e) => {
+                                       const newEvents = [...inst.sections.news.events];
+                                       newEvents[index] = { ...event, time: e.target.value };
+                                       updateSectionField('news', 'events', newEvents);
+                                     }}
+                                   />
+                                </div>
                                 <select 
                                   className="bg-white px-3 py-1.5 rounded-xl border border-slate-200 text-[10px] font-black uppercase text-slate-600 focus:ring-indigo-500"
                                   value={event.type}
@@ -1439,6 +1451,19 @@ const InstitutionAdminDashboard: React.FC<InstitutionAdminDashboardProps> = ({ u
                                   <option value="Cultural">Cultural</option>
                                   <option value="Meeting">Meeting</option>
                                 </select>
+                                <label className="flex items-center gap-2 bg-white px-3 py-1.5 rounded-xl border border-slate-200 cursor-pointer">
+                                  <input 
+                                    type="checkbox"
+                                    className="w-3 h-3 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500"
+                                    checked={event.isPast || false}
+                                    onChange={(e) => {
+                                      const newEvents = [...inst.sections.news.events];
+                                      newEvents[index] = { ...event, isPast: e.target.checked };
+                                      updateSectionField('news', 'events', newEvents);
+                                    }}
+                                  />
+                                  <span className="text-[10px] font-black uppercase text-slate-600">Past</span>
+                                </label>
                               </div>
                            </div>
                         </div>
@@ -1930,7 +1955,7 @@ const InstitutionAdminDashboard: React.FC<InstitutionAdminDashboardProps> = ({ u
                 ✕
               </button>
             </div>
-            <div className="flex-1 overflow-hidden relative">
+            <div className="flex-1 overflow-hidden relative bg-slate-100">
               <iframe 
                 src={`#/school/${inst.slug}?preview=true`} 
                 className="w-full h-full border-none"
