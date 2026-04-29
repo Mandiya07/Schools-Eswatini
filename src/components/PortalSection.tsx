@@ -113,13 +113,25 @@ const PortalSection: React.FC<PortalSectionProps> = ({ portal, primaryColor }) =
             {portal.description}
           </p>
           <div className="flex flex-wrap gap-6">
-            <Link 
-              to="/portal" 
-              className="px-12 py-6 bg-blue-600 hover:bg-white hover:text-slate-900 text-white rounded-[32px] font-black uppercase tracking-widest text-xs transition-all flex items-center gap-3 shadow-2xl shadow-blue-500/20"
-            >
-              Login to Portal
-              <ArrowRight className="w-4 h-4" />
-            </Link>
+            {portal.url ? (
+              <a 
+                href={portal.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="px-12 py-6 bg-blue-600 hover:bg-white hover:text-slate-900 text-white rounded-[32px] font-black uppercase tracking-widest text-xs transition-all flex items-center gap-3 shadow-2xl shadow-blue-500/20"
+              >
+                Launch External Portal
+                <ExternalLink className="w-4 h-4" />
+              </a>
+            ) : (
+              <Link 
+                to="/portal" 
+                className="px-12 py-6 bg-blue-600 hover:bg-white hover:text-slate-900 text-white rounded-[32px] font-black uppercase tracking-widest text-xs transition-all flex items-center gap-3 shadow-2xl shadow-blue-500/20"
+              >
+                Login to Portal
+                <ArrowRight className="w-4 h-4" />
+              </Link>
+            )}
           </div>
         </div>
       </section>

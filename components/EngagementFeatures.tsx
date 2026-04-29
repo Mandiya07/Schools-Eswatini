@@ -270,6 +270,20 @@ export const AlumniSection: React.FC<EngagementFeaturesProps> = ({ institution, 
   const [campaigns, setCampaigns] = useState<FundraisingCampaign[]>([]);
   const [loading, setLoading] = useState(true);
   const [showReg, setShowReg] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [success, setSuccess] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  // Registration form state
+  const [regData, setRegData] = useState({
+    name: '',
+    email: '',
+    graduationYear: new Date().getFullYear(),
+    major: '',
+    currentJob: '',
+    successStory: '',
+    image: ''
+  });
 
   useEffect(() => {
     // Fetch success stories
@@ -277,7 +291,7 @@ export const AlumniSection: React.FC<EngagementFeaturesProps> = ({ institution, 
       collection(db, 'success_stories'),
       where('institutionId', '==', institution.id),
       orderBy('createdAt', 'desc'),
-      limit(3)
+      limit(6)
     );
 
     const qCampaigns = query(
@@ -289,10 +303,15 @@ export const AlumniSection: React.FC<EngagementFeaturesProps> = ({ institution, 
 
     const unsubStories = onSnapshot(qStories, (snapshot) => {
       setStories(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as SuccessStory)));
+    }, (err) => {
+      console.error("Error fetching stories:", err);
     });
 
     const unsubCampaigns = onSnapshot(qCampaigns, (snapshot) => {
       setCampaigns(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as FundraisingCampaign)));
+      setLoading(false);
+    }, (err) => {
+      console.error("Error fetching campaigns:", err);
       setLoading(false);
     });
 
@@ -302,26 +321,104 @@ export const AlumniSection: React.FC<EngagementFeaturesProps> = ({ institution, 
     };
   }, [institution.id]);
 
+  const handleRegister = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSubmitting(true);
+    setError(null);
+
+    try {
+      // 1. Create the alumni profile
+      const alumniProfileData = {
+        institutionId: institution.id,
+        userId: auth.currentUser?.uid || 'anonymous',
+        name: regData.name,
+        email: regData.email,
+        graduationYear: regData.graduationYear,
+        major: regData.major,
+        currentJob: regData.currentJob,
+        bio: regData.successStory,
+        isPublic: false, // Pending approval
+        createdAt: new Date().toISOString()
+      };
+
+      await addDoc(collection(db, 'alumni_profiles'), alumniProfileData);
+
+      // 2. If they provided a success story, we can also create a pending success story entry
+      if (regData.successStory) {
+        await addDoc(collection(db, 'success_stories'), {
+          institutionId: institution.id,
+          alumniName: regData.name,
+          title: `${regData.name}'s Success Journey`,
+          story: regData.successStory,
+          image: regData.image || `https://picsum.photos/seed/${Math.random()}/800/800`,
+          createdAt: new Date().toISOString()
+        });
+      }
+
+      setSuccess(true);
+      setRegData({
+        name: '',
+        email: '',
+        graduationYear: new Date().getFullYear(),
+        major: '',
+        currentJob: '',
+        successStory: '',
+        image: ''
+      });
+      setTimeout(() => {
+        setSuccess(false);
+        setShowReg(false);
+      }, 5000);
+    } catch (err) {
+      console.error("Error registering alumni:", err);
+      setError(lang === 'en' ? 'Registration failed. Please try again.' : 'Kuhluleke kubhalisa. Sicela uzame futsi.');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   const labels = {
     en: {
       title: 'Alumni Network',
       subtitle: 'Connecting past, present, and future',
-      join: 'Join Alumni Network',
-      stories: 'Success Stories',
+      join: 'Register as Alumni',
+      stories: 'Alumni Success Stories',
       fundraising: 'Support Our Growth',
       goal: 'Goal',
       raised: 'Raised',
-      donate: 'Contribute Now'
+      donate: 'Contribute Now',
+      regTitle: 'Join the Network',
+      regSubtitle: 'Share your journey with the next generation of students',
+      regName: 'Full Name',
+      regEmail: 'Email Address',
+      regYear: 'Graduation Year',
+      regMajor: 'Field of Study / Major',
+      regJob: 'Current Job / Title',
+      regStory: 'Your Success Story',
+      regSubmit: 'Submit Registration',
+      regSuccess: 'Thank you! Your profile has been submitted for review.',
+      explore: 'Explore Network'
     },
     ss: {
       title: 'Inkhundla ye-Alumni',
       subtitle: 'Kuhlanganisa lokwentekile, lokwentekako, nelikusasa',
-      join: 'Joyina Inkhundla ye-Alumni',
-      stories: 'Tindzaba tekuphumelela',
+      join: 'Bhalisa njenge-Alumni',
+      stories: 'Tindzaba tekuphumelela kwe-Alumni',
       fundraising: 'Sekela Kukhula Kwetfu',
       goal: 'Silinganiso',
       raised: 'Lokubutselwe',
-      donate: 'Nikela Nyalo'
+      donate: 'Nikela Nyalo',
+      regTitle: 'Joyina Likunye',
+      regSubtitle: 'Yabelana ngeluhambo lwakho nesitukulwane lesisha sebafundzi',
+      regName: 'Ligama Lonkhe',
+      regEmail: 'I-imeyili',
+      regYear: 'Umnyaka wekuphotfula',
+      regMajor: 'Sifundvo lesikhulu',
+      regJob: 'Umsebenti wanyalo',
+      regStory: 'Indzaba yakho yephumelelo',
+      regSubmit: 'Tfumela Kunhalisa',
+      regSuccess: 'Ngiyabonga! I-phrofayili yakho itunyelwe kutsi ibuyeketfwe.',
+      explore: 'Hlola Likunye'
     }
   }[lang];
 
@@ -333,45 +430,214 @@ export const AlumniSection: React.FC<EngagementFeaturesProps> = ({ institution, 
         <div className="relative z-10 max-w-2xl">
           <h2 className="text-6xl font-black tracking-tighter mb-8 leading-none">{labels.title}</h2>
           <p className="text-xl text-indigo-200 font-medium leading-relaxed mb-12">{labels.subtitle}</p>
-          <button 
-            onClick={() => setShowReg(true)}
-            className="bg-white text-indigo-900 px-12 py-6 rounded-[32px] font-black uppercase tracking-widest text-xs hover:bg-indigo-50 transition-all flex items-center gap-4 shadow-xl"
-          >
-            <UserPlus className="w-5 h-5" /> {labels.join}
-          </button>
+          <div className="flex flex-wrap gap-4">
+            <button 
+              onClick={() => setShowReg(true)}
+              className="bg-white text-indigo-900 px-12 py-6 rounded-[32px] font-black uppercase tracking-widest text-xs hover:bg-indigo-50 transition-all flex items-center gap-4 shadow-xl"
+            >
+              <UserPlus className="w-5 h-5" /> {labels.join}
+            </button>
+            <button 
+              className="bg-indigo-800/50 backdrop-blur-md text-white border border-indigo-700 px-12 py-6 rounded-[32px] font-black uppercase tracking-widest text-xs hover:bg-indigo-800 transition-all flex items-center gap-4"
+            >
+              <Users className="w-5 h-5" /> {labels.explore}
+            </button>
+          </div>
         </div>
       </section>
 
-      {/* Success Stories */}
+      {/* Registration Modal Overlay */}
+      <AnimatePresence>
+        {showReg && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 sm:p-20">
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setShowReg(false)}
+              className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"
+            />
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 20 }}
+              className="relative w-full max-w-4xl bg-white rounded-[64px] shadow-3xl overflow-hidden flex flex-col max-h-[90vh]"
+            >
+              <div className="p-12 md:p-16 overflow-y-auto no-scrollbar">
+                <div className="flex justify-between items-start mb-12">
+                  <div>
+                    <h3 className="text-4xl font-black text-slate-900 tracking-tight">{labels.regTitle}</h3>
+                    <p className="text-lg text-slate-500 mt-2">{labels.regSubtitle}</p>
+                  </div>
+                  <button onClick={() => setShowReg(false)} className="text-slate-400 hover:text-slate-900 transition-colors">
+                    <AlertCircle className="w-8 h-8 rotate-45" />
+                  </button>
+                </div>
+
+                <form onSubmit={handleRegister} className="space-y-10">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+                    <div className="space-y-3">
+                      <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{labels.regName}</label>
+                      <input
+                        required
+                        type="text"
+                        value={regData.name}
+                        onChange={(e) => setRegData({...regData, name: e.target.value})}
+                        className="w-full bg-slate-50 border border-slate-100 rounded-3xl p-6 text-slate-900 outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
+                        placeholder="John Doe"
+                      />
+                    </div>
+                    <div className="space-y-3">
+                      <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{labels.regEmail}</label>
+                      <input
+                        required
+                        type="email"
+                        value={regData.email}
+                        onChange={(e) => setRegData({...regData, email: e.target.value})}
+                        className="w-full bg-slate-50 border border-slate-100 rounded-3xl p-6 text-slate-900 outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
+                        placeholder="john@example.com"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+                    <div className="space-y-3">
+                      <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{labels.regYear}</label>
+                      <input
+                        required
+                        type="number"
+                        min="1960"
+                        max={new Date().getFullYear()}
+                        value={regData.graduationYear}
+                        onChange={(e) => setRegData({...regData, graduationYear: parseInt(e.target.value)})}
+                        className="w-full bg-slate-50 border border-slate-100 rounded-3xl p-6 text-slate-900 outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
+                      />
+                    </div>
+                    <div className="space-y-3">
+                      <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{labels.regMajor}</label>
+                      <input
+                        required
+                        type="text"
+                        value={regData.major}
+                        onChange={(e) => setRegData({...regData, major: e.target.value})}
+                        className="w-full bg-slate-50 border border-slate-100 rounded-3xl p-6 text-slate-900 outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
+                        placeholder="e.g., Computer Science"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-3">
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{labels.regJob}</label>
+                    <input
+                      required
+                      type="text"
+                      value={regData.currentJob}
+                      onChange={(e) => setRegData({...regData, currentJob: e.target.value})}
+                      className="w-full bg-slate-50 border border-slate-100 rounded-3xl p-6 text-slate-900 outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
+                      placeholder="e.g., Software Engineer at Google"
+                    />
+                  </div>
+
+                  <div className="space-y-3">
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{labels.regStory}</label>
+                    <textarea
+                      required
+                      value={regData.successStory}
+                      onChange={(e) => setRegData({...regData, successStory: e.target.value})}
+                      className="w-full h-48 bg-slate-50 border border-slate-100 rounded-[40px] p-8 text-slate-900 outline-none focus:ring-2 focus:ring-indigo-500 transition-all resize-none"
+                      placeholder="Share your achievements and how the institution helped you..."
+                    />
+                  </div>
+
+                  <div className="flex flex-col items-center gap-6 pt-6">
+                    {success && (
+                      <motion.div 
+                        initial={{ opacity: 0, scale: 0.9 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        className="bg-emerald-50 text-emerald-700 px-10 py-5 rounded-[24px] font-black text-xs uppercase tracking-widest flex items-center gap-3 border border-emerald-100 max-w-md text-center"
+                      >
+                        <CheckCircle2 className="w-5 h-5" /> {labels.regSuccess}
+                      </motion.div>
+                    )}
+                    {error && (
+                      <div className="text-rose-500 font-black text-xs uppercase tracking-widest flex items-center gap-2">
+                        <AlertCircle className="w-5 h-5" /> {error}
+                      </div>
+                    )}
+                    <button 
+                      disabled={submitting}
+                      className="bg-indigo-600 text-white px-16 py-8 rounded-[36px] font-black uppercase tracking-widest text-xs hover:bg-slate-900 transition-all shadow-2xl shadow-indigo-200 flex items-center gap-4 disabled:opacity-50"
+                    >
+                      {submitting ? <Loader2 className="w-6 h-6 animate-spin" /> : <Send className="w-6 h-6" />}
+                      {labels.regSubmit}
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Success Stories Grid */}
       <section className="space-y-16">
-        <div className="flex items-center gap-6">
-          <div className="w-16 h-16 bg-amber-100 text-amber-600 rounded-3xl flex items-center justify-center text-3xl">🏆</div>
-          <h3 className="text-4xl font-black text-slate-900 tracking-tight">{labels.stories}</h3>
+        <div className="flex justify-between items-end">
+          <div className="flex items-center gap-6">
+            <div className="w-20 h-20 bg-amber-100 text-amber-600 rounded-[32px] flex items-center justify-center text-4xl shadow-lg shadow-amber-100">🏆</div>
+            <div>
+              <h3 className="text-5xl font-black text-slate-900 tracking-tight">{labels.stories}</h3>
+              <p className="text-lg text-slate-500 font-medium">Inspiring journeys from our global community</p>
+            </div>
+          </div>
+          <button className="text-[10px] font-black text-indigo-600 uppercase tracking-widest hover:underline px-4 py-2">View All Stories →</button>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
+
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-12">
           {stories.length > 0 ? stories.map((story, idx) => (
             <motion.div 
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
               transition={{ delay: idx * 0.1 }}
               key={story.id} 
-              className="group cursor-pointer"
+              className="group bg-white rounded-[64px] border border-slate-100 overflow-hidden hover:shadow-3xl transition-all duration-700 hover:-translate-y-4"
             >
-              <div className="aspect-square rounded-[56px] overflow-hidden mb-8 shadow-lg relative">
-                <img src={story.image || `https://picsum.photos/seed/${story.id}/800/800`} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000" />
-                <div className="absolute inset-0 bg-gradient-to-t from-slate-900/80 to-transparent" />
-                <div className="absolute bottom-0 left-0 p-10">
-                  <p className="text-white font-black text-2xl tracking-tight">{story.alumniName}</p>
-                  <p className="text-indigo-300 text-[10px] font-black uppercase tracking-widest mt-2">{story.title}</p>
+              <div className="aspect-[4/3] overflow-hidden relative">
+                <img src={story.image || `https://picsum.photos/seed/${story.id}/800/600`} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-[2000ms]" />
+                <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/20 to-transparent opacity-60" />
+                <div className="absolute bottom-8 left-8">
+                   <div className="bg-indigo-600/90 backdrop-blur-md text-white px-5 py-2 rounded-full text-[10px] font-black uppercase tracking-widest shadow-lg">
+                    {story.title.split("'")[0]}
+                  </div>
                 </div>
               </div>
-              <h4 className="text-xl font-black text-slate-900 mb-4 group-hover:text-indigo-600 transition-colors">{story.title}</h4>
-              <p className="text-slate-500 line-clamp-3 leading-relaxed">{story.story}</p>
+              <div className="p-12 space-y-8">
+                <div className="space-y-4">
+                  <h4 className="text-2xl font-black text-slate-900 leading-tight group-hover:text-indigo-600 transition-colors">
+                    {story.title}
+                  </h4>
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-px bg-slate-200" />
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Alumni Achievement</p>
+                  </div>
+                </div>
+                <p className="text-slate-500 line-clamp-4 leading-relaxed font-medium italic">
+                  "{story.story}"
+                </p>
+                <div className="pt-8 border-t border-slate-50 flex items-center justify-between">
+                  <div className="flex items-center gap-4">
+                    <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-xs font-black text-slate-400 overflow-hidden">
+                       <img src={`https://i.pravatar.cc/100?u=${story.id}`} alt="" />
+                    </div>
+                    <span className="text-xs font-bold text-slate-900">{story.alumniName}</span>
+                  </div>
+                  <span className="text-[9px] font-black text-indigo-400 uppercase tracking-widest">{new Date(story.createdAt).getFullYear()}</span>
+                </div>
+              </div>
             </motion.div>
           )) : (
-            <div className="col-span-3 text-center py-20 bg-slate-50 rounded-[56px] border border-dashed border-slate-200">
-              <Trophy className="w-12 h-12 text-slate-300 mx-auto mb-4" />
-              <p className="text-slate-500 font-medium">Coming soon: Inspiring stories from our graduates.</p>
+            <div className="col-span-full text-center py-32 bg-slate-50 rounded-[80px] border border-dashed border-slate-200">
+              <Trophy className="w-20 h-20 text-slate-200 mx-auto mb-8" />
+              <p className="text-xl text-slate-400 font-medium italic">Inspiring alumni success stories are on their way...</p>
             </div>
           )}
         </div>

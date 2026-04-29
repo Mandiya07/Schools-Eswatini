@@ -10,7 +10,7 @@ interface AcademicsEditorProps {
 
 const AcademicsEditor: React.FC<AcademicsEditorProps> = ({ institution, onUpdate }) => {
   const { academics } = institution.sections;
-  const [activeSubTab, setActiveSubTab] = useState<'overview' | 'departments' | 'programs' | 'staff'>('overview');
+  const [activeSubTab, setActiveSubTab] = useState<'overview' | 'departments' | 'programs' | 'staff' | 'calendar'>('overview');
 
   const updateField = (field: string, value: any) => {
     onUpdate({
@@ -29,12 +29,12 @@ const AcademicsEditor: React.FC<AcademicsEditorProps> = ({ institution, onUpdate
           <h3 className="text-xl font-black text-slate-900 uppercase tracking-tight">Academic Portal Builder</h3>
           <p className="text-sm text-slate-500 font-medium">Manage departments, programs, and academic standards</p>
         </div>
-        <div className="flex bg-slate-100 p-1.5 rounded-2xl">
-          {(['overview', 'departments', 'programs', 'staff'] as const).map(tab => (
+        <div className="flex bg-slate-100 p-1.5 rounded-2xl overflow-x-auto no-scrollbar">
+          {(['overview', 'departments', 'programs', 'staff', 'calendar'] as const).map(tab => (
             <button 
               key={tab} 
               onClick={() => setActiveSubTab(tab)}
-              className={`px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${activeSubTab === tab ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
+              className={`px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${activeSubTab === tab ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
             >
               {tab}
             </button>
@@ -253,35 +253,7 @@ const AcademicsEditor: React.FC<AcademicsEditorProps> = ({ institution, onUpdate
                           }}
                         />
                       </div>
-                      <div>
-                        <label className="block text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Syllabus PDF URL</label>
-                        <input 
-                          className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-xs font-bold outline-none focus:border-blue-500" 
-                          placeholder="e.g. https://example.com/syllabus.pdf" 
-                          value={prog.syllabusUrl || ''} 
-                          onChange={e => {
-                            const newProgs = [...academics.programs];
-                            newProgs[idx].syllabusUrl = e.target.value;
-                            updateField('programs', newProgs);
-                          }}
-                        />
-                      </div>
-                    </div>
-                    <div>
-                      <label className="block text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Short Description</label>
-                      <textarea 
-                        rows={3}
-                        className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-xs font-medium outline-none focus:border-blue-500 resize-none" 
-                        placeholder="Brief description of the curriculum and goals..." 
-                        value={prog.description || ''} 
-                        onChange={e => {
-                          const newProgs = [...academics.programs];
-                          newProgs[idx].description = e.target.value;
-                          updateField('programs', newProgs);
-                        }}
-                      />
-                    </div>
-                    <div className="flex flex-col gap-2">
+                      <div className="flex flex-col gap-2">
                         <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Syllabus URL</label>
                         <div className="flex items-center gap-3">
                           <input 
@@ -319,6 +291,21 @@ const AcademicsEditor: React.FC<AcademicsEditorProps> = ({ institution, onUpdate
                         {prog.syllabusUrl && (
                            <a href={prog.syllabusUrl} target="_blank" rel="noreferrer" className="text-[10px] font-medium text-blue-500 hover:underline">View Current Syllabus →</a>
                         )}
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Short Description</label>
+                      <textarea 
+                        rows={3}
+                        className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-xs font-medium outline-none focus:border-blue-500 resize-none" 
+                        placeholder="Brief description of the curriculum and goals..." 
+                        value={prog.description || ''} 
+                        onChange={e => {
+                          const newProgs = [...academics.programs];
+                          newProgs[idx].description = e.target.value;
+                          updateField('programs', newProgs);
+                        }}
+                      />
                     </div>
                   </div>
                 ))}
@@ -392,7 +379,7 @@ const AcademicsEditor: React.FC<AcademicsEditorProps> = ({ institution, onUpdate
                         />
                       </div>
                       <div>
-                        <label className="block text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Professional Background</label>
+                        <label className="block text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Staff Bio</label>
                         <textarea 
                           rows={3}
                           className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-xs font-medium outline-none focus:border-blue-500 resize-none" 
@@ -405,9 +392,146 @@ const AcademicsEditor: React.FC<AcademicsEditorProps> = ({ institution, onUpdate
                           }}
                         />
                       </div>
+                      <div className="flex flex-col gap-2">
+                          <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Profile Photo URL</label>
+                          <div className="flex items-center gap-3">
+                            <input 
+                              type="text" 
+                              className="flex-1 bg-white border border-slate-200 rounded-xl px-4 py-2 text-xs font-medium outline-none focus:border-blue-500" 
+                              placeholder="URL to photo (or upload file)" 
+                              value={profile.image || ''} 
+                              onChange={e => {
+                                const newProfiles = [...(academics.staff.profiles || [])];
+                                newProfiles[idx].image = e.target.value;
+                                updateField('staff', { ...academics.staff, profiles: newProfiles });
+                              }}
+                            />
+                            <label className="cursor-pointer bg-blue-50 text-blue-600 hover:bg-blue-100 flex-shrink-0 px-4 py-2 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-colors">
+                              Upload
+                              <input 
+                                type="file" 
+                                className="hidden" 
+                                accept="image/*"
+                                onChange={e => {
+                                  const file = e.target.files?.[0];
+                                  if (file) {
+                                    const reader = new FileReader();
+                                    reader.onloadend = () => {
+                                      const newProfiles = [...(academics.staff.profiles || [])];
+                                      newProfiles[idx].image = reader.result as string;
+                                      updateField('staff', { ...academics.staff, profiles: newProfiles });
+                                    };
+                                    reader.readAsDataURL(file);
+                                  }
+                                }}
+                              />
+                            </label>
+                          </div>
+                      </div>
                     </div>
                   </div>
                 ))}
+              </div>
+            </div>
+          )}
+
+          {activeSubTab === 'calendar' && (
+            <div className="space-y-8 animate-in slide-in-from-left-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div className="group">
+                  <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Academic Year Start Date</label>
+                  <input 
+                    type="text"
+                    className="w-full bg-slate-50 border-2 border-transparent focus:border-blue-500 focus:bg-white rounded-2xl px-6 py-4 font-bold transition-all outline-none" 
+                    placeholder="e.g., January 15th"
+                    value={academics.calendar.startDate} 
+                    onChange={e => updateField('calendar', { ...academics.calendar, startDate: e.target.value })} 
+                  />
+                </div>
+                <div className="group">
+                  <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Calendar PDF URL (Optional)</label>
+                  <input 
+                    className="w-full bg-slate-50 border-2 border-transparent focus:border-blue-500 focus:bg-white rounded-2xl px-6 py-4 font-bold transition-all outline-none" 
+                    placeholder="Link to full academic calendar"
+                    value={academics.calendar.url || ''} 
+                    onChange={e => updateField('calendar', { ...academics.calendar, url: e.target.value })} 
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-6">
+                <div className="flex items-center justify-between">
+                  <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Term/Semester Breakdown</h4>
+                  <button 
+                    onClick={() => updateField('calendar', {
+                      ...academics.calendar,
+                      terms: [...academics.calendar.terms, { name: `Term ${academics.calendar.terms.length + 1}`, info: '' }]
+                    })}
+                    className="text-[10px] font-black text-blue-600 uppercase tracking-widest hover:underline"
+                  >
+                    + Add Term
+                  </button>
+                </div>
+                <div className="grid grid-cols-1 gap-4">
+                  {academics.calendar.terms.map((term, idx) => (
+                    <div key={idx} className="bg-slate-50 p-6 rounded-3xl border border-slate-100 flex items-start gap-6">
+                      <div className="flex-1 space-y-4">
+                        <input 
+                          className="bg-transparent border-none font-black text-slate-900 p-0 focus:ring-0 text-sm w-full" 
+                          value={term.name} 
+                          onChange={e => {
+                            const newTerms = [...academics.calendar.terms];
+                            newTerms[idx].name = e.target.value;
+                            updateField('calendar', { ...academics.calendar, terms: newTerms });
+                          }}
+                          placeholder="Term Name"
+                        />
+                        <input 
+                          className="w-full bg-white border border-slate-200 rounded-xl px-4 py-2 text-xs font-medium outline-none focus:border-blue-500" 
+                          placeholder="e.g., Starts Sept 4 - Ends Dec 12"
+                          value={term.info} 
+                          onChange={e => {
+                            const newTerms = [...academics.calendar.terms];
+                            newTerms[idx].info = e.target.value;
+                            updateField('calendar', { ...academics.calendar, terms: newTerms });
+                          }}
+                        />
+                      </div>
+                      <button 
+                        onClick={() => {
+                          const newTerms = academics.calendar.terms.filter((_, i) => i !== idx);
+                          updateField('calendar', { ...academics.calendar, terms: newTerms });
+                        }}
+                        className="text-rose-500 hover:text-rose-700 mt-1"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div className="group">
+                  <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Examination Periods</label>
+                  <textarea 
+                    rows={4}
+                    className="w-full bg-slate-50 border-2 border-transparent focus:border-blue-500 focus:bg-white rounded-2xl px-6 py-4 font-medium transition-all outline-none resize-none" 
+                    placeholder="e.g., Mid-year exams in June, Final exams in November"
+                    value={academics.calendar.examPeriods} 
+                    onChange={e => updateField('calendar', { ...academics.calendar, examPeriods: e.target.value })} 
+                  />
+                </div>
+                <div className="group">
+                  <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Holiday Breaks</label>
+                  <textarea 
+                    rows={4}
+                    className="w-full bg-slate-50 border-2 border-transparent focus:border-blue-500 focus:bg-white rounded-2xl px-6 py-4 font-medium transition-all outline-none resize-none" 
+                    placeholder="e.g., 1-week break in April, 3-week break in August"
+                    value={academics.calendar.holidays} 
+                    onChange={e => updateField('calendar', { ...academics.calendar, holidays: e.target.value })} 
+                  />
+                </div>
               </div>
             </div>
           )}
@@ -424,6 +548,35 @@ const AcademicsEditor: React.FC<AcademicsEditorProps> = ({ institution, onUpdate
                 <h4 className="text-2xl font-black text-slate-900 tracking-tight">{academics.overview.headline}</h4>
                 <p className="text-slate-500 font-medium text-sm leading-relaxed">{academics.overview.introduction}</p>
               </div>
+
+              {activeSubTab === 'staff' && (
+                <div className="space-y-4 animate-in fade-in">
+                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Faculty & Staff</p>
+                  <div className="grid grid-cols-1 gap-4">
+                    {(academics.staff.profiles || []).map(profile => (
+                      <div key={profile.id} className="p-4 bg-slate-50 rounded-2xl border border-slate-100 flex items-center gap-4">
+                        <div className="w-12 h-12 rounded-xl overflow-hidden bg-white shrink-0 shadow-sm">
+                           {profile.image ? (
+                             <img src={profile.image} alt={profile.name} className="w-full h-full object-cover" />
+                           ) : (
+                             <div className="w-full h-full flex items-center justify-center bg-blue-50 text-blue-300 text-xl font-black">
+                               {profile.name.charAt(0)}
+                             </div>
+                           )}
+                        </div>
+                        <div className="overflow-hidden">
+                          <p className="text-sm font-black text-slate-900 truncate">{profile.name}</p>
+                          <p className="text-[9px] text-blue-600 font-black uppercase tracking-widest truncate">{profile.role}</p>
+                          <p className="text-[8px] text-slate-400 font-bold uppercase truncate">{profile.qualifications}</p>
+                        </div>
+                      </div>
+                    ))}
+                    {(academics.staff.profiles || []).length === 0 && (
+                      <div className="text-center py-10 opacity-30 text-slate-400 italic">No profiles added yet.</div>
+                    )}
+                  </div>
+                </div>
+              )}
 
               {activeSubTab === 'departments' && (
                 <div className="space-y-4 animate-in fade-in">
@@ -477,6 +630,37 @@ const AcademicsEditor: React.FC<AcademicsEditorProps> = ({ institution, onUpdate
                         </div>
                       </div>
                     ))}
+                  </div>
+                </div>
+              )}
+
+              {activeSubTab === 'calendar' && (
+                <div className="space-y-6 animate-in fade-in">
+                  <div className="flex items-center justify-between">
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Academic Calendar</p>
+                    {academics.calendar.startDate && (
+                      <span className="text-[10px] font-black text-blue-600 bg-blue-50 px-3 py-1 rounded-full uppercase tracking-widest">
+                        Starts: {academics.calendar.startDate}
+                      </span>
+                    )}
+                  </div>
+                  <div className="space-y-4">
+                    {academics.calendar.terms.map((term, idx) => (
+                      <div key={idx} className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                        <p className="text-xs font-black text-slate-900">{term.name}</p>
+                        <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mt-1">{term.info || 'No details provided'}</p>
+                      </div>
+                    ))}
+                    <div className="grid grid-cols-1 gap-4 pt-4 border-t border-slate-100">
+                      <div>
+                        <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2">Exams</p>
+                        <p className="text-[11px] text-slate-800 font-medium leading-relaxed">{academics.calendar.examPeriods || 'TBD'}</p>
+                      </div>
+                      <div>
+                        <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2">Holidays</p>
+                        <p className="text-[11px] text-slate-800 font-medium leading-relaxed">{academics.calendar.holidays || 'TBD'}</p>
+                      </div>
+                    </div>
                   </div>
                 </div>
               )}

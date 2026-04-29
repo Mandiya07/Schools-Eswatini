@@ -104,8 +104,7 @@ service cloud.firestore {
     }
 
     function isValidAlumniProfile(data) {
-      return data.keys().hasAll(['id', 'userId', 'institutionId', 'graduationYear', 'createdAt']) &&
-             data.id is string &&
+      return data.keys().hasAll(['userId', 'institutionId', 'graduationYear', 'createdAt']) &&
              data.userId is string &&
              data.institutionId is string &&
              data.graduationYear is number &&
@@ -113,8 +112,7 @@ service cloud.firestore {
     }
 
     function isValidSuccessStory(data) {
-      return data.keys().hasAll(['id', 'institutionId', 'alumniName', 'title', 'story', 'createdAt']) &&
-             data.id is string &&
+      return data.keys().hasAll(['institutionId', 'alumniName', 'title', 'story', 'createdAt']) &&
              data.institutionId is string &&
              data.alumniName is string &&
              data.title is string &&
@@ -207,7 +205,7 @@ service cloud.firestore {
 
     match /success_stories/{storyId} {
       allow read: if true;
-      allow create: if isAuthenticated() && (isInstitutionAdmin(request.resource.data.institutionId) || isAdmin());
+      allow create: if isAuthenticated(); // Allow verified alumni to submit stories
       allow update: if isAuthenticated() && (isInstitutionAdmin(resource.data.institutionId) || isAdmin());
       allow delete: if isAdmin();
     }

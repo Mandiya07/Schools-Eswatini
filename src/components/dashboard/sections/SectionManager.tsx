@@ -8,7 +8,8 @@ import AcademicsEditor from './AcademicsEditor';
 import NewsEditor from './NewsEditor';
 import StudentLifeEditor from './StudentLifeEditor';
 import PortalEditor from './PortalEditor';
-import { Layout, Info, UserPlus, GraduationCap, Newspaper, Users, Globe } from 'lucide-react';
+import ModuleVisibilityEditor from './ModuleVisibilityEditor';
+import { Layout, Info, UserPlus, GraduationCap, Newspaper, Users, Globe, Settings } from 'lucide-react';
 
 interface SectionManagerProps {
   institution: Institution;
@@ -16,9 +17,10 @@ interface SectionManagerProps {
 }
 
 const SectionManager: React.FC<SectionManagerProps> = ({ institution, onUpdate }) => {
-  const [activeSection, setActiveSection] = useState<keyof Institution['sections']>('homepage');
+  const [activeSection, setActiveSection] = useState<keyof Institution['sections'] | 'visibility'>('visibility');
 
   const sections = [
+    { id: 'visibility', label: 'Visibility', icon: <Settings className="w-4 h-4" /> },
     { id: 'homepage', label: 'Homepage', icon: <Layout className="w-4 h-4" /> },
     { id: 'about', label: 'About Us', icon: <Info className="w-4 h-4" /> },
     { id: 'admissions', label: 'Admissions', icon: <UserPlus className="w-4 h-4" /> },
@@ -36,6 +38,10 @@ const SectionManager: React.FC<SectionManagerProps> = ({ institution, onUpdate }
   };
 
   const renderEditor = () => {
+    if (activeSection === 'visibility') {
+      return <ModuleVisibilityEditor institution={institution} onUpdate={updateSection} />;
+    }
+
     switch (activeSection) {
       case 'homepage': return <HomepageEditor institution={institution} onUpdate={updateSection} />;
       case 'about': return <AboutEditor institution={institution} onUpdate={updateSection} />;

@@ -5,7 +5,22 @@ import { getOptimizedImageUrl } from '../../src/services/performanceService';
 
 export const InstitutionHome: React.FC = () => {
   const { inst, lang } = useOutletContext<{ inst: Institution, lang: 'en' | 'ss' }>();
-  const acad = inst.sections.academics;
+  
+  // Safe access to sections with defaults
+  const sections = (inst.sections || {}) as Partial<Institution['sections']>;
+  const acad = sections.academics || {
+    overview: { headline: '', introduction: '' },
+    performance: { passRate: 'N/A' },
+    staff: { totalCount: 'N/A' }
+  };
+  const homepage = sections.homepage || {
+    welcomeMessage: 'Welcome to our institution.',
+    principalMessage: { text: 'We are committed to excellence.', name: '', photo: '' },
+    announcements: []
+  };
+  const about = sections.about || {
+    leadership: { principal: { name: '', photo: '', title: '' } }
+  };
 
   const labels = {
     en: { 
@@ -46,20 +61,20 @@ export const InstitutionHome: React.FC = () => {
             <span className="h-[2px] w-16 bg-blue-600 rounded-full" />
             <h2 className="text-[11px] font-black text-blue-600 uppercase tracking-[0.3em]">{labels.welcome}</h2>
         </div>
-        <p className="text-4xl md:text-6xl font-black text-slate-900 tracking-tight leading-[1.05]">{inst.sections.homepage?.welcomeMessage}</p>
+        <p className="text-4xl md:text-6xl font-black text-slate-900 tracking-tight leading-[1.05]">{homepage.welcomeMessage}</p>
         
         <div className="bg-white p-14 rounded-[64px] border border-slate-100 flex flex-col lg:flex-row gap-16 items-center shadow-sm relative overflow-hidden">
             <div className="absolute top-0 right-0 p-12 opacity-5 text-[10rem] font-black">"</div>
             <div className="w-56 h-72 shrink-0 overflow-hidden rounded-[40px] bg-slate-100 shadow-2xl z-10">
-              <img src={getOptimizedImageUrl(inst.sections.homepage?.principalMessage?.photo || '', 400, 600) || undefined} className="w-full h-full object-cover" loading="lazy" />
+              <img src={getOptimizedImageUrl(homepage.principalMessage?.photo || about.leadership?.principal?.photo || '', 400, 600) || undefined} className="w-full h-full object-cover" loading="lazy" />
             </div>
             <div className="relative z-10">
-              <blockquote className="text-3xl font-medium text-slate-600 italic leading-relaxed mb-10">"{inst.sections.homepage?.principalMessage?.text}"</blockquote>
+              <blockquote className="text-3xl font-medium text-slate-600 italic leading-relaxed mb-10">"{homepage.principalMessage?.text || 'Our mission is to empower every student to reach their full potential.'}"</blockquote>
               <div className="flex items-center gap-6">
                   <div className="w-12 h-1 bg-blue-600" />
                   <div>
-                    <p className="text-lg font-black text-slate-900 uppercase tracking-widest">{inst.sections.homepage?.principalMessage?.name}</p>
-                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] mt-1">Head of Institution</p>
+                    <p className="text-lg font-black text-slate-900 uppercase tracking-widest">{homepage.principalMessage?.name || about.leadership?.principal?.name || 'Head of Institution'}</p>
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] mt-1">{about.leadership?.principal?.title || 'Principal'}</p>
                   </div>
               </div>
             </div>
@@ -70,18 +85,24 @@ export const InstitutionHome: React.FC = () => {
       <section className="space-y-12">
         <h3 className="text-2xl font-black text-slate-900 uppercase tracking-widest">{labels.quickTitle}</h3>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-            <button className="group p-6 md:p-10 bg-blue-600 text-white rounded-[48px] shadow-2xl shadow-blue-200 flex flex-col items-center text-center transition-all hover:-translate-y-3">
-              <span className="text-4xl mb-6 group-hover:scale-125 transition-transform duration-500">📄</span>
-              <span className="text-[10px] font-black uppercase tracking-[0.2em]">Apply Now</span>
-            </button>
-            <button className="group p-10 bg-white border border-slate-100 rounded-[48px] shadow-sm flex flex-col items-center text-center transition-all hover:-translate-y-3">
-              <span className="text-4xl mb-6 group-hover:scale-125 transition-transform duration-500">🎓</span>
-              <span className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-900">Scholarships</span>
-            </button>
-            <a href={inst.sections.portal?.url || '#'} target="_blank" rel="noreferrer" className="group p-10 bg-white border border-slate-100 rounded-[48px] shadow-sm flex flex-col items-center text-center transition-all hover:-translate-y-3">
-              <span className="text-4xl mb-6 group-hover:scale-125 transition-transform duration-500">🔑</span>
-              <span className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-900">Portal</span>
-            </a>
+            {sections.admissions?.enabled !== false && (
+              <button className="group p-6 md:p-10 bg-blue-600 text-white rounded-[48px] shadow-2xl shadow-blue-200 flex flex-col items-center text-center transition-all hover:-translate-y-3">
+                <span className="text-4xl mb-6 group-hover:scale-125 transition-transform duration-500">📄</span>
+                <span className="text-[10px] font-black uppercase tracking-[0.2em]">Apply Now</span>
+              </button>
+            )}
+            {sections.admissions?.enabled !== false && (
+              <button className="group p-10 bg-white border border-slate-100 rounded-[48px] shadow-sm flex flex-col items-center text-center transition-all hover:-translate-y-3">
+                <span className="text-4xl mb-6 group-hover:scale-125 transition-transform duration-500">🎓</span>
+                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-900">Scholarships</span>
+              </button>
+            )}
+            {sections.portal?.enabled !== false && (
+              <a href={sections.portal?.url || '#'} target="_blank" rel="noreferrer" className="group p-10 bg-white border border-slate-100 rounded-[48px] shadow-sm flex flex-col items-center text-center transition-all hover:-translate-y-3">
+                <span className="text-4xl mb-6 group-hover:scale-125 transition-transform duration-500">🔑</span>
+                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-900">Portal</span>
+              </a>
+            )}
             <button className="group p-6 md:p-10 bg-slate-900 text-white rounded-[48px] shadow-2xl flex flex-col items-center text-center transition-all hover:-translate-y-3">
               <span className="text-4xl mb-6 group-hover:scale-125 transition-transform duration-500">📞</span>
               <span className="text-[10px] font-black uppercase tracking-[0.2em]">Contact</span>
@@ -90,37 +111,39 @@ export const InstitutionHome: React.FC = () => {
       </section>
 
       {/* 4. News Carousel Teaser */}
-      <section className="space-y-16">
-        <div className="flex justify-between items-end">
-            <h3 className="text-3xl font-black text-slate-900 uppercase tracking-tight">Latest Announcements</h3>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
-            {[...(inst.sections.homepage.announcements || [])]
-              .sort((a, b) => {
-                if (a.isFeatured && !b.isFeatured) return -1;
-                if (!a.isFeatured && b.isFeatured) return 1;
-                return new Date(b.date).getTime() - new Date(a.date).getTime();
-              })
-              .slice(0, 2).map(ann => (
-              <div key={ann.id} className={`p-12 border rounded-[56px] relative overflow-hidden group transition-all ${ann.isFeatured ? 'bg-slate-900 text-white border-transparent' : 'bg-white border-slate-100 hover:border-blue-500'}`}>
-                <div className="absolute -top-10 -right-10 p-12 opacity-[0.03] text-9xl group-hover:opacity-[0.06] transition-opacity">
-                    {ann.isFeatured ? '⭐️' : '📢'}
+      {sections.news?.enabled !== false && (
+        <section className="space-y-16">
+          <div className="flex justify-between items-end">
+              <h3 className="text-3xl font-black text-slate-900 uppercase tracking-tight">Latest Announcements</h3>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+              {[...(homepage.announcements || [])]
+                .sort((a, b) => {
+                  if (a.isFeatured && !b.isFeatured) return -1;
+                  if (!a.isFeatured && b.isFeatured) return 1;
+                  return new Date(b.date).getTime() - new Date(a.date).getTime();
+                })
+                .slice(0, 2).map(ann => (
+                <div key={ann.id} className={`p-12 border rounded-[56px] relative overflow-hidden group transition-all ${ann.isFeatured ? 'bg-slate-900 text-white border-transparent' : 'bg-white border-slate-100 hover:border-blue-500'}`}>
+                  <div className="absolute -top-10 -right-10 p-12 opacity-[0.03] text-9xl group-hover:opacity-[0.06] transition-opacity">
+                      {ann.isFeatured ? '⭐️' : '📢'}
+                  </div>
+                  <div className="flex gap-4 items-center mb-6">
+                      <span className={`px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest ${ann.isFeatured ? 'bg-white text-slate-900' : 'bg-blue-50 text-blue-600'}`}>{ann.date}</span>
+                      {ann.isFeatured && (
+                        <span className="px-3 py-1 bg-amber-400 text-slate-900 rounded-full text-[8px] font-black uppercase tracking-widest flex items-center gap-1.5 shadow-lg">
+                            <span className="inline-block animate-pulse">★</span> Featured Notice
+                        </span>
+                      )}
+                  </div>
+                  <h4 className={`text-3xl font-black mb-6 leading-tight transition-colors ${ann.isFeatured ? 'text-white' : 'text-slate-900 group-hover:text-blue-600'}`}>{ann.title}</h4>
+                  <p className={`text-lg font-medium leading-relaxed mb-10 ${ann.isFeatured ? 'text-slate-400' : 'text-slate-500'}`}>{ann.content}</p>
+                  <button className={`text-[10px] font-black uppercase tracking-widest group-hover:translate-x-2 transition-transform ${ann.isFeatured ? 'text-white' : 'text-slate-900'}`}>Read Full Post →</button>
                 </div>
-                <div className="flex gap-4 items-center mb-6">
-                    <span className={`px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest ${ann.isFeatured ? 'bg-white text-slate-900' : 'bg-blue-50 text-blue-600'}`}>{ann.date}</span>
-                    {ann.isFeatured && (
-                      <span className="px-3 py-1 bg-amber-400 text-slate-900 rounded-full text-[8px] font-black uppercase tracking-widest flex items-center gap-1.5 shadow-lg">
-                          <span className="inline-block animate-pulse">★</span> Featured Notice
-                      </span>
-                    )}
-                </div>
-                <h4 className={`text-3xl font-black mb-6 leading-tight transition-colors ${ann.isFeatured ? 'text-white' : 'text-slate-900 group-hover:text-blue-600'}`}>{ann.title}</h4>
-                <p className={`text-lg font-medium leading-relaxed mb-10 ${ann.isFeatured ? 'text-slate-400' : 'text-slate-500'}`}>{ann.content}</p>
-                <button className={`text-[10px] font-black uppercase tracking-widest group-hover:translate-x-2 transition-transform ${ann.isFeatured ? 'text-white' : 'text-slate-900'}`}>Read Full Post →</button>
-              </div>
-            ))}
-        </div>
-      </section>
+              ))}
+          </div>
+        </section>
+      )}
 
       {/* 5. PREMIUM FEATURES: Virtual Tour */}
       {(inst.plan === 'Premium' || inst.plan === 'Pro Suite' || inst.plan === 'Enterprise') && (

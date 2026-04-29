@@ -276,6 +276,7 @@ export interface BlogPost {
   excerpt: string;
   content?: string;
   image: string;
+  media?: { url: string; caption?: string; type: 'image' | 'video' }[];
   author?: string;
   tags?: string[];
 }
@@ -294,7 +295,7 @@ export interface EventItem {
   registrationDeadline?: string;
   isPast?: boolean;
   highlights?: string[];
-  media?: string[];
+  media?: { url: string; caption?: string; type: 'image' | 'video' }[];
 }
 
 export interface SEOMetadata {
@@ -548,6 +549,7 @@ export interface Institution {
   reviews: Review[];
   sections: {
     homepage: {
+      enabled?: boolean;
       heroBanner: string;
       welcomeMessage: string;
       principalMessage: {
@@ -559,6 +561,7 @@ export interface Institution {
       announcements: Announcement[];
     };
     about: {
+      enabled?: boolean;
       overview: string;
       foundingBackground: string;
       history: {
@@ -642,6 +645,7 @@ export interface Institution {
       testimonials: { author: string; text: string }[];
     };
     admissions: {
+      enabled?: boolean;
       headline: string;
       introduction: string;
       programs: { level: string; items: string[] }[];
@@ -692,6 +696,7 @@ export interface Institution {
       scholarshipApplicationLink?: string;
     };
     academics: {
+      enabled?: boolean;
       overview: {
         headline: string;
         introduction: string;
@@ -757,6 +762,7 @@ export interface Institution {
       };
     };
     news: {
+      enabled?: boolean;
       overview: {
         title: string;
         description: string;
@@ -768,6 +774,7 @@ export interface Institution {
       newsletterCta: string;
     };
     studentLife: {
+      enabled?: boolean;
       overview: {
         headline: string;
         introduction: string;

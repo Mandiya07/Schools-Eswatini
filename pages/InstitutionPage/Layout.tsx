@@ -9,11 +9,23 @@ interface InstitutionLayoutProps {
   favorites: string[];
   onToggleFavorite: (id: string) => void;
   lang: 'en' | 'ss';
+  loading?: boolean;
 }
 
-export const InstitutionLayout: React.FC<InstitutionLayoutProps> = ({ institutions, favorites, onToggleFavorite, lang }) => {
+export const InstitutionLayout: React.FC<InstitutionLayoutProps> = ({ institutions, favorites, onToggleFavorite, lang, loading }) => {
   const { slug } = useParams<{ slug: string }>();
   const inst = institutions.find(i => i.slug === slug);
+
+  if (loading && !inst) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-50">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" />
+          <p className="text-sm font-black text-slate-400 uppercase tracking-widest">Loading Institution...</p>
+        </div>
+      </div>
+    );
+  }
 
   if (!inst) return <Navigate to="/browse" />;
 
@@ -59,6 +71,10 @@ export const InstitutionLayout: React.FC<InstitutionLayoutProps> = ({ institutio
 
   const defaultOrder = ['homepage', 'about', 'admissions', 'academics', 'news', 'studentLife', 'portal', 'reviews', 'alumni', 'contact'];
   const orderedSections = (inst.theme.sectionOrder || defaultOrder).map(id => {
+    // Check if section is enabled
+    const section = (inst.sections as any)?.[id];
+    if (section && section.enabled === false) return null;
+
     return {
       id,
       path: id === 'homepage' ? '.' : id,

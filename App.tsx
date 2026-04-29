@@ -367,6 +367,7 @@ const App: React.FC = () => {
                   favorites={favorites}
                   onToggleFavorite={toggleFavorite}
                   lang={lang}
+                  loading={loading}
                 />
               }
             >

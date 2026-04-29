@@ -174,6 +174,29 @@ const NewsEventsSection: React.FC<NewsEventsSectionProps> = ({ news, primaryColo
                     <p className="text-slate-500 font-medium leading-relaxed line-clamp-3">
                       {post.excerpt}
                     </p>
+
+                    {/* Post Media Preview */}
+                    {post.media && post.media.length > 0 && (
+                      <div className="flex gap-2 pb-2 overflow-x-auto scrollbar-hide">
+                        {post.media.slice(0, 4).map((m, i) => (
+                          <div key={i} className="w-12 h-12 rounded-xl overflow-hidden shadow-sm shrink-0 bg-slate-100 border border-slate-200">
+                             {m.type === 'image' ? (
+                               <img src={m.url} className="w-full h-full object-cover" alt="" />
+                             ) : (
+                               <div className="w-full h-full flex items-center justify-center bg-slate-800 text-white">
+                                  <PlayCircle className="w-3 h-3" />
+                               </div>
+                             )}
+                          </div>
+                        ))}
+                        {post.media.length > 4 && (
+                          <div className="w-12 h-12 rounded-xl bg-slate-100 border border-dashed border-slate-300 flex items-center justify-center text-[8px] font-black text-slate-400 uppercase tracking-widest shrink-0">
+                            +{post.media.length - 4}
+                          </div>
+                        )}
+                      </div>
+                    )}
+
                     <div className="pt-6 border-t border-slate-50 flex justify-between items-center">
                       <span className="text-[10px] font-black uppercase tracking-widest text-blue-600 group-hover:translate-x-2 transition-transform inline-flex items-center gap-2">
                         Read More <ChevronRight className="w-3 h-3" />
@@ -214,6 +237,29 @@ const NewsEventsSection: React.FC<NewsEventsSectionProps> = ({ news, primaryColo
                       </h4>
                     </div>
                   </div>
+
+                  {/* Event Media Preview */}
+                  {event.media && event.media.length > 0 && (
+                    <div className="mt-6 flex gap-2 pb-2 overflow-x-auto scrollbar-hide">
+                      {event.media.slice(0, 5).map((m, i) => (
+                        <div key={i} className="w-10 h-10 rounded-lg overflow-hidden shadow-sm shrink-0 bg-white border border-slate-200">
+                           {m.type === 'image' ? (
+                             <img src={m.url} className="w-full h-full object-cover" alt="" />
+                           ) : (
+                             <div className="w-full h-full flex items-center justify-center bg-slate-800 text-white">
+                                <PlayCircle className="w-3 h-3" />
+                             </div>
+                           )}
+                        </div>
+                      ))}
+                      {event.media.length > 5 && (
+                        <div className="w-10 h-10 rounded-lg bg-slate-100 border border-dashed border-slate-300 flex items-center justify-center text-[7px] font-black text-slate-400 uppercase tracking-widest shrink-0">
+                          +{event.media.length - 5}
+                        </div>
+                      )}
+                    </div>
+                  )}
+
                   <div className="mt-6 pt-6 border-t border-slate-200/50 grid grid-cols-2 gap-4">
                     <div className="flex items-center gap-2 text-[10px] font-bold text-slate-500">
                       <Clock className="w-3 h-3" /> {event.time}

@@ -217,7 +217,25 @@ const AboutEditor: React.FC<AboutEditorProps> = ({ institution, onUpdate }) => {
                   <input 
                     className="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-2 text-sm font-bold text-white outline-none focus:ring-2 focus:ring-indigo-500 transition-all" 
                     value={about.leadership.principal.name} 
-                    onChange={e => updateSubField('leadership', 'principal', { ...about.leadership.principal, name: e.target.value })} 
+                    onChange={e => {
+                      const newPrincipal = { ...about.leadership.principal, name: e.target.value };
+                      updateSubField('leadership', 'principal', newPrincipal);
+                      
+                      // Auto-sync to homepage if it has a principal message
+                      if (institution.sections.homepage?.principalMessage) {
+                        onUpdate({
+                          ...institution.sections,
+                          about: { ...about, leadership: { ...about.leadership, principal: newPrincipal } },
+                          homepage: {
+                            ...institution.sections.homepage,
+                            principalMessage: {
+                              ...institution.sections.homepage.principalMessage,
+                              name: e.target.value
+                            }
+                          }
+                        });
+                      }
+                    }} 
                   />
                 </div>
                 <div>
@@ -229,12 +247,48 @@ const AboutEditor: React.FC<AboutEditorProps> = ({ institution, onUpdate }) => {
                   />
                 </div>
                 <div className="md:col-span-2">
-                  <label className="block text-[8px] font-black text-slate-400 uppercase tracking-widest mb-2">Leadership Philosophy</label>
+                  <label className="block text-[8px] font-black text-slate-400 uppercase tracking-widest mb-2">Photo URL</label>
+                  <input 
+                    className="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-2 text-sm font-medium text-white outline-none focus:ring-2 focus:ring-indigo-500 transition-all" 
+                    value={about.leadership.principal.photo || ''} 
+                    onChange={e => {
+                      const newPrincipal = { ...about.leadership.principal, photo: e.target.value };
+                      updateSubField('leadership', 'principal', newPrincipal);
+                      
+                      // Auto-sync photo to homepage principal message
+                      if (institution.sections.homepage?.principalMessage) {
+                        onUpdate({
+                          ...institution.sections,
+                          about: { ...about, leadership: { ...about.leadership, principal: newPrincipal } },
+                          homepage: {
+                            ...institution.sections.homepage,
+                            principalMessage: {
+                              ...institution.sections.homepage.principalMessage,
+                              photo: e.target.value
+                            }
+                          }
+                        });
+                      }
+                    }} 
+                    placeholder="https://example.com/photo.jpg"
+                  />
+                </div>
+                <div className="md:col-span-2">
+                  <label className="block text-[8px] font-black text-slate-400 uppercase tracking-widest mb-2">Qualifications</label>
+                  <input 
+                    className="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-2 text-sm font-medium text-white outline-none focus:ring-2 focus:ring-indigo-500 transition-all" 
+                    value={about.leadership.principal.qualifications || ''} 
+                    onChange={e => updateSubField('leadership', 'principal', { ...about.leadership.principal, qualifications: e.target.value })} 
+                    placeholder="e.g. PhD in Education"
+                  />
+                </div>
+                <div className="md:col-span-2">
+                  <label className="block text-[8px] font-black text-slate-400 uppercase tracking-widest mb-2">Leadership Philosophy / Description</label>
                   <textarea 
                     rows={2}
                     className="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-2 text-sm font-medium text-slate-300 outline-none focus:ring-2 focus:ring-indigo-500 transition-all resize-none" 
-                    value={about.leadership.principal.philosophy || ''} 
-                    onChange={e => updateSubField('leadership', 'principal', { ...about.leadership.principal, philosophy: e.target.value })} 
+                    value={(about.leadership.principal as any)?.philosophy || about.leadership.principal.description || ''} 
+                    onChange={e => updateSubField('leadership', 'principal', { ...about.leadership.principal, description: e.target.value })} 
                   />
                 </div>
               </div>
@@ -274,6 +328,45 @@ const AboutEditor: React.FC<AboutEditorProps> = ({ institution, onUpdate }) => {
                         onChange={e => {
                           const newTeam = [...about.leadership.seniorTeam];
                           newTeam[idx].title = e.target.value;
+                          updateSubField('leadership', 'seniorTeam', newTeam);
+                        }} 
+                      />
+                    </div>
+                    <div className="md:col-span-2">
+                      <label className="block text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1">Photo URL</label>
+                      <input 
+                        className="w-full bg-white border border-slate-200 rounded-xl px-4 py-2 text-sm font-medium text-slate-900 outline-none focus:ring-2 focus:ring-indigo-500" 
+                        value={member.photo || ''} 
+                        onChange={e => {
+                          const newTeam = [...about.leadership.seniorTeam];
+                          newTeam[idx].photo = e.target.value;
+                          updateSubField('leadership', 'seniorTeam', newTeam);
+                        }} 
+                        placeholder="https://example.com/photo.jpg"
+                      />
+                    </div>
+                    <div className="md:col-span-2">
+                      <label className="block text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1">Qualifications</label>
+                      <input 
+                        className="w-full bg-white border border-slate-200 rounded-xl px-4 py-2 text-sm font-medium text-slate-900 outline-none focus:ring-2 focus:ring-indigo-500" 
+                        value={member.qualifications || ''} 
+                        onChange={e => {
+                          const newTeam = [...about.leadership.seniorTeam];
+                          newTeam[idx].qualifications = e.target.value;
+                          updateSubField('leadership', 'seniorTeam', newTeam);
+                        }} 
+                        placeholder="e.g. M.Ed"
+                      />
+                    </div>
+                    <div className="md:col-span-2">
+                      <label className="block text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1">Brief Bio / Description</label>
+                      <textarea 
+                        rows={2}
+                        className="w-full bg-white border border-slate-200 rounded-xl px-4 py-2 text-sm font-medium text-slate-600 outline-none focus:ring-2 focus:ring-indigo-500 resize-none" 
+                        value={member.description || ''} 
+                        onChange={e => {
+                          const newTeam = [...about.leadership.seniorTeam];
+                          newTeam[idx].description = e.target.value;
                           updateSubField('leadership', 'seniorTeam', newTeam);
                         }} 
                       />

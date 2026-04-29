@@ -121,6 +121,7 @@ export const MOCK_INSTITUTIONS: Institution[] = [
       inventoryEnabled: true,
       complianceEnabled: true,
       staffManagementEnabled: true,
+      alumniEnabled: true,
     },
     administrativeDetails: {
       compliance: {
@@ -154,11 +155,13 @@ export const MOCK_INSTITUTIONS: Institution[] = [
       },
       alumniPortal: {
         graduates: [
-          { id: 'alm-1', name: 'Sibusiso Mnisi', graduationYear: '2022', currentIndustry: 'Finance', passportId: 'EP-2022-1049' },
-          { id: 'alm-2', name: 'Tengetile Dlamini', graduationYear: '2023', currentIndustry: 'Technology', passportId: 'EP-2023-5521' }
+          { id: 'alm-1', name: 'Sibusiso Mnisi', graduationYear: '2015', currentIndustry: 'Finance & Technology', passportId: 'EP-2015-1049' },
+          { id: 'alm-2', name: 'Tengetile Dlamini', graduationYear: '2018', currentIndustry: 'Renewable Energy', passportId: 'EP-2018-5521' },
+          { id: 'alm-3', name: 'Mandla Zulu', graduationYear: '2012', currentIndustry: 'Medicine', passportId: 'EP-2012-8832' }
         ],
         fundraisingGoals: [
-          { id: 'fund-1', title: 'New Computer Lab', targetAmount: 200000, currentAmount: 145000 }
+          { id: 'fund-1', title: 'Science Lab Modernization', targetAmount: 500000, currentAmount: 320000 },
+          { id: 'fund-2', title: 'Sports Pavilion Fund', targetAmount: 150000, currentAmount: 85000 }
         ]
       },
       timetabling: {
@@ -586,7 +589,33 @@ export const MOCK_INSTITUTIONS: Institution[] = [
           head: { name: 'Stephen Lowry', qualifications: 'PhD in Education', experience: '30 Years' },
           totalCount: 85,
           avgExperience: '12 Years',
-          certifications: ['IB Certification', 'PGCE', 'Cambridge Certified Examiner']
+          certifications: ['IB Certification', 'PGCE', 'Cambridge Certified Examiner'],
+          profiles: [
+            {
+              id: 'sp1',
+              name: 'Dr. John Mamba',
+              role: 'Head of Sciences',
+              qualifications: 'PhD in Particle Physics, Stanford',
+              professionalBackground: 'Dr. Mamba has over 15 years of experience in research and teaching. He previously worked at CERN and is passionate about making physics accessible to all students.',
+              image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=200&h=200'
+            },
+            {
+              id: 'sp2',
+              name: 'Ms. Sarah Dlamini',
+              role: 'Head of Mathematics',
+              qualifications: 'MSc in Pure Mathematics, Oxford',
+              professionalBackground: 'With a decade of experience in international education, Ms. Dlamini specializes in the IB Higher Level Mathematics curriculum.',
+              image: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=200&h=200'
+            },
+            {
+              id: 'sp3',
+              name: 'Mr. Sipho Ndlovu',
+              role: 'Senior History Teacher',
+              qualifications: 'MA in African History, UNESWA',
+              professionalBackground: 'Mr. Ndlovu is a renowned historian in the region and has authored several textbooks used in the national curriculum.',
+              image: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&q=80&w=200&h=200'
+            }
+          ]
         },
         performance: {
           passRate: '98%',
@@ -652,7 +681,7 @@ export const MOCK_INSTITUTIONS: Institution[] = [
             description: 'A night of music, dance, and celebration as we wrap up the academic year. The gala features performances from the school choir and jazz band.',
             registrationRequired: true,
             registrationDeadline: 'Dec 10, 2023',
-            media: ['https://picsum.photos/seed/gala1/400/300']
+            media: [{ url: 'https://picsum.photos/seed/gala1/400/300', type: 'image' }]
           },
           {
             id: 'e2',
@@ -1071,7 +1100,29 @@ export const MOCK_INSTITUTIONS: Institution[] = [
           description: 'Teaching students the importance of giving back.' 
         } 
       },
-      portal: { enabled: false, name: '', headline: '', description: '', url: '', loginRequirements: [], rolesSupported: [], accountCreationProcess: '', features: { dashboard: { list: [], description: '' }, learning: { list: [], description: '' }, assessments: { list: [], description: '' }, records: { list: [], accessLevel: '' }, scheduling: { list: [], description: '' }, collaboration: [] }, tools: { list: [], platforms: [] }, mobileAccess: { list: [], devices: [] }, security: [], support: { email: '', phone: '', hours: '', resources: [] }, usageGuidelines: { policy: '', rules: '', expectations: '' } }
+      portal: { 
+        enabled: true, 
+        name: 'Sifundzani Student Portal', 
+        headline: 'Welcome to our Digital Learning Space', 
+        description: 'Explore our foundation education resources.', 
+        url: '', 
+        loginRequirements: ['Student ID'], 
+        rolesSupported: ['STUDENT', 'PARENT'], 
+        accountCreationProcess: 'Initial login provided at enrollment.', 
+        features: { 
+          dashboard: { list: ['Activities', 'News'], description: '' }, 
+          learning: { list: ['Educational Games'], description: '' }, 
+          assessments: { list: ['Grade Summary'], description: '' }, 
+          records: { list: ['Attendance'], accessLevel: 'Parental' }, 
+          scheduling: { list: ['Class Schedule'], description: '' }, 
+          collaboration: [] 
+        }, 
+        tools: { list: [], platforms: [] }, 
+        mobileAccess: { list: [], devices: [] }, 
+        security: [], 
+        support: { email: 'info@sifundzani.ac.sz', phone: '+268 2404 2461', hours: '07:30 - 13:30', resources: [] }, 
+        usageGuidelines: { policy: '', rules: '', expectations: '' } 
+      }
     },
     stats: { views: 5000, applications: 120, engagementRate: 8 }
   },
@@ -1352,7 +1403,29 @@ export const MOCK_INSTITUTIONS: Institution[] = [
           description: 'Engaging with the local community in Manzini.' 
         } 
       },
-      portal: { enabled: true, name: 'Student Portal', headline: '', description: '', url: '#', loginRequirements: [], rolesSupported: [], accountCreationProcess: '', features: { dashboard: { list: [], description: '' }, learning: { list: [], description: '' }, assessments: { list: [], description: '' }, records: { list: [], accessLevel: '' }, scheduling: { list: [], description: '' }, collaboration: [] }, tools: { list: [], platforms: [] }, mobileAccess: { list: [], devices: [] }, security: [], support: { email: '', phone: '', hours: '', resources: [] }, usageGuidelines: { policy: '', rules: '', expectations: '' } }
+      portal: { 
+        enabled: true, 
+        name: 'Nazarene High Portal', 
+        headline: 'Student Success Center', 
+        description: 'Access your grades, attendance, and learning materials.', 
+        url: '', 
+        loginRequirements: ['Student ID', 'Password'], 
+        rolesSupported: ['STUDENT', 'PARENT', 'TEACHER'], 
+        accountCreationProcess: 'Accounts are created upon registration.', 
+        features: { 
+          dashboard: { list: ['Live Attendance', 'Grade Summary'], description: 'Overview of your academic status.' }, 
+          learning: { list: ['Assignments', 'Resources'], description: 'Access course materials.' }, 
+          assessments: { list: ['Test Results', 'Mock Exams'], description: 'Track your performance.' }, 
+          records: { list: ['Report Cards'], accessLevel: 'Student/Parent' }, 
+          scheduling: { list: ['Timetable'], description: 'View your weekly schedule.' }, 
+          collaboration: [] 
+        }, 
+        tools: { list: [], platforms: [] }, 
+        mobileAccess: { list: ['Android App', 'iOS App'], devices: ['Smartphone', 'Tablet'] }, 
+        security: ['SSL Encryption', 'Two-Factor Authentication'], 
+        support: { email: 'support@nazarenehigh.sz', phone: '+268 2505 2211', hours: '08:00 - 16:00', resources: [] }, 
+        usageGuidelines: { policy: 'Terms of Use', rules: 'Respectful Conduct', expectations: 'Daily Check-ins' } 
+      }
     },
     stats: { views: 8000, applications: 300, engagementRate: 10 }
   },
@@ -1635,7 +1708,29 @@ export const MOCK_INSTITUTIONS: Institution[] = [
           description: 'Engaging with the Eswatini community through service.' 
         } 
       },
-      portal: { enabled: true, name: 'Student Portal', headline: '', description: '', url: '#', loginRequirements: [], rolesSupported: [], accountCreationProcess: '', features: { dashboard: { list: [], description: '' }, learning: { list: [], description: '' }, assessments: { list: [], description: '' }, records: { list: [], accessLevel: '' }, scheduling: { list: [], description: '' }, collaboration: [] }, tools: { list: [], platforms: [] }, mobileAccess: { list: [], devices: [] }, security: [], support: { email: '', phone: '', hours: '', resources: [] }, usageGuidelines: { policy: '', rules: '', expectations: '' } }
+      portal: { 
+        enabled: true, 
+        name: 'UNESWA Student Portal', 
+        headline: 'University Information System', 
+        description: 'Manage your academic life at the national university.', 
+        url: 'https://portal.uneswa.ac.sz', 
+        loginRequirements: ['Student Number', 'PIN'], 
+        rolesSupported: ['STUDENT', 'TEACHER', 'ADMIN'], 
+        accountCreationProcess: 'Registration through the ICT center.', 
+        features: { 
+          dashboard: { list: ['Registration Status', 'Finances'], description: 'Complete overview of student life.' }, 
+          learning: { list: ['Moodle Integration'], description: 'Direct access to online learning.' }, 
+          assessments: { list: ['Examination Results', 'Transcripts'], description: 'Official academic records.' }, 
+          records: { list: ['Personal Info', 'Degree Audit'], accessLevel: 'Confidential' }, 
+          scheduling: { list: ['Lecture Timetable'], description: 'Campus-wide schedules.' }, 
+          collaboration: ['Discussion Forums'] 
+        }, 
+        tools: { list: ['Office 365'], platforms: ['Web', 'Mobile'] }, 
+        mobileAccess: { list: ['UNESWA App'], devices: ['Android', 'iOS'] }, 
+        security: ['Enterprise Grade Security'], 
+        support: { email: 'ictsupport@uneswa.ac.sz', phone: '+268 2517 0000', hours: '24/7 Support', resources: [] }, 
+        usageGuidelines: { policy: 'IT Policy', rules: '', expectations: '' } 
+      }
     },
     stats: { views: 25000, applications: 2000, engagementRate: 20 }
   },
@@ -1916,7 +2011,29 @@ export const MOCK_INSTITUTIONS: Institution[] = [
           description: 'Teaching students to be responsible citizens.' 
         } 
       },
-      portal: { enabled: false, name: '', headline: '', description: '', url: '', loginRequirements: [], rolesSupported: [], accountCreationProcess: '', features: { dashboard: { list: [], description: '' }, learning: { list: [], description: '' }, assessments: { list: [], description: '' }, records: { list: [], accessLevel: '' }, scheduling: { list: [], description: '' }, collaboration: [] }, tools: { list: [], platforms: [] }, mobileAccess: { list: [], devices: [] }, security: [], support: { email: '', phone: '', hours: '', resources: [] }, usageGuidelines: { policy: '', rules: '', expectations: '' } }
+      portal: { 
+        enabled: false, 
+        name: 'Evelyn Baring Portal', 
+        headline: '', 
+        description: '', 
+        url: '', 
+        loginRequirements: [], 
+        rolesSupported: [], 
+        accountCreationProcess: '', 
+        features: { 
+          dashboard: { list: [], description: '' }, 
+          learning: { list: [], description: '' }, 
+          assessments: { list: [], description: '' }, 
+          records: { list: [], accessLevel: '' }, 
+          scheduling: { list: [], description: '' }, 
+          collaboration: [] 
+        }, 
+        tools: { list: [], platforms: [] }, 
+        mobileAccess: { list: [], devices: [] }, 
+        security: [], 
+        support: { email: '', phone: '', hours: '', resources: [] }, 
+        usageGuidelines: { policy: '', rules: '', expectations: '' } 
+      }
     },
     stats: { views: 6000, applications: 200, engagementRate: 7 }
   },
@@ -1976,7 +2093,29 @@ export const MOCK_INSTITUTIONS: Institution[] = [
       academics: { overview: { headline: '', introduction: '' }, curriculum: { structure: '', examinationBody: '', description: '' }, departments: [], programs: [], calendar: { startDate: '', terms: [], examPeriods: '', holidays: '' }, assessment: { approach: '', gradingSystem: '' }, support: { services: [], description: '' }, staff: { head: { name: '', qualifications: '', experience: '' }, totalCount: 0, avgExperience: '', certifications: [] }, performance: { passRate: '98%', ranking: '', distinctions: '', awards: [] }, facilities: { description: '', list: [] }, digital: { platform: '', features: [] }, partnerships: { internships: '', collaborations: '' } },
       news: { overview: { title: '', description: '' }, posts: [], events: [], gallery: [], newsletterCta: '' },
       studentLife: { overview: { headline: '', introduction: '' }, sports: { list: [], facilities: [], description: '' }, clubs: [], arts: { activities: [], description: '' }, leadership: { opportunities: [], roles: '' }, facilities: [], support: { services: [], description: '' }, activities: { list: [], description: '' }, community: { programs: [], description: '' } },
-      portal: { enabled: true, name: 'Portal', headline: '', description: '', url: '#', loginRequirements: [], rolesSupported: [], accountCreationProcess: '', features: { dashboard: { list: [], description: '' }, learning: { list: [], description: '' }, assessments: { list: [], description: '' }, records: { list: [], accessLevel: '' }, scheduling: { list: [], description: '' }, collaboration: [] }, tools: { list: [], platforms: [] }, mobileAccess: { list: [], devices: [] }, security: [], support: { email: '', phone: '', hours: '', resources: [] }, usageGuidelines: { policy: '', rules: '', expectations: '' } }
+      portal: { 
+        enabled: true, 
+        name: 'St. Marks Portal', 
+        headline: 'Academic & Administration Hub', 
+        description: 'Quality education through digital innovation.', 
+        url: '', 
+        loginRequirements: ['Student Number'], 
+        rolesSupported: ['STUDENT', 'TEACHER'], 
+        accountCreationProcess: 'Automated for all registered students.', 
+        features: { 
+          dashboard: { list: ['My Courses', 'Notifications'], description: '' }, 
+          learning: { list: ['Lecture Notes'], description: '' }, 
+          assessments: { list: ['Continuous Assessment'], description: '' }, 
+          records: { list: ['Results History'], accessLevel: 'Student' }, 
+          scheduling: { list: ['Subject Timetable'], description: '' }, 
+          collaboration: [] 
+        }, 
+        tools: { list: ['Google Workspace'], platforms: ['Web'] }, 
+        mobileAccess: { list: [], devices: [] }, 
+        security: ['Password Protected'], 
+        support: { email: 'ict@stmarks.ac.sz', phone: '+268 2404 2211', hours: '08:00 - 16:00', resources: [] }, 
+        usageGuidelines: { policy: 'Internet Policy', rules: '', expectations: '' } 
+      }
     },
     stats: { views: 12000, applications: 500, engagementRate: 15 }
   },
@@ -2036,7 +2175,29 @@ export const MOCK_INSTITUTIONS: Institution[] = [
       academics: { overview: { headline: '', introduction: '' }, curriculum: { structure: '', examinationBody: '', description: '' }, departments: [], programs: [], calendar: { startDate: '', terms: [], examPeriods: '', holidays: '' }, assessment: { approach: '', gradingSystem: '' }, support: { services: [], description: '' }, staff: { head: { name: '', qualifications: '', experience: '' }, totalCount: 0, avgExperience: '', certifications: [] }, performance: { passRate: '96%', ranking: '', distinctions: '', awards: [] }, facilities: { description: '', list: [] }, digital: { platform: '', features: [] }, partnerships: { internships: '', collaborations: '' } },
       news: { overview: { title: '', description: '' }, posts: [], events: [], gallery: [], newsletterCta: '' },
       studentLife: { overview: { headline: '', introduction: '' }, sports: { list: [], facilities: [], description: '' }, clubs: [], arts: { activities: [], description: '' }, leadership: { opportunities: [], roles: '' }, facilities: [], support: { services: [], description: '' }, activities: { list: [], description: '' }, community: { programs: [], description: '' } },
-      portal: { enabled: false, name: '', headline: '', description: '', url: '', loginRequirements: [], rolesSupported: [], accountCreationProcess: '', features: { dashboard: { list: [], description: '' }, learning: { list: [], description: '' }, assessments: { list: [], description: '' }, records: { list: [], accessLevel: '' }, scheduling: { list: [], description: '' }, collaboration: [] }, tools: { list: [], platforms: [] }, mobileAccess: { list: [], devices: [] }, security: [], support: { email: '', phone: '', hours: '', resources: [] }, usageGuidelines: { policy: '', rules: '', expectations: '' } }
+      portal: { 
+        enabled: true, 
+        name: 'Salesian Portal', 
+        headline: 'Salesian High Online Services', 
+        description: 'Faith, Excellence, and Technology.', 
+        url: '', 
+        loginRequirements: ['Student ID'], 
+        rolesSupported: ['STUDENT', 'PARENT'], 
+        accountCreationProcess: 'Individual accounts created on school entry.', 
+        features: { 
+          dashboard: { list: ['Academic Overview'], description: '' }, 
+          learning: { list: ['E-Learning Portal'], description: '' }, 
+          assessments: { list: ['Mid-Term Results'], description: '' }, 
+          records: { list: ['Conduct Records'], accessLevel: 'Staff/Parent' }, 
+          scheduling: { list: ['Activity Calendar'], description: '' }, 
+          collaboration: [] 
+        }, 
+        tools: { list: [], platforms: [] }, 
+        mobileAccess: { list: [], devices: [] }, 
+        security: [], 
+        support: { email: 'it@salesian.ac.sz', phone: '+268 2505 2233', hours: '08:00 - 16:30', resources: [] }, 
+        usageGuidelines: { policy: '', rules: '', expectations: '' } 
+      }
     },
     stats: { views: 7000, applications: 250, engagementRate: 9 }
   },
@@ -2096,7 +2257,29 @@ export const MOCK_INSTITUTIONS: Institution[] = [
       academics: { overview: { headline: '', introduction: '' }, curriculum: { structure: '', examinationBody: '', description: '' }, departments: [], programs: [], calendar: { startDate: '', terms: [], examPeriods: '', holidays: '' }, assessment: { approach: '', gradingSystem: '' }, support: { services: [], description: '' }, staff: { head: { name: '', qualifications: '', experience: '' }, totalCount: 0, avgExperience: '', certifications: [] }, performance: { passRate: '85%', ranking: '', distinctions: '', awards: [] }, facilities: { description: '', list: [] }, digital: { platform: '', features: [] }, partnerships: { internships: '', collaborations: '' } },
       news: { overview: { title: '', description: '' }, posts: [], events: [], gallery: [], newsletterCta: '' },
       studentLife: { overview: { headline: '', introduction: '' }, sports: { list: [], facilities: [], description: '' }, clubs: [], arts: { activities: [], description: '' }, leadership: { opportunities: [], roles: '' }, facilities: [], support: { services: [], description: '' }, activities: { list: [], description: '' }, community: { programs: [], description: '' } },
-      portal: { enabled: false, name: '', headline: '', description: '', url: '', loginRequirements: [], rolesSupported: [], accountCreationProcess: '', features: { dashboard: { list: [], description: '' }, learning: { list: [], description: '' }, assessments: { list: [], description: '' }, records: { list: [], accessLevel: '' }, scheduling: { list: [], description: '' }, collaboration: [] }, tools: { list: [], platforms: [] }, mobileAccess: { list: [], devices: [] }, security: [], support: { email: '', phone: '', hours: '', resources: [] }, usageGuidelines: { policy: '', rules: '', expectations: '' } }
+      portal: { 
+        enabled: true, 
+        name: 'VOCTIM Student Portal', 
+        headline: 'Technical Training Management System', 
+        description: 'Digital tools for technical excellence.', 
+        url: '', 
+        loginRequirements: ['Enrollment Number'], 
+        rolesSupported: ['STUDENT', 'INSTRUCTOR'], 
+        accountCreationProcess: 'Self-service registration following enrollment confirmation.', 
+        features: { 
+          dashboard: { list: ['Course Enrollment'], description: '' }, 
+          learning: { list: ['Workshop Manuals'], description: '' }, 
+          assessments: { list: ['Practical Assessments'], description: '' }, 
+          records: { list: ['Certifications'], accessLevel: 'Public/Private' }, 
+          scheduling: { list: ['Workshop Rotation'], description: '' }, 
+          collaboration: ['Project Groups'] 
+        }, 
+        tools: { list: ['AutoCAD Viewer'], platforms: ['Desktop'] }, 
+        mobileAccess: { list: [], devices: [] }, 
+        security: ['Industry Standard Encryption'], 
+        support: { email: 'support@voctim.ac.sz', phone: '+268 2518 6361', hours: '08:00 - 16:45', resources: [] }, 
+        usageGuidelines: { policy: 'Computer Lab Policy', rules: '', expectations: '' } 
+      }
     },
     stats: { views: 5000, applications: 150, engagementRate: 6 }
   },
@@ -2156,7 +2339,29 @@ export const MOCK_INSTITUTIONS: Institution[] = [
       academics: { overview: { headline: '', introduction: '' }, curriculum: { structure: '', examinationBody: '', description: '' }, departments: [], programs: [], calendar: { startDate: '', terms: [], examPeriods: '', holidays: '' }, assessment: { approach: '', gradingSystem: '' }, support: { services: [], description: '' }, staff: { head: { name: '', qualifications: '', experience: '' }, totalCount: 0, avgExperience: '', certifications: [] }, performance: { passRate: '92%', ranking: '', distinctions: '', awards: [] }, facilities: { description: '', list: [] }, digital: { platform: '', features: [] }, partnerships: { internships: '', collaborations: '' } },
       news: { overview: { title: '', description: '' }, posts: [], events: [], gallery: [], newsletterCta: '' },
       studentLife: { overview: { headline: '', introduction: '' }, sports: { list: [], facilities: [], description: '' }, clubs: [], arts: { activities: [], description: '' }, leadership: { opportunities: [], roles: '' }, facilities: [], support: { services: [], description: '' }, activities: { list: [], description: '' }, community: { programs: [], description: '' } },
-      portal: { enabled: false, name: '', headline: '', description: '', url: '', loginRequirements: [], rolesSupported: [], accountCreationProcess: '', features: { dashboard: { list: [], description: '' }, learning: { list: [], description: '' }, assessments: { list: [], description: '' }, records: { list: [], accessLevel: '' }, scheduling: { list: [], description: '' }, collaboration: [] }, tools: { list: [], platforms: [] }, mobileAccess: { list: [], devices: [] }, security: [], support: { email: '', phone: '', hours: '', resources: [] }, usageGuidelines: { policy: '', rules: '', expectations: '' } }
+      portal: { 
+        enabled: true, 
+        name: 'Good Shepherd Portal', 
+        headline: 'Faith & Learning Hub', 
+        description: 'Guided by faith to academic excellence.', 
+        url: '', 
+        loginRequirements: ['Student ID'], 
+        rolesSupported: ['STUDENT', 'PARENT'], 
+        accountCreationProcess: 'Accounts assigned during orientation.', 
+        features: { 
+          dashboard: { list: ['Announcements'], description: '' }, 
+          learning: { list: ['Class Resources'], description: '' }, 
+          assessments: { list: ['Term Reports'], description: '' }, 
+          records: { list: ['Religious Education Progress'], accessLevel: 'Student' }, 
+          scheduling: { list: ['Term Calendar'], description: '' }, 
+          collaboration: [] 
+        }, 
+        tools: { list: [], platforms: [] }, 
+        mobileAccess: { list: [], devices: [] }, 
+        security: [], 
+        support: { email: 'admin@goodshepherd.ac.sz', phone: '+268 2343 4111', hours: '08:00 - 16:00', resources: [] }, 
+        usageGuidelines: { policy: '', rules: '', expectations: '' } 
+      }
     },
     stats: { views: 4000, applications: 120, engagementRate: 5 }
   },
@@ -2216,7 +2421,29 @@ export const MOCK_INSTITUTIONS: Institution[] = [
       academics: { overview: { headline: '', introduction: '' }, curriculum: { structure: '', examinationBody: '', description: '' }, departments: [], programs: [], calendar: { startDate: '', terms: [], examPeriods: '', holidays: '' }, assessment: { approach: '', gradingSystem: '' }, support: { services: [], description: '' }, staff: { head: { name: '', qualifications: '', experience: '' }, totalCount: 0, avgExperience: '', certifications: [] }, performance: { passRate: '95%', ranking: '', distinctions: '', awards: [] }, facilities: { description: '', list: [] }, digital: { platform: '', features: [] }, partnerships: { internships: '', collaborations: '' } },
       news: { overview: { title: '', description: '' }, posts: [], events: [], gallery: [], newsletterCta: '' },
       studentLife: { overview: { headline: '', introduction: '' }, sports: { list: [], facilities: [], description: '' }, clubs: [], arts: { activities: [], description: '' }, leadership: { opportunities: [], roles: '' }, facilities: [], support: { services: [], description: '' }, activities: { list: [], description: '' }, community: { programs: [], description: '' } },
-      portal: { enabled: true, name: 'Student Portal', headline: '', description: '', url: '#', loginRequirements: [], rolesSupported: [], accountCreationProcess: '', features: { dashboard: { list: [], description: '' }, learning: { list: [], description: '' }, assessments: { list: [], description: '' }, records: { list: [], accessLevel: '' }, scheduling: { list: [], description: '' }, collaboration: [] }, tools: { list: [], platforms: [] }, mobileAccess: { list: [], devices: [] }, security: [], support: { email: '', phone: '', hours: '', resources: [] }, usageGuidelines: { policy: '', rules: '', expectations: '' } }
+      portal: { 
+        enabled: true, 
+        name: 'Ngwane College Portal', 
+        headline: 'Educator Development System', 
+        description: 'Empowering future teachers through technology.', 
+        url: '', 
+        loginRequirements: ['College ID', 'Password'], 
+        rolesSupported: ['STUDENT', 'LECTURER'], 
+        accountCreationProcess: 'Registration through the Registrar office.', 
+        features: { 
+          dashboard: { list: ['Teaching Practice Status'], description: '' }, 
+          learning: { list: ['Course Modules', 'Research Library'], description: '' }, 
+          assessments: { list: ['Continuous Assessment Results'], description: '' }, 
+          records: { list: ['Professional Development Record'], accessLevel: 'Restricted' }, 
+          scheduling: { list: ['Lecture/Exam Timetable'], description: '' }, 
+          collaboration: ['Research Groups'] 
+        }, 
+        tools: { list: ['Learning Management System'], platforms: ['Web', 'Mobile'] }, 
+        mobileAccess: { list: ['Ngwane App'], devices: ['Android'] }, 
+        security: ['Two-Step Verification'], 
+        support: { email: 'it@ngwane.ac.sz', phone: '+268 2207 8466', hours: '08:00 - 16:45', resources: [] }, 
+        usageGuidelines: { policy: 'Academic Integrity Policy', rules: '', expectations: '' } 
+      }
     },
     stats: { views: 6000, applications: 300, engagementRate: 8 }
   },
