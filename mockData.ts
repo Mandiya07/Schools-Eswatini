@@ -757,6 +757,16 @@ export const MOCK_INSTITUTIONS: Institution[] = [
           { name: 'Sarah Smith', grade: 'Form 5', text: 'The sense of community here is incredible. I\'ve made friends from all over the world.' }
         ]
       },
+      contactUs: {
+        enabled: true,
+        headline: 'Get in Touch with Us',
+        introduction: 'We are here to answer any questions you may have.',
+        email: 'info@waterford.sz',
+        phone: '+268 2422 0866',
+        address: 'Mbabane, Hhohho, Eswatini',
+        supportHours: 'Mon - Fri: 08:00 - 16:30',
+        socialMediaEnabled: true
+      },
       portal: {
         enabled: true,
         name: 'WK ManageBac Portal',

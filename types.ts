@@ -1,4 +1,11 @@
 
+export interface WellnessArticle {
+  id: number;
+  title: string;
+  desc: string;
+  readTime: string;
+}
+
 export enum Region {
   HHOHHO = 'Hhohho',
   MANZINI = 'Manzini',
@@ -837,6 +844,17 @@ export interface Institution {
         grade: string;
         text: string;
       }[];
+    };
+    contactUs?: {
+      enabled?: boolean;
+      headline: string;
+      introduction: string;
+      email: string;
+      phone: string;
+      address: string;
+      supportHours: string;
+      mapUrl?: string;
+      socialMediaEnabled: boolean;
     };
     portal: {
       enabled: boolean;

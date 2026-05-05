@@ -8,8 +8,10 @@ import AcademicsEditor from './AcademicsEditor';
 import NewsEditor from './NewsEditor';
 import StudentLifeEditor from './StudentLifeEditor';
 import PortalEditor from './PortalEditor';
+import ContactUsEditor from './ContactUsEditor';
+import ProgramsEditor from './ProgramsEditor';
 import ModuleVisibilityEditor from './ModuleVisibilityEditor';
-import { Layout, Info, UserPlus, GraduationCap, Newspaper, Users, Globe, Settings } from 'lucide-react';
+import { Layout, Info, UserPlus, GraduationCap, Newspaper, Users, Globe, Settings, Mail, BookOpen } from 'lucide-react';
 
 interface SectionManagerProps {
   institution: Institution;
@@ -30,7 +32,9 @@ const SectionManager: React.FC<SectionManagerProps> = ({ institution, onUpdate }
     { id: 'academics', label: isTertiary ? 'Faculties' : isPrimary ? 'Grades' : 'Academics', icon: <GraduationCap className="w-4 h-4" /> },
     { id: 'news', label: 'News Feed', icon: <Newspaper className="w-4 h-4" /> },
     { id: 'studentLife', label: isTertiary ? 'Campus Life' : 'School Life', icon: <Users className="w-4 h-4" /> },
-    { id: 'portal', label: 'Gateway', icon: <Globe className="w-4 h-4" /> }
+    { id: 'programs', label: 'Programs', icon: <BookOpen className="w-4 h-4" /> },
+    { id: 'portal', label: 'Gateway', icon: <Globe className="w-4 h-4" /> },
+    { id: 'contactUs', label: 'Contact Us', icon: <Mail className="w-4 h-4" /> }
   ];
 
   const updateSection = (updatedSections: Institution['sections']) => {
@@ -52,7 +56,9 @@ const SectionManager: React.FC<SectionManagerProps> = ({ institution, onUpdate }
       case 'academics': return <AcademicsEditor institution={institution} onUpdate={updateSection} />;
       case 'news': return <NewsEditor institution={institution} onUpdate={updateSection} />;
       case 'studentLife': return <StudentLifeEditor institution={institution} onUpdate={updateSection} />;
+      case 'programs': return <ProgramsEditor institution={institution} onUpdate={updateSection} />;
       case 'portal': return <PortalEditor institution={institution} onUpdate={updateSection} />;
+      case 'contactUs': return <ContactUsEditor institution={institution} onUpdate={updateSection} />;
       default: return null;
     }
   };
