@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { Institution, InstitutionType } from '../../../../types';
-import { Download } from 'lucide-react';
+import { Download, Rocket } from 'lucide-react';
 
 interface AcademicsEditorProps {
   institution: Institution;
@@ -12,9 +12,9 @@ const AcademicsEditor: React.FC<AcademicsEditorProps> = ({ institution, onUpdate
   const { academics } = institution.sections;
   const [activeSubTab, setActiveSubTab] = useState<'overview' | 'departments' | 'programs' | 'calendar' | 'performance'>('overview');
 
-  const isTertiary = institution.type === InstitutionType.TERTIARY;
-  const isPrimary = institution.type === InstitutionType.PRIMARY;
-  const isHighSchool = institution.type === InstitutionType.HIGH_SCHOOL;
+  const isTertiary = institution.type.includes(InstitutionType.TERTIARY);
+  const isPrimary = institution.type.includes(InstitutionType.PRIMARY);
+  const isHighSchool = institution.type.includes(InstitutionType.HIGH_SCHOOL);
 
   const subTabs = ['overview', 'departments', 'programs', 'calendar', 'performance'] as const;
   const currentSubTabs = isHighSchool ? [...subTabs, 'guidance'] : subTabs;

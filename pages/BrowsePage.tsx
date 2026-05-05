@@ -40,7 +40,7 @@ const BrowsePage: React.FC<BrowsePageProps> = ({
     if (!aiQuery.trim()) return;
     setIsAiSearching(true);
     try {
-      const ai = new GoogleGenAI({ apiKey: (import.meta as any).env.VITE_GEMINI_API_KEY || 'mock-key' });
+      const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
       const prompt = `
         Given the user query: "${aiQuery}"
         And the following list of institutions:

@@ -20,7 +20,7 @@ import {
   Search,
   CheckCircle2
 } from 'lucide-react';
-import { Institution } from '../../types';
+import { Institution, InstitutionType } from '../../types';
 
 interface AcademicsSectionProps {
   academics: Institution['sections']['academics'];

@@ -106,7 +106,7 @@ const AIStudyAssistant: React.FC<AIStudyAssistantProps> = ({ user }) => {
     }
 
     try {
-      const ai = new GoogleGenAI({ apiKey: (import.meta as any).env.VITE_GEMINI_API_KEY || 'mock-key' });
+      const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
       const systemInstruction = `You are a helpful and professional AI Study Assistant for high school and tertiary students in Eswatini. 
       You have access to a database of verified educator materials (lesson plans, past papers, and study guides).
       Help students understand concepts, provide examples, and explain topics simply. 

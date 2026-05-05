@@ -201,7 +201,7 @@ const NewsEditor: React.FC<NewsEditorProps> = ({ institution, onUpdate }) => {
                     />
                     <input 
                       placeholder="Location"
-                      className="bg-slate-50 border-none rounded-xl px-4 py-2 text-[10px] font-bold" 
+                      className="bg-slate-50 border-none rounded-xl px-4 py-2 text-[10px] font-bold flex-1" 
                       value={event.location} 
                       onChange={e => {
                         const newEvents = [...news.events];
@@ -209,7 +209,46 @@ const NewsEditor: React.FC<NewsEditorProps> = ({ institution, onUpdate }) => {
                         updateField('events', newEvents);
                       }}
                     />
+                    <input 
+                      placeholder="Host / Speaker"
+                      className="bg-slate-50 border-none rounded-xl px-4 py-2 text-[10px] font-bold flex-1" 
+                      value={event.host || ''} 
+                      onChange={e => {
+                        const newEvents = [...news.events];
+                        newEvents[idx].host = e.target.value;
+                        updateField('events', newEvents);
+                      }}
+                    />
                   </div>
+
+                  <div className="space-y-4">
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Event Description</p>
+                    <textarea 
+                      className="w-full bg-slate-50 border-none rounded-2xl px-4 py-3 text-[11px] font-medium min-h-[100px]"
+                      placeholder="Detailed description of the event..."
+                      value={event.description}
+                      onChange={e => {
+                        const newEvents = [...news.events];
+                        newEvents[idx].description = e.target.value;
+                        updateField('events', newEvents);
+                      }}
+                    />
+                  </div>
+
+                  <div className="space-y-4">
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Optional Media URL (Direct Link)</p>
+                    <input 
+                      className="w-full bg-slate-50 border-none rounded-xl px-4 py-3 text-[11px] font-medium"
+                      placeholder="https://example.com/image-or-video.jpg"
+                      value={event.mediaUrl || ''}
+                      onChange={e => {
+                        const newEvents = [...news.events];
+                        newEvents[idx].mediaUrl = e.target.value;
+                        updateField('events', newEvents);
+                      }}
+                    />
+                  </div>
+
                   <div className="flex gap-4">
                      <select 
                        className="bg-slate-50 border-none rounded-xl px-4 py-2 text-[10px] font-bold flex-1"

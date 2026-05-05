@@ -20,7 +20,7 @@ import {
   Trophy,
   Rocket,
   Backpack,
-  GraduationCap as GradCap,
+  GraduationCap,
   Library,
   Users2,
   FileBadge,
