@@ -430,11 +430,7 @@ const App: React.FC = () => {
 
             <Route 
               path="/ministry" 
-              element={
-                !user || (user.role !== UserRole.MOET_OFFICIAL && user.role !== UserRole.SUPER_ADMIN) ? 
-                  <Navigate to="/auth" /> : 
-                  <MinistryPortal />
-              } 
+              element={<MinistryPortal user={user} institutions={institutions} />} 
             />
 
             <Route path="*" element={<Navigate to="/" />} />

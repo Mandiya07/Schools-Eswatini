@@ -25,17 +25,31 @@ import { Institution } from '../../types';
 interface AcademicsSectionProps {
   academics: Institution['sections']['academics'];
   primaryColor: string;
+  institutionType: Institution['type'];
 }
 
-const AcademicsSection: React.FC<AcademicsSectionProps> = ({ academics, primaryColor }) => {
+const AcademicsSection: React.FC<AcademicsSectionProps> = ({ academics, primaryColor, institutionType }) => {
   const [activeTab, setActiveTab] = useState<'overview' | 'staff' | 'departments' | 'performance'>('overview');
   const [selectedDept, setSelectedDept] = useState<number | null>(null);
   const [selectedProgram, setSelectedProgram] = useState<string | null>(null);
 
+  const isTertiary = Array.isArray(institutionType) ? institutionType.includes(InstitutionType.TERTIARY) : institutionType === InstitutionType.TERTIARY;
+  const isPrimary = Array.isArray(institutionType) ? institutionType.includes(InstitutionType.PRIMARY) : institutionType === InstitutionType.PRIMARY;
+
+  const getTabLabel = (id: string, defaultLabel: string) => {
+    if (id === 'departments') {
+      return isTertiary ? 'Faculties' : isPrimary ? 'Grades & Phases' : 'Departments';
+    }
+    if (id === 'staff') {
+      return isTertiary ? 'Faculty' : isPrimary ? 'Teachers' : 'Staff';
+    }
+    return defaultLabel;
+  };
+
   const tabs = [
     { id: 'overview', label: 'Overview & Curriculum', icon: <BookOpen className="w-4 h-4" /> },
-    { id: 'departments', label: 'Departments & Programs', icon: <GraduationCap className="w-4 h-4" /> },
-    { id: 'staff', label: 'Staff Profiles', icon: <Users className="w-4 h-4" /> },
+    { id: 'departments', label: `${getTabLabel('departments', 'Departments')} & Programs`, icon: <GraduationCap className="w-4 h-4" /> },
+    { id: 'staff', label: `${getTabLabel('staff', 'Staff')} Profiles`, icon: <Users className="w-4 h-4" /> },
     { id: 'performance', label: 'Performance & Tools', icon: <Award className="w-4 h-4" /> },
   ] as const;
 
@@ -116,6 +130,51 @@ const AcademicsSection: React.FC<AcademicsSectionProps> = ({ academics, primaryC
                   </div>
                 </div>
               </section>
+
+              {academics.tuitionFees && (academics.tuitionFees.perTerm || academics.tuitionFees.perYear) && (
+                <section className="bg-slate-50 p-12 md:p-16 rounded-[64px] border border-slate-100 space-y-10 relative overflow-hidden">
+                   <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500/10 rounded-full blur-[80px]" />
+                   <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-8 mb-4">
+                      <div>
+                         <h3 className="text-3xl font-black text-slate-900 tracking-tight">Tuition & Fees</h3>
+                         <p className="text-slate-500 font-medium mt-2">Estimated cost of attendance for the academic year</p>
+                      </div>
+                      <div className="px-6 py-3 bg-white border border-slate-200 rounded-full text-[10px] font-black uppercase tracking-widest text-slate-400">
+                        Subject to Change
+                      </div>
+                   </div>
+
+                   <div className="relative z-10 bg-white p-8 md:p-12 rounded-[40px] shadow-xl shadow-slate-200/20 border border-slate-100">
+                      <ul className="space-y-6 list-disc pl-6 marker:text-emerald-500">
+                         {academics.tuitionFees.perTerm && (
+                           <li>
+                             <span className="font-bold text-slate-600 mr-2 text-lg">Per Term:</span>
+                             <span className="font-black text-slate-900 text-xl">{academics.tuitionFees.perTerm}</span>
+                           </li>
+                         )}
+                         {academics.tuitionFees.perYear && (
+                           <li>
+                             <span className="font-bold text-slate-600 mr-2 text-lg">Per Year:</span>
+                             <span className="font-black text-slate-900 text-xl">{academics.tuitionFees.perYear}</span>
+                           </li>
+                         )}
+                         {academics.tuitionFees.additionalFees && academics.tuitionFees.additionalFees.length > 0 && (
+                           <li>
+                             <span className="font-bold text-slate-600 text-lg">Additional Fees:</span>
+                             <ul className="mt-4 space-y-3 list-[circle] pl-6 marker:text-slate-300">
+                               {academics.tuitionFees.additionalFees.map((fee, idx) => (
+                                 <li key={idx}>
+                                   <span className="font-bold text-slate-500">{fee.label}: </span>
+                                   <span className="font-black text-slate-800">{fee.amount}</span>
+                                 </li>
+                               ))}
+                             </ul>
+                           </li>
+                         )}
+                      </ul>
+                   </div>
+                </section>
+              )}
             </>
           )}
 
@@ -123,7 +182,9 @@ const AcademicsSection: React.FC<AcademicsSectionProps> = ({ academics, primaryC
             <section className="space-y-16 animate-in fade-in transition-all duration-700">
               <div className="flex justify-between items-end">
                 <div className="space-y-4">
-                  <h3 className="text-4xl font-black text-slate-900 tracking-tight">Departments & Programs</h3>
+                  <h3 className="text-4xl font-black text-slate-900 tracking-tight">
+                    {isTertiary ? 'Faculties & Degree Programs' : isPrimary ? 'Grades, Phases & Activities' : 'Departments & Programs'}
+                  </h3>
                   <p className="text-slate-500 font-medium">Explore our diverse academic landscape</p>
                 </div>
               </div>
@@ -131,7 +192,9 @@ const AcademicsSection: React.FC<AcademicsSectionProps> = ({ academics, primaryC
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
                 {/* Departments List */}
                 <div className="space-y-6">
-                  <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-4">Academic Departments</h4>
+                  <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-4">
+                    {getTabLabel('departments', 'Academic Departments')}
+                  </h4>
                   {academics.departments.map((dept, idx) => (
                     <motion.div
                       key={idx}
@@ -175,7 +238,9 @@ const AcademicsSection: React.FC<AcademicsSectionProps> = ({ academics, primaryC
                                     <Users className="w-5 h-5 text-slate-400" />
                                   </div>
                                   <div>
-                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Head of Department</p>
+                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                                      {isPrimary ? 'Lead Teacher' : isTertiary ? 'Dean of Faculty' : 'Head of Department'}
+                                    </p>
                                     <p className="text-sm font-bold text-slate-900">{dept.head || 'To be announced'}</p>
                                   </div>
                                 </div>
@@ -238,7 +303,21 @@ const AcademicsSection: React.FC<AcademicsSectionProps> = ({ academics, primaryC
                                   </div>
                                   <div>
                                     <p className="text-[9px] font-black text-blue-400 uppercase tracking-widest mb-1">Requirements</p>
-                                    <p className="text-sm font-bold">{prog.requirements}</p>
+                                    {typeof prog.requirements === 'string' ? (
+                                      <p className="text-sm font-bold">{prog.requirements}</p>
+                                    ) : (
+                                      <ul className="list-disc pl-5 text-sm font-bold space-y-1">
+                                        {(prog.requirements?.academic || []).map((req, i) => <li key={`ac-${i}`}>{req}</li>)}
+                                        {(prog.requirements?.documents || []).length > 0 && 
+                                          <li className="list-none text-[9px] font-black text-blue-400 uppercase mt-4 -ml-5">Documents Required:</li>
+                                        }
+                                        {(prog.requirements?.documents || []).map((req, i) => <li key={`doc-${i}`}>{req}</li>)}
+                                        {(prog.requirements?.additional || []).length > 0 && 
+                                          <li className="list-none text-[9px] font-black text-blue-400 uppercase mt-4 -ml-5">Additional Requirements:</li>
+                                        }
+                                        {(prog.requirements?.additional || []).map((req, i) => <li key={`add-${i}`}>{req}</li>)}
+                                      </ul>
+                                    )}
                                   </div>
                                 </div>
                                 {prog.syllabusUrl && (
@@ -261,7 +340,9 @@ const AcademicsSection: React.FC<AcademicsSectionProps> = ({ academics, primaryC
           {activeTab === 'staff' && (
             <section className="space-y-16 animate-in fade-in transition-all duration-700">
               <div className="text-center space-y-4">
-                <h3 className="text-5xl font-black text-slate-900 tracking-tight">Our Distinguished Faculty</h3>
+                <h3 className="text-5xl font-black text-slate-900 tracking-tight">
+                  {isTertiary ? 'Our Distinguished Faculty' : isPrimary ? 'Our Dedicated Teachers' : 'Our Academic Staff'}
+                </h3>
                 <p className="text-xl text-slate-500 font-medium max-w-3xl mx-auto">
                   Meet the world-class educators and subject matter experts who lead our academic community and inspire our students to excel.
                 </p>

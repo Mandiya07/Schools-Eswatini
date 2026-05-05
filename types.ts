@@ -262,7 +262,11 @@ export interface AcademicProgram {
   qualification: string;
   duration: string;
   subjects: string[];
-  requirements: string;
+  requirements: string | {
+    academic: string[];
+    documents: string[];
+    additional: string[];
+  };
   description: string;
   pathways?: string;
   syllabusUrl?: string;
@@ -289,6 +293,7 @@ export interface EventItem {
   time: string;
   location: string;
   organizer: string;
+  host?: string; // Optional alias for organizer
   description: string;
   registrationRequired: boolean;
   registrationLink?: string;
@@ -296,6 +301,7 @@ export interface EventItem {
   isPast?: boolean;
   highlights?: string[];
   media?: { url: string; caption?: string; type: 'image' | 'video' }[];
+  mediaUrl?: string; // Simple media URL as requested
 }
 
 export interface SEOMetadata {
@@ -719,6 +725,11 @@ export interface Institution {
         approach: string;
         gradingSystem: string;
       };
+      tuitionFees?: {
+        perTerm: string;
+        perYear: string;
+        additionalFees: { label: string; amount: string }[];
+      };
       support: {
         services: string[];
         description: string;
@@ -898,6 +909,12 @@ export interface User {
     rating?: number;
     connections?: number;
     weeklyTeachingLoad?: number;
+  };
+  teacherProfile?: {
+    subjects: string[];
+    contactPhone?: string;
+    contactEmail?: string;
+    bio?: string;
   };
 }
 

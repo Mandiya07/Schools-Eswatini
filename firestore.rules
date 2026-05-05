@@ -177,7 +177,7 @@ service cloud.firestore {
 
     match /institutions/{institutionId} {
       allow read: if true; // Publicly readable
-      allow create: if isAdmin();
+      allow create: if isAdmin() || request.resource.data.status == 'pending';
       allow update: if isAdmin() || (isInstitutionAdmin(institutionId) && resource.data.status == 'published');
       allow delete: if isAdmin();
     }

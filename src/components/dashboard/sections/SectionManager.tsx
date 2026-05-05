@@ -19,15 +19,18 @@ interface SectionManagerProps {
 const SectionManager: React.FC<SectionManagerProps> = ({ institution, onUpdate }) => {
   const [activeSection, setActiveSection] = useState<keyof Institution['sections'] | 'visibility'>('visibility');
 
+  const isTertiary = institution.type.includes('Tertiary');
+  const isPrimary = institution.type.includes('Primary');
+
   const sections = [
     { id: 'visibility', label: 'Visibility', icon: <Settings className="w-4 h-4" /> },
-    { id: 'homepage', label: 'Homepage', icon: <Layout className="w-4 h-4" /> },
-    { id: 'about', label: 'About Us', icon: <Info className="w-4 h-4" /> },
-    { id: 'admissions', label: 'Admissions', icon: <UserPlus className="w-4 h-4" /> },
-    { id: 'academics', label: 'Academics', icon: <GraduationCap className="w-4 h-4" /> },
-    { id: 'news', label: 'News & Media', icon: <Newspaper className="w-4 h-4" /> },
-    { id: 'studentLife', label: 'Student Life', icon: <Users className="w-4 h-4" /> },
-    { id: 'portal', label: 'Student Portal', icon: <Globe className="w-4 h-4" /> }
+    { id: 'homepage', label: 'Landing Page', icon: <Layout className="w-4 h-4" /> },
+    { id: 'about', label: 'Identity', icon: <Info className="w-4 h-4" /> },
+    { id: 'admissions', label: isTertiary ? 'Enrollment' : 'Admissions', icon: <UserPlus className="w-4 h-4" /> },
+    { id: 'academics', label: isTertiary ? 'Faculties' : isPrimary ? 'Grades' : 'Academics', icon: <GraduationCap className="w-4 h-4" /> },
+    { id: 'news', label: 'News Feed', icon: <Newspaper className="w-4 h-4" /> },
+    { id: 'studentLife', label: isTertiary ? 'Campus Life' : 'School Life', icon: <Users className="w-4 h-4" /> },
+    { id: 'portal', label: 'Gateway', icon: <Globe className="w-4 h-4" /> }
   ];
 
   const updateSection = (updatedSections: Institution['sections']) => {

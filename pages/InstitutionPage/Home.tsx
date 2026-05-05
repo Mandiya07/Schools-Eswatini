@@ -2,6 +2,7 @@ import React from 'react';
 import { useOutletContext } from 'react-router-dom';
 import { Institution, InstitutionType } from '../../types';
 import { getOptimizedImageUrl } from '../../src/services/performanceService';
+import { InquiryForm } from '../../components/EngagementFeatures';
 
 export const InstitutionHome: React.FC = () => {
   const { inst, lang } = useOutletContext<{ inst: Institution, lang: 'en' | 'ss' }>();
@@ -202,6 +203,10 @@ export const InstitutionHome: React.FC = () => {
           </div>
         </section>
       )}
+      {/* 6. Direct Inquiry */}
+      <section className="mt-24">
+         <InquiryForm institution={inst} lang={lang} />
+      </section>
     </div>
   );
 };

@@ -1,8 +1,8 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { User, UserRole, StudentProgress, AcademicResource } from '../types';
-import { db, collection, query, where, getDocs, setDoc, doc, OperationType, handleFirestoreError } from '../src/lib/firebase';
+import { User, UserRole, StudentProgress, AcademicResource, InstitutionType } from '../types';
+import { db, collection, query, where, getDocs, setDoc, doc, getDoc, OperationType, handleFirestoreError } from '../src/lib/firebase';
 import { BookOpen, Activity, Users, Save, Edit2, CheckCircle, GraduationCap, ClipboardList, TrendingUp, Search, Plus, X, FolderOpen, FileText, Download, UploadCloud, FileArchive, Lightbulb, Star, Bot, Sparkles, Loader2, CalendarCheck, BellRing, UserCheck, UserX, Award, ShieldAlert, MessageSquare, Briefcase, ChevronRight } from 'lucide-react';
 import { GoogleGenAI } from "@google/genai";
 
@@ -39,7 +39,7 @@ const MOCK_VACANCIES = [
 ];
 
 const TeacherDashboard: React.FC<TeacherDashboardProps> = ({ user }) => {
-  const [activeTab, setActiveTab] = useState<'classroom' | 'resources' | 'ai_assistant' | 'management' | 'cpd' | 'marketplace'>('classroom');
+  const [activeTab, setActiveTab] = useState<'classroom' | 'resources' | 'ai_assistant' | 'management' | 'cpd' | 'marketplace' | 'colleagues'>('classroom');
   const [resourceFilter, setResourceFilter] = useState('all');
   const [cpdFilter, setCpdFilter] = useState<'forums' | 'vacancies'>('forums');
 
@@ -87,6 +87,31 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({ user }) => {
     weeklyTeachingLoad: 10
   });
 
+  const [isEditingTeacherProfile, setIsEditingTeacherProfile] = useState(false);
+  const [teacherProfileForm, setTeacherProfileForm] = useState<User['teacherProfile']>(user.teacherProfile || {
+    subjects: [],
+    contactPhone: '',
+    contactEmail: user.email,
+    bio: ''
+  });
+
+  const handleUpdateTeacherProfile = async () => {
+    setSaveStatus('saving');
+    try {
+      await setDoc(doc(db, 'users', user.id), { teacherProfile: teacherProfileForm }, { merge: true });
+      setSaveStatus('success');
+      setIsEditingTeacherProfile(false);
+      setTimeout(() => setSaveStatus('idle'), 3000);
+      triggerAlert('merit', 'Staff profile updated successfully!');
+      
+      // Update local institutionTeachers list manually for immediate re-render
+      setInstitutionTeachers(prev => prev.map(t => t.id === user.id ? { ...t, teacherProfile: teacherProfileForm } : t));
+    } catch (error) {
+      setSaveStatus('error');
+      handleFirestoreError(error, OperationType.UPDATE, `users/${user.id}/teacherProfile`);
+    }
+  };
+
   const handleUpdateTutorProfile = async () => {
     setSaveStatus('saving');
     try {
@@ -120,12 +145,25 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({ user }) => {
     triggerAlert('merit', 'Resource uploaded successfully!');
   };
 
+  const [institutionType, setInstitutionType] = useState<InstitutionType | null>(null);
+
   useEffect(() => {
     const fetchProgress = async () => {
       setLoading(true);
       try {
-        // Fetch all teachers in same institution for assignment feature
         if (user.institutionId) {
+          try {
+            const instDoc = await getDoc(doc(db, 'institutions', user.institutionId));
+            if (instDoc.exists()) {
+              const instData = instDoc.data();
+              if (instData.type && instData.type.length > 0) {
+                setInstitutionType(instData.type[0]);
+              }
+            }
+          } catch (err) {
+            console.error("Failed to fetch institution type", err);
+          }
+          
           const teachersQ = query(collection(db, 'users'), 
             where('institutionId', '==', user.institutionId),
             where('role', '==', UserRole.TEACHER)
@@ -339,16 +377,32 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({ user }) => {
       <header className="mb-12">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
           <div className="flex-1">
-            <div className="flex items-center gap-3 mb-2">
-              <span className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-[10px] font-black uppercase tracking-widest">
-                Authorized Workspace
-              </span>
-              <span className="text-slate-400 text-[10px] font-black uppercase tracking-widest">
-                {user.name}
-              </span>
+            <div className="flex flex-col md:flex-row justify-between md:items-end w-full">
+               <div>
+                  <div className="flex items-center gap-3 mb-2">
+                    <span className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-[10px] font-black uppercase tracking-widest">
+                      Authorized Workspace
+                    </span>
+                    <span className="text-slate-400 text-[10px] font-black uppercase tracking-widest">
+                      {user.name}
+                    </span>
+                  </div>
+                  <h1 className="text-4xl font-black text-slate-900 tracking-tight">Teacher Dashboard</h1>
+                  <p className="text-slate-500 font-medium mt-2 mb-4 md:mb-0">Manage academic progress, administrative tasks, and professional development.</p>
+               </div>
+               <div className="shrink-0 flex items-center gap-3">
+                  <span className="text-xs font-black text-slate-400 uppercase tracking-widest">View As:</span>
+                  <select 
+                    value={institutionType || ''}
+                    onChange={(e) => setInstitutionType(e.target.value as InstitutionType)}
+                    className="bg-white border border-slate-200 text-slate-700 text-xs font-bold rounded-xl px-4 py-2 focus:ring-2 focus:ring-blue-500 cursor-pointer"
+                  >
+                    <option value="">Primary School</option>
+                    <option value="High School">High School</option>
+                    <option value="Tertiary">Tertiary / University</option>
+                  </select>
+               </div>
             </div>
-            <h1 className="text-4xl font-black text-slate-900 tracking-tight">Teacher Dashboard</h1>
-            <p className="text-slate-500 font-medium mt-2">Manage academic progress, administrative tasks, and professional development.</p>
           </div>
           
           {activeTab === 'classroom' && (
@@ -396,6 +450,12 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({ user }) => {
               className={`px-6 py-4 rounded-full text-[10px] font-black uppercase tracking-widest flex items-center gap-3 transition-all ${activeTab === 'management' ? 'bg-rose-600 text-white shadow-xl shadow-rose-600/20' : 'bg-white text-slate-500 hover:bg-slate-100 border border-slate-200'}`}
             >
               <Users className="w-4 h-4" /> Classroom Management
+            </button>
+            <button 
+              onClick={() => setActiveTab('colleagues')}
+              className={`px-6 py-4 rounded-full text-[10px] font-black uppercase tracking-widest flex items-center gap-3 transition-all ${activeTab === 'colleagues' ? 'bg-teal-600 text-white shadow-xl shadow-teal-600/20' : 'bg-white text-slate-500 hover:bg-slate-100 border border-slate-200'}`}
+            >
+              <UserCheck className="w-4 h-4" /> Staff Directory
             </button>
           </>
         )}
@@ -878,7 +938,11 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({ user }) => {
                       <div className="lg:col-span-12">
                          <div className="flex items-center gap-3 mb-8">
                             <BookOpen className="w-5 h-5 text-blue-600" />
-                            <h3 className="text-xl font-black text-slate-900 tracking-tight uppercase tracking-widest text-xs">Unit Performance</h3>
+                            <h3 className="text-xl font-black text-slate-900 tracking-tight uppercase tracking-widest text-xs">
+                              {institutionType === InstitutionType.PRIMARY ? "Foundational Subjects" : 
+                               institutionType === InstitutionType.TERTIARY ? "Course Units & Modules" : 
+                               "Subject Performance"}
+                            </h3>
                          </div>
                          
                          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
@@ -961,7 +1025,11 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({ user }) => {
                       <div className="lg:col-span-6">
                         <div className="flex items-center gap-3 mb-8">
                             <Activity className="w-5 h-5 text-emerald-600" />
-                            <h3 className="text-xl font-black text-slate-900 tracking-tight uppercase tracking-widest text-xs">Behavioral Conduct</h3>
+                            <h3 className="text-xl font-black text-slate-900 tracking-tight uppercase tracking-widest text-xs">
+                              {institutionType === InstitutionType.PRIMARY ? "Behavior & Social Skills" : 
+                               institutionType === InstitutionType.TERTIARY ? "Professional Conduct" : 
+                               "Behavioral Conduct & Discipline"}
+                            </h3>
                         </div>
                         <div className="bg-slate-50 rounded-[32px] p-8 border border-slate-100 h-full">
                           {isEditing ? (
@@ -1012,7 +1080,11 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({ user }) => {
                       <div className="lg:col-span-6">
                         <div className="flex items-center gap-3 mb-8">
                             <Users className="w-5 h-5 text-purple-600" />
-                            <h3 className="text-xl font-black text-slate-900 tracking-tight uppercase tracking-widest text-xs">Engagement Level</h3>
+                            <h3 className="text-xl font-black text-slate-900 tracking-tight uppercase tracking-widest text-xs">
+                              {institutionType === InstitutionType.PRIMARY ? "Classroom Engagement" : 
+                               institutionType === InstitutionType.TERTIARY ? "Seminars, Research & Clubs" : 
+                               "Extracurricular Engagement"}
+                            </h3>
                         </div>
                         <div className="bg-slate-50 rounded-[32px] p-8 border border-slate-100 h-full">
                            {isEditing ? (
@@ -1032,7 +1104,9 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({ user }) => {
                                   </div>
                                 </div>
                                 <div>
-                                  <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Extra-Curricular Activities</label>
+                                  <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">
+                                    {institutionType === InstitutionType.TERTIARY ? "Societies & Committees" : "Extra-Curricular Activities"}
+                                  </label>
                                   <input 
                                     className="w-full bg-white border border-slate-200 rounded-2xl px-6 py-4 font-bold text-slate-900"
                                     value={data.participation.activities.join(', ')}
@@ -1305,9 +1379,15 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({ user }) => {
                    <div className="absolute -top-10 -right-10 w-40 h-40 bg-fuchsia-500 rounded-full blur-[50px] opacity-30" />
                    <div className="relative z-10">
                      <Bot className="w-10 h-10 text-fuchsia-300 mb-6" />
-                     <h2 className="text-2xl font-black mb-2">AI Co-Teacher</h2>
+                     <h2 className="text-2xl font-black mb-2">
+                       {institutionType === InstitutionType.PRIMARY ? "Primary Grade Co-Teacher" :
+                        institutionType === InstitutionType.TERTIARY ? "Faculty AI Assistant" : 
+                        "AI Co-Teacher"}
+                     </h2>
                      <p className="text-fuchsia-200 text-sm font-medium leading-relaxed">
-                       Generate lesson quizzes, grading rubrics, and automated student progress comments in seconds.
+                       {institutionType === InstitutionType.PRIMARY ? "Generate fun quizzes, phonics exercises, and automated parent notes in seconds." :
+                        institutionType === InstitutionType.TERTIARY ? "Generate research prompts, marking rubrics, and conceptual explainers in seconds." : 
+                        "Generate lesson quizzes, grading rubrics, and automated student progress comments in seconds."}
                      </p>
                    </div>
                  </div>
@@ -1346,14 +1426,20 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({ user }) => {
                  {/* Input Area */}
                  <div className="bg-white rounded-[32px] border border-slate-200 p-8 shadow-sm">
                    <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-4">
-                     {aiMode === 'quiz' ? 'Topic & Grade Level' : 'Assignment Type & Criteria'}
+                     {aiMode === 'quiz' ? 
+                       (institutionType === InstitutionType.TERTIARY ? 'Module & Level' : 'Topic & Grade Level') 
+                       : 'Assignment Type & Criteria'}
                    </label>
                    <textarea 
                      className="w-full bg-slate-50 border border-slate-200 rounded-2xl p-6 font-medium text-slate-900 focus:ring-4 focus:ring-fuchsia-50 focus:border-fuchsia-200 transition-all min-h-[120px] resize-none"
                      placeholder={
                        aiMode === 'quiz' 
-                         ? "e.g. Generate a 10-question multiple-choice quiz on Swazi History (King Sobhuza II) for Form 4s." 
-                         : "e.g. Generate a detailed grading rubric for a Form 5 Physical Science laboratory report on Titration."
+                         ? (institutionType === InstitutionType.PRIMARY ? "e.g. Generate a fun math quiz with 5 questions on addition for Grade 2." : 
+                            institutionType === InstitutionType.TERTIARY ? "e.g. Generate 10 multiple-choice questions on Microeconomics to test undergraduate students." :
+                            "e.g. Generate a 10-question multiple-choice quiz on Swazi History (King Sobhuza II) for Form 4s.") 
+                         : (institutionType === InstitutionType.PRIMARY ? "e.g. Generate a simple grading rubric for a Grade 4 creative writing task." :
+                            institutionType === InstitutionType.TERTIARY ? "e.g. Generate a marking rubric for an Engineering thesis proposal." :
+                             "e.g. Generate a detailed grading rubric for a Form 5 Physical Science laboratory report on Titration.")
                      }
                      value={aiPrompt}
                      onChange={(e) => setAiPrompt(e.target.value)}
@@ -1413,22 +1499,31 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({ user }) => {
                <div className="relative z-10">
                  <div className="flex items-center gap-3 mb-4">
                    <CalendarCheck className="w-8 h-8 text-rose-300" />
-                   <h2 className="text-3xl font-black tracking-tight">Daily Roll Call & Ledger</h2>
+                   <h2 className="text-3xl font-black tracking-tight">
+                     {institutionType === InstitutionType.TERTIARY ? "Lecture Attendance & Conduct" :
+                      institutionType === InstitutionType.PRIMARY ? "Roll Call & Wellness" : 
+                      "Daily Roll Call & Ledger"}
+                   </h2>
                  </div>
                  <p className="text-rose-200 font-medium leading-relaxed max-w-xl">
-                   Mark attendance and issue fast behavioral alerts that trigger immediate push notifications to connected parent guardians.
+                   {institutionType === InstitutionType.TERTIARY ? "Record student attendance and issue participation alerts directly to students." :
+                    "Mark attendance and issue fast behavioral alerts that trigger immediate push notifications to connected parent guardians."}
                  </p>
                </div>
              </div>
 
-             <div className="bg-white rounded-[32px] border border-slate-100 shadow-sm overflow-hidden">
+              <div className="bg-white rounded-[32px] border border-slate-100 shadow-sm overflow-hidden">
                 <div className="grid grid-cols-1 md:grid-cols-12 gap-0">
                   {/* Left Column: Ledger Form */}
                   <div className="md:col-span-5 p-8 border-b md:border-b-0 md:border-r border-slate-100 bg-slate-50/50">
-                    <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-6">Quick Issue Ledger</h3>
+                    <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-6">
+                      {institutionType === InstitutionType.TERTIARY ? "Module Participation & Conduct" : "Quick Issue Ledger"}
+                    </h3>
                     <div className="space-y-4">
                       <div>
-                        <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Student Name</label>
+                        <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">
+                           {institutionType === InstitutionType.TERTIARY ? "Select Registered Student" : "Student Name"}
+                        </label>
                         <select className="w-full bg-white border border-slate-200 rounded-xl p-4 font-bold text-slate-900 focus:ring-2 focus:ring-rose-100 outline-none">
                           <option value="">Select Student...</option>
                           {attendanceList.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
@@ -1437,16 +1532,24 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({ user }) => {
                       <div>
                         <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Notice Type</label>
                         <div className="grid grid-cols-2 gap-3">
-                          <button onClick={() => triggerAlert('merit', 'Merit Logged & Parent Notified')} className="p-4 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-xl font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-emerald-100 transition-colors">
-                             <Award className="w-4 h-4" /> Issue Merit
+                          <button 
+                            onClick={() => triggerAlert('merit', institutionType === InstitutionType.TERTIARY ? 'Participation Credit Logged' : 'Merit Logged & Parent Notified')} 
+                            className="p-4 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-xl font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-emerald-100 transition-colors"
+                          >
+                             <Award className="w-4 h-4" /> {institutionType === InstitutionType.TERTIARY ? "Mark Participation" : "Issue Merit"}
                           </button>
-                          <button onClick={() => triggerAlert('alert', 'Discipline Alert Sent Home')} className="p-4 bg-rose-50 text-rose-700 border border-rose-200 rounded-xl font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-rose-100 transition-colors">
-                             <ShieldAlert className="w-4 h-4" /> Log Demerit
+                          <button 
+                            onClick={() => triggerAlert('alert', institutionType === InstitutionType.TERTIARY ? 'Academic Warning Issued' : 'Discipline Alert Sent Home')} 
+                            className="p-4 bg-rose-50 text-rose-700 border border-rose-200 rounded-xl font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-rose-100 transition-colors"
+                          >
+                             <ShieldAlert className="w-4 h-4" /> {institutionType === InstitutionType.TERTIARY ? "Academic Warning" : "Log Demerit"}
                           </button>
                         </div>
                       </div>
                       <div>
-                        <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Brief Incident description</label>
+                        <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">
+                           {institutionType === InstitutionType.TERTIARY ? "Detailed Log / Misconduct Report" : "Brief Incident description"}
+                        </label>
                         <textarea className="w-full bg-white border border-slate-200 rounded-xl p-4 font-medium text-sm resize-none h-24" placeholder="Type here..."></textarea>
                       </div>
                     </div>
@@ -1454,8 +1557,13 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({ user }) => {
 
                   {/* Right Column: Attendance */}
                   <div className="md:col-span-7 pb-4">
-                    <div className="px-8 py-6 border-b border-slate-100">
-                       <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest">Today's Attendance</h3>
+                    <div className="px-8 py-6 border-b border-slate-100 flex justify-between items-center">
+                       <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest">
+                          {institutionType === InstitutionType.TERTIARY ? "Lecture Hall Attendance" : "Today's Attendance"}
+                       </h3>
+                       {institutionType === InstitutionType.TERTIARY && (
+                         <span className="text-[10px] font-black bg-slate-900 text-white px-3 py-1 rounded-full uppercase tracking-tighter">Module CSC301</span>
+                       )}
                     </div>
                     <div className="divide-y divide-slate-100">
                       {attendanceList.map(student => (
@@ -1463,8 +1571,8 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({ user }) => {
                           <div className="flex flex-col">
                             <span className="font-bold text-slate-900">{student.name}</span>
                             <div className="flex gap-3 text-[10px] font-black uppercase tracking-widest text-slate-400">
-                               <span className="text-emerald-500">{student.merits} Merits</span>
-                               <span className="text-rose-500">{student.demerits} Demerits</span>
+                               <span className="text-emerald-500">{student.merits} {institutionType === InstitutionType.TERTIARY ? "Credits" : "Merits"}</span>
+                               <span className="text-rose-500">{student.demerits} {institutionType === InstitutionType.TERTIARY ? "Warnings" : "Demerits"}</span>
                             </div>
                           </div>
                           <div className="flex gap-2">
@@ -1483,7 +1591,7 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({ user }) => {
                              <button
                                onClick={() => {
                                  handleAttendanceChange(student.id, 'absent');
-                                 if (student.status !== 'absent') {
+                                 if (student.status !== 'absent' && institutionType !== InstitutionType.TERTIARY) {
                                    triggerAlert('alert', `Absence Notice triggered for ${student.name}'s parents`);
                                  }
                                }}
@@ -1498,6 +1606,45 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({ user }) => {
                   </div>
                 </div>
              </div>
+
+             {institutionType === InstitutionType.TERTIARY && (
+                <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-8">
+                   <div className="bg-white rounded-[40px] p-8 border border-slate-100 shadow-sm">
+                      <h3 className="text-xl font-black text-slate-900 mb-6 flex items-center gap-3">
+                         <GraduationCap className="w-6 h-6 text-indigo-600" /> Thesis & Dissertation Tracking
+                      </h3>
+                      <div className="space-y-4">
+                         {[
+                           { name: 'Khosi Mavuso', topic: 'Renewable Power in SADC', progress: 75 },
+                           { name: 'Sabelo Dlamini', topic: 'Impact of AI on Law', progress: 40 }
+                         ].map(stu => (
+                           <div key={stu.name} className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                             <div className="flex justify-between items-start mb-2">
+                                <h4 className="font-bold text-sm text-slate-900">{stu.name}</h4>
+                                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{stu.progress}%</span>
+                             </div>
+                             <p className="text-[10px] text-slate-500 mb-3 uppercase font-bold tracking-widest">{stu.topic}</p>
+                             <div className="h-1.5 w-full bg-slate-200 rounded-full overflow-hidden">
+                                <div className="h-full bg-indigo-500 rounded-full" style={{ width: `${stu.progress}%` }} />
+                             </div>
+                           </div>
+                         ))}
+                      </div>
+                   </div>
+
+                   <div className="bg-slate-900 rounded-[40px] p-8 text-white">
+                      <h3 className="text-xl font-black mb-6">Exam Registry Portal</h3>
+                      <div className="space-y-3">
+                         {['Submit Final Marks', 'Verify Module Registration', 'Request Invigilation Schedule', 'Archive Paper Drafts'].map(link => (
+                           <button key={link} className="w-full text-left p-4 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-all flex justify-between items-center group">
+                              <span className="text-sm font-bold text-slate-300 group-hover:text-white">{link}</span>
+                              <ChevronRight className="w-4 h-4 text-slate-500 group-hover:translate-x-1 transition-all" />
+                           </button>
+                         ))}
+                      </div>
+                   </div>
+                </div>
+             )}
           </div>
         )}
 
@@ -1591,6 +1738,187 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({ user }) => {
                  ))}
               </div>
             )}
+          </div>
+        )}
+
+        {/* Staff Directory / Colleagues Tab */}
+        {activeTab === 'colleagues' && (
+          <div className="animate-in fade-in duration-300">
+             <div className="bg-teal-900 rounded-[40px] text-white p-10 mb-8 border border-teal-800 shadow-xl overflow-hidden relative">
+               <div className="absolute top-0 right-0 w-96 h-96 bg-emerald-500/20 rounded-full blur-[100px]" />
+               <div className="relative z-10">
+                 <div className="flex justify-between items-center">
+                   <div>
+                     <div className="flex items-center gap-3 mb-4">
+                       <UserCheck className="w-8 h-8 text-teal-300" />
+                       <h2 className="text-3xl font-black tracking-tight">
+                         {institutionType === InstitutionType.TERTIARY ? "Faculty Directory" : "Staff Directory"}
+                       </h2>
+                     </div>
+                     <p className="text-teal-200 font-medium leading-relaxed max-w-xl">
+                       Connect with your colleagues, view finding subjects, and manage your own professional contact details.
+                     </p>
+                   </div>
+                   <button 
+                     onClick={() => setIsEditingTeacherProfile(true)}
+                     className="px-8 py-4 bg-teal-600 hover:bg-teal-700 text-white rounded-2xl font-black uppercase tracking-widest text-[10px] shadow-xl shadow-teal-900/50 transition-all flex items-center justify-center gap-2"
+                   >
+                     <Edit2 className="w-4 h-4" /> Edit My Profile
+                   </button>
+                 </div>
+               </div>
+             </div>
+
+             {/* Profile Edit Modal */}
+             {isEditingTeacherProfile && (
+               <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
+                 <motion.div 
+                   initial={{ opacity: 0 }}
+                   animate={{ opacity: 1 }}
+                   className="absolute inset-0 bg-slate-900/80 backdrop-blur-sm"
+                   onClick={() => setIsEditingTeacherProfile(false)}
+                 />
+                 <motion.div 
+                   initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                   animate={{ opacity: 1, scale: 1, y: 0 }}
+                   className="bg-white rounded-[40px] w-full max-w-2xl p-10 relative z-10 shadow-2xl overflow-hidden"
+                 >
+                   <div className="absolute top-0 right-0 w-32 h-32 bg-teal-500/10 rounded-full blur-2xl -mr-16 -mt-16" />
+                   
+                   <div className="flex justify-between items-center mb-8 relative">
+                     <div>
+                        <h3 className="text-2xl font-black text-slate-900 tracking-tight">Staff Profile Settings</h3>
+                        <p className="text-slate-500 font-medium mt-1">Update your internal contact details.</p>
+                     </div>
+                     <button onClick={() => setIsEditingTeacherProfile(false)} className="text-slate-400 hover:text-slate-600">
+                       <X className="w-6 h-6" />
+                     </button>
+                   </div>
+
+                   <div className="space-y-6 relative">
+                     <div>
+                       <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Subjects Taught</label>
+                       <div className="flex flex-wrap gap-2 mb-3">
+                         {teacherProfileForm?.subjects.map(sub => (
+                           <span key={sub} className="px-3 py-1 bg-teal-50 text-teal-700 rounded-lg text-xs font-bold border border-teal-100 flex items-center gap-2">
+                             {sub}
+                             <button onClick={() => setTeacherProfileForm(prev => ({ ...prev!, subjects: prev!.subjects.filter(s => s !== sub) }))} className="hover:text-teal-900">
+                               <X className="w-3 h-3" />
+                             </button>
+                           </span>
+                         ))}
+                       </div>
+                       <input 
+                         className="w-full bg-slate-50 border border-slate-200 rounded-xl p-4 font-medium text-sm"
+                         placeholder="Type a subject and press Enter"
+                         onKeyDown={(e) => {
+                           if (e.key === 'Enter') {
+                             e.preventDefault();
+                             const input = e.currentTarget;
+                             const val = input.value.trim();
+                             if (val && !teacherProfileForm?.subjects.includes(val)) {
+                               setTeacherProfileForm(prev => ({ ...prev!, subjects: [...prev!.subjects, val] }));
+                               input.value = '';
+                             }
+                           }
+                         }}
+                       />
+                     </div>
+
+                     <div className="grid grid-cols-2 gap-4">
+                       <div>
+                         <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Contact Phone</label>
+                         <input 
+                           className="w-full bg-slate-50 border border-slate-200 rounded-xl p-4 font-bold text-sm"
+                           placeholder="+268 7600 0000"
+                           value={teacherProfileForm?.contactPhone || ''}
+                           onChange={e => setTeacherProfileForm(prev => ({...prev!, contactPhone: e.target.value}))}
+                         />
+                       </div>
+                       <div>
+                         <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Contact Email</label>
+                         <input 
+                           className="w-full bg-slate-50 border border-slate-200 rounded-xl p-4 font-bold text-sm"
+                           placeholder="teacher@school.edu"
+                           value={teacherProfileForm?.contactEmail || ''}
+                           onChange={e => setTeacherProfileForm(prev => ({...prev!, contactEmail: e.target.value}))}
+                         />
+                       </div>
+                     </div>
+
+                     <div>
+                       <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Internal Bio / Responsibilities</label>
+                       <textarea 
+                         className="w-full bg-slate-50 border border-slate-200 rounded-xl p-4 font-medium text-sm resize-none h-24"
+                         placeholder="e.g. Head of Science Department, Athletics Coach..."
+                         value={teacherProfileForm?.bio || ''}
+                         onChange={e => setTeacherProfileForm(prev => ({...prev!, bio: e.target.value}))}
+                       />
+                     </div>
+
+                     <div className="flex justify-end pt-6 border-t border-slate-100">
+                       <button 
+                         onClick={handleUpdateTeacherProfile}
+                         disabled={saveStatus === 'saving'}
+                         className="px-8 py-4 bg-teal-600 hover:bg-teal-700 text-white rounded-2xl disabled:opacity-50 font-black uppercase tracking-widest text-[10px] shadow-xl transition-all"
+                       >
+                         {saveStatus === 'saving' ? 'Saving...' : 'Save Profile'}
+                       </button>
+                     </div>
+                   </div>
+                 </motion.div>
+               </div>
+             )}
+
+             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {institutionTeachers.map(teacher => {
+                   const profile = teacher.teacherProfile;
+                   const initials = teacher.name.split(' ').map(n=>n[0]).join('').substring(0, 2);
+                   
+                   return (
+                     <div key={teacher.id} className="bg-white border border-slate-100 rounded-[32px] p-8 hover:shadow-xl hover:border-teal-200 transition-all flex flex-col items-center text-center">
+                        <div className="w-20 h-20 bg-teal-50 text-teal-600 rounded-full flex items-center justify-center text-2xl font-black shadow-inner mb-6">
+                           {initials}
+                        </div>
+                        <h3 className="text-xl font-black text-slate-900 leading-tight mb-1">{teacher.name}</h3>
+                        
+                        <div className="flex flex-wrap gap-2 justify-center my-4">
+                           {profile?.subjects && profile.subjects.length > 0 ? (
+                             profile.subjects.map(s => (
+                               <span key={s} className="px-3 py-1 bg-slate-100 text-slate-600 font-bold text-[10px] uppercase tracking-widest rounded-lg">
+                                 {s}
+                               </span>
+                             ))
+                           ) : (
+                             <span className="text-slate-400 font-bold text-xs italic">Subjects not listed</span>
+                           )}
+                        </div>
+
+                        {profile?.bio && (
+                          <p className="text-slate-500 font-medium text-sm bg-slate-50 p-4 rounded-2xl w-full mb-4">
+                            {profile.bio}
+                          </p>
+                        )}
+
+                        <div className="w-full mt-auto pt-6 border-t border-slate-100 space-y-3">
+                           <div className="flex items-center justify-center gap-2 text-slate-600 text-sm font-medium">
+                              <span className="text-slate-400 font-black text-[10px] uppercase tracking-widest px-2">Phone:</span>
+                              {profile?.contactPhone || 'N/A'}
+                           </div>
+                           <div className="flex items-center justify-center text-slate-600 text-sm font-medium truncate px-4">
+                              <span className="text-slate-400 font-black text-[10px] uppercase tracking-widest px-2">Email:</span>
+                              {profile?.contactEmail || teacher.email || 'N/A'}
+                           </div>
+                        </div>
+                     </div>
+                   );
+                })}
+                {institutionTeachers.length === 0 && (
+                  <div className="col-span-full py-16 text-center text-slate-400 font-medium">
+                     No colleagues found in this institution.
+                  </div>
+                )}
+             </div>
           </div>
         )}
         </>

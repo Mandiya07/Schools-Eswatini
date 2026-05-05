@@ -12,7 +12,11 @@ export const InstitutionAcademics: React.FC = () => {
   return (
     <div className="space-y-32">
       <h2 className="text-7xl font-black text-slate-900 tracking-tighter">Academics</h2>
-      <AcademicsSection academics={academics} primaryColor={inst.theme.primaryColor} />
+      <AcademicsSection 
+        academics={academics} 
+        primaryColor={inst.theme.primaryColor} 
+        institutionType={inst.type} 
+      />
     </div>
   );
 };

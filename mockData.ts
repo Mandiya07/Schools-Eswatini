@@ -2501,61 +2501,79 @@ export const MOCK_INSTITUTIONS: Institution[] = [
         heroBanner: 'https://picsum.photos/seed/snathero/1200/600',
         welcomeMessage: 'Empowering Teachers, Shaping the Future of Eswatini.',
         principalMessage: {
-          text: 'SNAT stands as the bulwark of teacher rights and professional excellence in our Kingdom. We welcome all educators to join our mission.',
+          text: 'SNAT stands as the bulwark of teacher rights and professional excellence in our Kingdom. We welcome all educators to unite under our banner for collective bargaining, professional growth, and social justice.',
           name: 'Secretary General'
         },
-        quickLinks: [],
-        announcements: []
+        quickLinks: [
+          { label: 'Join SNAT', url: '#admissions' },
+          { label: 'SNAT Co-op', url: '#portal' },
+          { label: 'Legal Aid', url: '#academics' },
+          { label: 'Branch Meetings', url: '#news' }
+        ],
+        announcements: [
+          { id: 'ann-1', date: '2026-05-10', title: 'National Executive Committee Updates', content: 'Latest outcomes from the TSC engagement regarding the cost of living adjustment.', priority: 'High' }
+        ]
       },
       about: {
-        overview: 'The Swaziland National Association of Teachers (SNAT) is the premier professional organization for educators in the Kingdom of Eswatini.',
-        foundingBackground: 'Established in 1928.',
-        history: { foundingStory: { yearEstablished: 1928, founders: ['Founding Members'], originalPurpose: 'To unite educators.', initialStudentPopulation: 'N/A', firstCampusLocation: 'Manzini' }, milestones: [], growthSummary: 'Long-standing union union.', transformationNarrative: { adaptationToChange: '', technologicalUpgrades: '', communityImpact: '', alumniInfluence: '' } },
-        vision: { headline: 'A unified and empowered teaching force.', supportingParagraph: '' },
-        mission: { statement: 'To promote the professional, social, and economic interests of teachers.', description: '' },
-        coreValues: [],
+        overview: 'The Swaziland National Association of Teachers (SNAT) is the premier professional organization and labor union for educators in the Kingdom of Eswatini.',
+        foundingBackground: 'Established in 1928, SNAT has a long, proud history of standing up for the rights and welfare of teachers.',
+        history: { foundingStory: { yearEstablished: 1928, founders: ['Pioneering Eswatini Educators'], originalPurpose: 'To unite educators and advocate for better teaching conditions.', initialStudentPopulation: '0', firstCampusLocation: 'Manzini' }, milestones: [], growthSummary: 'Grown from a small association to the largest professional union in the country.', transformationNarrative: { adaptationToChange: 'Evolved into a modern labor union with a robust Cooperative Society.', technologicalUpgrades: 'Implementing digital member services.', communityImpact: 'Championing quality public education for all Swazi children.', alumniInfluence: 'Retired teachers continue to guide our policies.' } },
+        vision: { headline: 'A unified, empowered, and professional teaching force driving national progress.', supportingParagraph: 'We envision a system where every teacher is respected, adequately compensated, and equipped to deliver world-class education.' },
+        mission: { statement: 'To promote the professional, social, and economic interests of teachers in Eswatini.', description: 'Through collective bargaining, professional development, and socio-economic empowerment (SNAT Co-op).' },
+        coreValues: [{name: 'Solidarity', description: ''}, {name: 'Integrity', description: ''}, {name: 'Professionalism', description: ''}, {name: 'Democracy', description: ''}, {name: 'Equality', description: ''}],
         leadership: { principal: { name: 'SNAT President', title: 'President' }, seniorTeam: [] },
-        accreditation: { registeredWith: 'Eswatini Government', registrationNumber: 'SNAT-1928', examinationBody: 'None', affiliations: [], awards: [] },
-        statistics: { totalStudents: 15000, totalStaff: 50, studentTeacherRatio: 'N/A', yearsOfOperation: 96, graduationRate: 'N/A' },
-        facilities: { overview: 'SNAT Headquarters & Regional Centres', list: ['Library', 'Conference Halls', 'Legal Aid Office'] },
-        community: { outreach: '', partnerships: '', socialResponsibility: '' },
+        accreditation: { registeredWith: 'Eswatini Government & ILO', registrationNumber: 'SNAT-1928', examinationBody: 'N/A', affiliations: ['EI (Education International)', 'TUCOSWA'], awards: [] },
+        statistics: { totalStudents: 0, totalStaff: 15000, studentTeacherRatio: 'N/A', yearsOfOperation: 98, graduationRate: 'N/A' },
+        facilities: { overview: 'SNAT National Centre (Manzini) & Regional Offices', list: ['Conference Halls', 'Legal Aid Office', 'SNAT Co-op Financial Desks', 'Member Accommodation'] },
+        community: { outreach: 'Educational policy advocacy.', partnerships: 'UNESCO, UNICEF, ActionAid.', socialResponsibility: 'Quality Public Education campaigns.' },
         downloads: [],
         testimonials: []
       },
       admissions: { 
-        headline: 'Join SNAT', 
-        introduction: 'Become a member of the largest professional body in Eswatini.', 
+        headline: 'Become a Member', 
+        introduction: 'Join the largest and most influential professional body in Eswatini. Open to all registered educators.', 
         programs: [],
-        requirements: { academic: ['Teaching Qualification'], documents: ['TSC Number', 'ID Copy'], additional: [] },
-        processSteps: [{ step: 'Registration', instruction: 'Fill the form at any office' }],
-        applicationFee: { amount: '0', methods: [] },
-        processingTime: 'Instant',
+        requirements: { academic: ['Recognized Teaching Qualification'], documents: ['TSC Employment Letter', 'ID Copy', 'Latest Payslip'], additional: ['Completed Membership Form'] },
+        processSteps: [{ step: 'Registration', instruction: 'Submit forms at your local SNAT branch or the National Centre.' }],
+        applicationFee: { amount: 'E0', methods: [] },
+        processingTime: 'Processed monthly with payroll.',
         importantDates: [],
-        tuitionFees: { perTerm: '1% of Basic Salary', perYear: '', additional: [] },
+        tuitionFees: { perTerm: '1% of Basic Salary (Monthly)', perYear: '', additional: [] },
         scholarships: { types: [], eligibility: '', howToApply: '' },
         faqs: [],
-        contact: { name: 'Membership Office', phone: '+268 2505 2841', email: 'membership@snat.org.sz', hours: 'Mon-Fri' },
+        contact: { name: 'Membership Office', phone: '+268 2505 2841', email: 'membership@snat.org.sz', hours: 'Mon-Fri: 08:00 - 16:30' },
         allowOnlineApplications: true 
       },
       academics: { 
-        overview: { headline: 'Professional Development & Advocacy', introduction: 'Resources for the modern Eswatini educator.' },
+        overview: { headline: 'Professional Development & Welfare', introduction: 'Empowering the Eswatini educator through continuous training, legal protection, and financial services.' },
         curriculum: { structure: '', examinationBody: '', description: '' },
         departments: [],
         programs: [
-          { id: 'snat-pd-1', name: 'Workplace Rights Seminar', qualification: 'Professional Credits', duration: '2 Days', description: 'Understanding the Employment Act and TSC regulations.', subjects: [], requirements: 'SNAT Member' }
+          { id: 'snat-pd-1', name: 'Workplace Rights Seminar', qualification: 'Certificate of Attendance', duration: '2 Days', description: 'Deep dive into the Employment Act, TSC regulations, and grievance handling procedures.', subjects: [], requirements: { academic: [], documents: [], additional: ['SNAT Membership'] } },
+          { id: 'snat-pd-2', name: '21st Century Pedagogy Workshop', qualification: 'CPD Credits', duration: '3 Days', description: 'Integrating ICT in the classroom and modern assessment techniques.', subjects: [], requirements: { academic: [], documents: [], additional: ['Active Teacher'] } }
         ],
-        calendar: { startDate: '', terms: [], examPeriods: '', holidays: '' },
+        calendar: { startDate: 'January', terms: [], examPeriods: '', holidays: '' },
         assessment: { approach: '', gradingSystem: '' },
-        support: { services: ['Legal Aid', 'Psychosocial Support', 'Credit Union Access'], description: 'Comprehensive support for members.' },
-        staff: { head: { name: '', qualifications: '', experience: '' }, totalCount: 0, avgExperience: '', certifications: [] },
-        performance: { passRate: 'N/A', ranking: '', distinctions: '', awards: [] },
+        support: { services: ['Legal Representation (TSC Disciplinary)', 'SNAT Co-op Savings & Loans', 'Bereavement Fund', 'Psychosocial Support'], description: 'Comprehensive welfare and legal support for our members across all regions.' },
+        staff: { head: { name: 'Secretary General', qualifications: '', experience: '' }, totalCount: 20, avgExperience: '10+ years', certifications: [] },
+        performance: { passRate: '', ranking: '', distinctions: '', awards: [] },
         facilities: { description: '', list: [] },
         digital: { platform: '', features: [] },
         partnerships: { internships: '', collaborations: '' }
       },
-      news: { overview: { title: 'SNAT Bulletins', description: 'Stay informed on union activities.' }, posts: [], events: [], gallery: [], newsletterCta: '' },
-      studentLife: { overview: { headline: '', introduction: '' }, sports: { list: [], facilities: [], description: '' }, clubs: [], arts: { activities: [], description: '' }, leadership: { opportunities: [], roles: '' }, facilities: [], support: { services: [], description: '' }, activities: { list: [], description: '' }, community: { programs: [], description: '' } },
-      portal: { enabled: true, name: 'SNAT Portal', headline: '', description: '', url: '#', loginRequirements: [], rolesSupported: [], accountCreationProcess: '', features: { dashboard: { list: [], description: '' }, learning: { list: [], description: '' }, assessments: { list: [], description: '' }, records: { list: [], accessLevel: '' }, scheduling: { list: [], description: '' }, collaboration: [] }, tools: { list: [], platforms: [] }, mobileAccess: { list: [], devices: [] }, security: [], support: { email: '', phone: '', hours: '', resources: [] }, usageGuidelines: { policy: '', rules: '', expectations: '' } }
+      news: { 
+        overview: { title: 'SNAT Bulletins & Advocacy Updates', description: 'Stay informed on union activities, TSC negotiations, and policy changes.' }, 
+        posts: [
+          { id: '1', title: 'Update on Salary Negotiations', date: '2026-05-01', excerpt: 'The NEC provides a brief on the latest engagement with the government regarding the CoLA.', category: 'Announcements', image: 'https://picsum.photos/seed/snatnews/800/400' }
+        ], 
+        events: [
+          { id: '1', title: 'Annual General Conference (AGC)', date: '2026-08-15', location: 'SNAT Centre, Manzini', description: 'The grand annual meeting of branch delegates to pass resolutions.', type: 'Academic', time: '08:00 AM', organizer: 'SNAT NEC', registrationRequired: true }
+        ], 
+        gallery: [], 
+        newsletterCta: 'Subscribe to SNAT SMS alerts' 
+      },
+      studentLife: { overview: { headline: 'Branch Activities & Networks', introduction: 'Connect with fellow educators in your region.' }, sports: { list: ['SNAT Annual Sports Day', 'Regional Choral Music'], facilities: [], description: 'Promoting wellness and unity among teachers.' }, clubs: [], arts: { activities: [], description: '' }, leadership: { opportunities: ['Branch Chairperson', 'Shop Steward'], roles: 'Represent your school at the branch level.' }, facilities: [], support: { services: [], description: '' }, activities: { list: [], description: '' }, community: { programs: [], description: '' } },
+      portal: { enabled: true, name: 'SNAT Digital Hub', headline: 'Member Services Portal', description: 'Manage your membership, access SNAT Co-op statements, and download resources.', url: '#', loginRequirements: ['TSC Number', 'Password'], rolesSupported: ['Member', 'Branch Executive'], accountCreationProcess: 'Auto-created for all active members.', features: { dashboard: { list: ['Membership Status', 'Co-op Balance Summary', 'Recent Alerts'], description: 'Your quick overview.' }, learning: { list: ['Download Syllabuses', 'Past Papers Hub'], description: 'A shared repository of teaching materials contributed by members.' }, assessments: { list: [], description: '' }, records: { list: ['View joining date', 'Beneficiary details'], accessLevel: 'Self-service' }, scheduling: { list: ['Book SNAT Accommodation', 'Schedule Legal Consultation'], description: '' }, collaboration: ['Branch Discussion Forums', 'Subject-Specific Groups'] }, tools: { list: ['Payslip Calculator', 'Tax Estimator'], platforms: ['Web', 'Mobile App'] }, mobileAccess: { list: ['Push notifications for urgent circulars'], devices: ['Android', 'iOS'] }, security: ['Secure login'], support: { email: 'ict@snat.org.sz', phone: '+268 2505 2841', hours: '08:00 - 16:30', resources: [] }, usageGuidelines: { policy: 'For verified members only.', rules: '', expectations: '' } }
     },
     stats: { views: 25000, applications: 450, engagementRate: 25 }
   }

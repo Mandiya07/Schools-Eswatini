@@ -221,26 +221,50 @@ const NewsEventsSection: React.FC<NewsEventsSectionProps> = ({ news, primaryColo
               <button className="text-[10px] font-black text-blue-600 uppercase tracking-widest hover:underline">View All</button>
             </div>
             <div className="space-y-6">
-              {upcomingEvents.map(event => (
-                <div key={event.id} className="p-8 bg-slate-50 border border-slate-100 rounded-[40px] hover:bg-white hover:shadow-xl transition-all group cursor-pointer">
-                  <div className="flex gap-6">
-                    <div className="w-16 h-16 bg-slate-900 rounded-2xl flex flex-col items-center justify-center text-white shrink-0 shadow-lg">
-                      <span className="text-[9px] font-black uppercase opacity-60 mb-0.5">{event.date.split(' ')[0]}</span>
-                      <span className="text-xl font-black">{event.date.split(' ')[1]}</span>
+              {upcomingEvents.map(event => {
+                const eventDate = new Date(event.date);
+                const month = eventDate.toLocaleString('default', { month: 'short' });
+                const day = eventDate.getDate();
+                
+                return (
+                  <div key={event.id} className="p-8 bg-slate-50 border border-slate-100 rounded-[40px] hover:bg-white hover:shadow-xl transition-all group cursor-pointer space-y-6">
+                    {event.mediaUrl && (
+                      <div className="h-48 w-full rounded-3xl overflow-hidden border border-slate-200 shadow-sm mb-2">
+                        <img src={event.mediaUrl} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" alt={event.title} />
+                      </div>
+                    )}
+                    
+                    <div className="flex gap-6">
+                      <div className="w-16 h-16 bg-slate-900 rounded-2xl flex flex-col items-center justify-center text-white shrink-0 shadow-lg">
+                        <span className="text-[9px] font-black uppercase opacity-60 mb-0.5">{month}</span>
+                        <span className="text-xl font-black">{day}</span>
+                      </div>
+                      <div className="space-y-2">
+                        <div className="flex items-center gap-2">
+                          <span className="px-3 py-1 bg-blue-100 text-blue-600 rounded-full text-[8px] font-black uppercase tracking-widest">
+                            {event.type}
+                          </span>
+                          {(event.host || event.organizer) && (
+                            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-1">
+                              <User className="w-3 h-3" /> {event.host || event.organizer}
+                            </span>
+                          )}
+                        </div>
+                        <h4 className="text-lg font-black text-slate-900 leading-tight group-hover:text-blue-600 transition-colors">
+                          {event.title}
+                        </h4>
+                      </div>
                     </div>
-                    <div className="space-y-2">
-                      <span className="px-3 py-1 bg-blue-100 text-blue-600 rounded-full text-[8px] font-black uppercase tracking-widest">
-                        {event.type}
-                      </span>
-                      <h4 className="text-lg font-black text-slate-900 leading-tight group-hover:text-blue-600 transition-colors">
-                        {event.title}
-                      </h4>
-                    </div>
-                  </div>
+
+                    {event.description && (
+                    <p className="text-sm text-slate-500 font-medium leading-relaxed line-clamp-3">
+                      {event.description}
+                    </p>
+                  )}
 
                   {/* Event Media Preview */}
                   {event.media && event.media.length > 0 && (
-                    <div className="mt-6 flex gap-2 pb-2 overflow-x-auto scrollbar-hide">
+                    <div className="flex gap-2 pb-2 overflow-x-auto scrollbar-hide">
                       {event.media.slice(0, 5).map((m, i) => (
                         <div key={i} className="w-10 h-10 rounded-lg overflow-hidden shadow-sm shrink-0 bg-white border border-slate-200">
                            {m.type === 'image' ? (
@@ -260,7 +284,7 @@ const NewsEventsSection: React.FC<NewsEventsSectionProps> = ({ news, primaryColo
                     </div>
                   )}
 
-                  <div className="mt-6 pt-6 border-t border-slate-200/50 grid grid-cols-2 gap-4">
+                  <div className="pt-6 border-t border-slate-200/50 grid grid-cols-2 gap-4">
                     <div className="flex items-center gap-2 text-[10px] font-bold text-slate-500">
                       <Clock className="w-3 h-3" /> {event.time}
                     </div>
@@ -269,7 +293,8 @@ const NewsEventsSection: React.FC<NewsEventsSectionProps> = ({ news, primaryColo
                     </div>
                   </div>
                 </div>
-              ))}
+              );
+            })}
             </div>
           </section>
 

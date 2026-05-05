@@ -6,10 +6,10 @@ import {
 import { 
   Users, BookOpen, AlertTriangle, TrendingUp, FileText, 
   Plus, Search, Filter, ShieldCheck, Globe, Download, 
-  Calendar, ChevronRight, Info, AlertCircle, Bell, Loader2, Send
+  Calendar, ChevronRight, Info, AlertCircle, Bell, Loader2, Send, CheckCircle2
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
-import { PolicyAnnouncement, Region } from '../types';
+import { PolicyAnnouncement, Region, User, Institution, UserRole } from '../types';
 import { db, collection, addDoc } from '../src/lib/firebase';
 
 const mockRegionalData = [
@@ -76,7 +76,12 @@ const mockPolicyAnnouncements: PolicyAnnouncement[] = [
 
 const COLORS = ['#2563eb', '#c026d3', '#f59e0b', '#10b981', '#6366f1'];
 
-const MinistryPortal: React.FC = () => {
+interface MinistryPortalProps {
+  user: User | null;
+  institutions: Institution[];
+}
+
+const MinistryPortal: React.FC<MinistryPortalProps> = ({ user, institutions }) => {
   const [activeView, setActiveView] = useState<'analytics' | 'policies' | 'records'>('analytics');
   const [searchQuery, setSearchQuery] = useState('');
   const [policies, setPolicies] = useState<PolicyAnnouncement[]>(mockPolicyAnnouncements);
@@ -91,6 +96,9 @@ const MinistryPortal: React.FC = () => {
   });
   const [newSchool, setNewSchool] = useState({ name: '', slug: '', region: Region.HHOHHO, moetRegistration: '' });
   const [submittingSchool, setSubmittingSchool] = useState(false);
+  const [submitSuccess, setSubmitSuccess] = useState(false);
+
+  const isMinistryUser = user && (user.role === UserRole.MOET_OFFICIAL || user.role === UserRole.SUPER_ADMIN);
 
   const filteredPolicies = policies.filter(p => 
     p.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -135,13 +143,115 @@ const MinistryPortal: React.FC = () => {
         plan: 'Free',
       });
       setShowAddSchool(false);
+      setSubmitSuccess(true);
       setNewSchool({ name: '', slug: '', region: Region.HHOHHO, moetRegistration: '' });
+      setTimeout(() => setSubmitSuccess(false), 5000);
     } catch (error) {
       console.error(error);
     } finally {
       setSubmittingSchool(false);
     }
   };
+
+  if (!isMinistryUser) {
+    return (
+      <div className="min-h-screen bg-[#f8fafc] pt-32 pb-20 px-6">
+        <div className="max-w-2xl mx-auto">
+          <div className="bg-white p-10 rounded-[48px] shadow-2xl border border-slate-100 flex flex-col relative overflow-hidden">
+            {submitSuccess ? (
+              <motion.div 
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="text-center py-12 space-y-6"
+              >
+                <div className="w-24 h-24 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-6">
+                  <CheckCircle2 className="w-12 h-12" />
+                </div>
+                <h2 className="text-3xl font-black text-slate-900 tracking-tight">Application Submitted</h2>
+                <p className="text-slate-500 font-medium">
+                  Your school registration request has been successfully submitted to the Ministry. 
+                  A MoET representative will review the details and contact you shortly.
+                </p>
+                <button 
+                  onClick={() => setSubmitSuccess(false)}
+                  className="mt-8 px-8 py-4 bg-slate-100 text-slate-600 font-black text-xs uppercase tracking-widest rounded-2xl hover:bg-slate-200 transition-all"
+                >
+                  Submit Another
+                </button>
+              </motion.div>
+            ) : (
+              <motion.div 
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="space-y-8"
+              >
+                <div className="flex items-center gap-4 mb-4">
+                  <div className="p-4 bg-indigo-600 text-white rounded-3xl shadow-lg shadow-indigo-200">
+                    <BookOpen className="w-8 h-8" />
+                  </div>
+                  <div>
+                    <h2 className="text-3xl font-black text-slate-900 tracking-tight">School Registration</h2>
+                    <p className="text-slate-500 font-medium mt-1">Submit your institution to the national directory.</p>
+                  </div>
+                </div>
+
+                <div className="p-6 bg-slate-50 border border-slate-100 rounded-3xl space-y-6 text-sm">
+                  <div className="space-y-4">
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">Institution Name</label>
+                    <input 
+                      type="text" 
+                      className="w-full bg-white border border-slate-200 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-50 rounded-2xl px-6 py-4 font-bold outline-none transition-all"
+                      placeholder="e.g. Mater Dolorosa High"
+                      value={newSchool.name}
+                      onChange={e => setNewSchool({...newSchool, name: e.target.value})}
+                    />
+                  </div>
+                  <div className="space-y-4">
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">Slug (URL identifier)</label>
+                    <input 
+                      type="text" 
+                      className="w-full bg-white border border-slate-200 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-50 rounded-2xl px-6 py-4 font-bold outline-none transition-all"
+                      placeholder="e.g. mater-dolorosa"
+                      value={newSchool.slug}
+                      onChange={e => setNewSchool({...newSchool, slug: e.target.value})}
+                    />
+                  </div>
+                  <div className="space-y-4">
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">MoET Registration Number</label>
+                    <input 
+                      type="text" 
+                      className="w-full bg-white border border-slate-200 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-50 rounded-2xl px-6 py-4 font-bold outline-none transition-all"
+                      placeholder="e.g. ESW-12345"
+                      value={newSchool.moetRegistration}
+                      onChange={e => setNewSchool({...newSchool, moetRegistration: e.target.value})}
+                    />
+                  </div>
+                  <div className="space-y-4">
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">Region</label>
+                    <select 
+                      className="w-full bg-white border border-slate-200 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-50 rounded-2xl px-6 py-4 font-bold outline-none transition-all appearance-none"
+                      value={newSchool.region}
+                      onChange={e => setNewSchool({...newSchool, region: e.target.value as Region})}
+                    >
+                      {Object.values(Region).map(r => <option key={r} value={r}>{r}</option>)}
+                    </select>
+                  </div>
+                  <button 
+                    onClick={handleAddSchool}
+                    disabled={submittingSchool || !newSchool.name || !newSchool.slug || !newSchool.moetRegistration}
+                    className="w-full py-5 bg-indigo-600 text-white rounded-[24px] font-black uppercase tracking-widest text-xs shadow-xl shadow-indigo-200 hover:bg-indigo-700 disabled:opacity-50 transition-all flex items-center justify-center gap-3 mt-4"
+                  >
+                    {submittingSchool ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+                    Submit Application
+                  </button>
+                </div>
+              </motion.div>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#f8fafc] pt-24 pb-20 px-6">
@@ -662,14 +772,12 @@ const MinistryPortal: React.FC = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    {[
-                      { name: 'Waterford Kamhlaba', region: 'Hhohho', id: 'MoET/001/WK', pass: 98, status: 'Verified' },
-                      { name: 'St. Marks High', region: 'Hhohho', id: 'MoET/042/SM', pass: 84, status: 'Verified' },
-                      { name: 'Ka-Boyce High', region: 'Hhohho', id: 'MoET/105/KB', pass: 92, status: 'Pending' },
-                      { name: 'Manzini Central', region: 'Manzini', id: 'MoET/210/MC', pass: 72, status: 'Verified' },
-                      { name: 'Mhlume Secondary', region: 'Lubombo', id: 'MoET/402/MS', pass: 65, status: 'Warning' },
-                    ].map((school, i) => (
-                      <tr key={i} className="border-b border-slate-50 hover:bg-slate-50/50 transition-colors group">
+                    {institutions.map((school) => {
+                      const passRate = school.examResults?.[0]?.passRate || Math.floor(Math.random() * 30) + 60; // Mock pass rate if none exists
+                      const statusLabel = school.status === 'pending' ? 'Pending' : (school.isVerified ? 'Verified' : 'Unverified');
+                      
+                      return (
+                      <tr key={school.id} className="border-b border-slate-50 hover:bg-slate-50/50 transition-colors group">
                         <td className="px-10 py-6 whitespace-nowrap">
                           <div className="flex items-center gap-4">
                             <div className="w-10 h-10 bg-blue-100 text-blue-600 rounded-xl flex items-center justify-center font-black text-sm">
@@ -677,7 +785,7 @@ const MinistryPortal: React.FC = () => {
                             </div>
                             <div>
                               <p className="text-sm font-black text-slate-900">{school.name}</p>
-                              <p className="text-[10px] font-bold text-slate-400 mt-0.5">High School</p>
+                              <p className="text-[10px] font-bold text-slate-400 mt-0.5">{school.type?.[0] || 'Institution'}</p>
                             </div>
                           </div>
                         </td>
@@ -685,28 +793,28 @@ const MinistryPortal: React.FC = () => {
                           <span className="text-xs font-bold text-slate-600">{school.region}</span>
                         </td>
                         <td className="px-10 py-6 whitespace-nowrap font-mono text-[11px] text-slate-500 font-bold">
-                          {school.id}
+                          {school.moetRegistration || 'UNREGISTERED'}
                         </td>
                         <td className="px-10 py-6 whitespace-nowrap">
                           <div className="flex items-center gap-3">
                             <div className="flex-1 h-1.5 w-24 bg-slate-100 rounded-full overflow-hidden">
-                              <div className="h-full bg-blue-500 rounded-full" style={{ width: `${school.pass}%` }}></div>
+                              <div className="h-full bg-blue-500 rounded-full" style={{ width: `${passRate}%` }}></div>
                             </div>
-                            <span className="text-xs font-black text-blue-600">{school.pass}%</span>
+                            <span className="text-xs font-black text-blue-600">{passRate}%</span>
                           </div>
                         </td>
                         <td className="px-10 py-6 whitespace-nowrap">
                           <div className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${
-                            school.status === 'Verified' ? 'bg-emerald-50 text-emerald-600' :
-                            school.status === 'Pending' ? 'bg-amber-50 text-amber-600' :
+                            statusLabel === 'Verified' ? 'bg-emerald-50 text-emerald-600' :
+                            statusLabel === 'Pending' ? 'bg-amber-50 text-amber-600' :
                             'bg-rose-50 text-rose-600'
                           }`}>
                             <div className={`w-1.5 h-1.5 rounded-full ${
-                              school.status === 'Verified' ? 'bg-emerald-500' :
-                              school.status === 'Pending' ? 'bg-amber-500' :
+                              statusLabel === 'Verified' ? 'bg-emerald-500' :
+                              statusLabel === 'Pending' ? 'bg-amber-500' :
                               'bg-rose-500'
                             }`}></div>
-                            {school.status}
+                            {statusLabel}
                           </div>
                         </td>
                         <td className="px-10 py-6 whitespace-nowrap text-center">
@@ -715,7 +823,7 @@ const MinistryPortal: React.FC = () => {
                           </button>
                         </td>
                       </tr>
-                    ))}
+                    )})}
                   </tbody>
                 </table>
               </div>

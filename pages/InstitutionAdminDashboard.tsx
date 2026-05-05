@@ -1,6 +1,6 @@
 
 import React, { useState, useRef } from 'react';
-import { Institution, User, Region, SubscriptionPlan, AcademicDepartment, AcademicProgram, BannerAd as BannerAdType, BlogPost, EventItem } from '../types';
+import { Institution, User, Region, SubscriptionPlan, AcademicDepartment, AcademicProgram, BannerAd as BannerAdType, BlogPost, EventItem, InstitutionType } from '../types';
 import { GoogleGenAI } from "@google/genai";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, LineChart, Line, CartesianGrid } from 'recharts';
 import SubscriptionPlans from '../src/components/SubscriptionPlans';
@@ -93,21 +93,24 @@ const InstitutionAdminDashboard: React.FC<InstitutionAdminDashboardProps> = ({ u
     }
   };
 
+  const isTertiary = inst.type.includes(InstitutionType.TERTIARY);
+  const isPrimary = inst.type.includes(InstitutionType.PRIMARY);
+
   const tabs = [
     { id: 'identity', label: 'Identity', icon: '🆔' },
     { id: 'theme', label: 'Appearance', icon: '✨' },
     { id: 'sections', label: 'Site Modules', icon: '🎨' },
     { id: 'media', label: 'Media Manager', icon: <ImageIcon className="w-5 h-5" /> },
-    { id: 'academic', label: 'Academic Tools', icon: '📅' },
-    { id: 'academicsContent', label: 'Academics Content', icon: '📝' },
+    { id: 'academic', label: isTertiary ? 'Academic Systems' : isPrimary ? 'Classroom Tools' : 'Academic Tools', icon: '📅' },
+    { id: 'academicsContent', label: isTertiary ? 'Faculties & Degrees' : isPrimary ? 'Grades & Phases' : 'Academics Content', icon: '📝' },
     { id: 'timetabling', label: 'AI Timetable', icon: <Calendar className="w-5 h-5" /> },
-    { id: 'staff', label: 'Staff Room', icon: <Users className="w-5 h-5" /> },
-    { id: 'inventory', label: 'Inventory', icon: <Package className="w-5 h-5" /> },
+    { id: 'staff', label: isTertiary ? 'Faculty Registry' : isPrimary ? 'Teacher Directory' : 'Staff Room', icon: <Users className="w-5 h-5" /> },
+    { id: 'inventory', label: isTertiary ? 'Asset Registry' : isPrimary ? 'Supply Tracker' : 'Inventory', icon: <Package className="w-5 h-5" /> },
     { id: 'health', label: 'Wellness Ledger', icon: <Stethoscope className="w-5 h-5" /> },
-    { id: 'logistics', label: 'Trip Planner', icon: <Bus className="w-5 h-5" /> },
+    { id: 'logistics', label: isTertiary ? 'Field Research' : isPrimary ? 'Excursions' : 'Trip Planner', icon: <Bus className="w-5 h-5" /> },
     { id: 'benchmarking', label: 'Peer Benchmarking', icon: <BarChart2 className="w-5 h-5" /> },
-    { id: 'alumni', label: 'Alumni Portal', icon: <GraduationCap className="w-5 h-5" /> },
-    { id: 'students', label: 'Student Records', icon: <Users className="w-5 h-5 text-indigo-600" /> },
+    { id: 'alumni', label: isTertiary ? 'Alumni Network' : 'Alumni Portal', icon: <GraduationCap className="w-5 h-5" /> },
+    { id: 'students', label: isTertiary ? 'Student Enrollment' : isPrimary ? 'Pupil Registry' : 'Student Records', icon: <Users className="w-5 h-5 text-indigo-600" /> },
     { id: 'news', label: 'News & Media', icon: <Newspaper className="w-5 h-5" /> },
     { id: 'marketing', label: 'Marketing Hub', icon: <Megaphone className="w-5 h-5" /> },
     { id: 'finance', label: 'Finance Hub', icon: '💳' },
@@ -450,7 +453,9 @@ const InstitutionAdminDashboard: React.FC<InstitutionAdminDashboardProps> = ({ u
             {activeTab === 'academic' && (
               <div className="bg-white p-10 rounded-[40px] border border-slate-100 shadow-sm space-y-12 animate-in fade-in">
                 <section>
-                  <h3 className="text-xl font-black text-slate-900 mb-8 flex items-center gap-3">📅 Academic Management Tools</h3>
+                  <h3 className="text-xl font-black text-slate-900 mb-8 flex items-center gap-3">
+                    📅 {isTertiary ? 'Institutional Systems' : isPrimary ? 'Classroom Management' : 'Academic Management Tools'}
+                  </h3>
                   <p className="text-sm text-slate-500 mb-8">Enable or disable advanced academic tools for your institution.</p>
                   
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -505,8 +510,12 @@ const InstitutionAdminDashboard: React.FC<InstitutionAdminDashboardProps> = ({ u
                 <section>
                   <div className="flex justify-between items-center mb-8">
                     <div>
-                      <h3 className="text-xl font-black text-slate-900 flex items-center gap-3">👩‍🏫 Digital Staff Room</h3>
-                      <p className="text-sm text-slate-500 mt-1">Manage TSC-posted and private teachers, track loads and subjects.</p>
+                      <h3 className="text-xl font-black text-slate-900 flex items-center gap-3">
+                        👩‍🏫 {isTertiary ? 'Faculty Research & Office' : isPrimary ? 'Teacher Resource Center' : 'Digital Staff Room'}
+                      </h3>
+                      <p className="text-sm text-slate-500 mt-1">
+                        {isTertiary ? 'Manage faculty members, research loads, and departmental assignments.' : isPrimary ? 'Manage primary school educators, grade leads, and extracurricular staff.' : 'Manage TSC-posted and private teachers, track loads and subjects.'}
+                      </p>
                     </div>
                     <button 
                       onClick={() => {
@@ -539,8 +548,8 @@ const InstitutionAdminDashboard: React.FC<InstitutionAdminDashboardProps> = ({ u
                       <thead>
                         <tr className="border-b border-slate-100">
                           <th className="pb-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Name & Email</th>
-                          <th className="pb-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Type</th>
-                          <th className="pb-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Load (Hrs)</th>
+                          <th className="pb-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">{isTertiary ? 'Employment Type' : 'Type'}</th>
+                          <th className="pb-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">{isTertiary ? 'Research Load' : 'Load (Hrs)'}</th>
                           <th className="pb-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Subjects</th>
                           <th className="pb-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Action</th>
                         </tr>
@@ -647,8 +656,12 @@ const InstitutionAdminDashboard: React.FC<InstitutionAdminDashboardProps> = ({ u
                 <section>
                   <div className="flex justify-between items-center mb-8">
                     <div>
-                      <h3 className="text-xl font-black text-slate-900 flex items-center gap-3">👥 Student Management</h3>
-                      <p className="text-sm text-slate-500 mt-1">Manage official student records and link parent accounts.</p>
+                      <h3 className="text-xl font-black text-slate-900 flex items-center gap-3">
+                        👥 {isTertiary ? 'Student Enrollment & Records' : isPrimary ? 'Pupil Registry' : 'Student Management'}
+                      </h3>
+                      <p className="text-sm text-slate-500 mt-1">
+                        {isTertiary ? 'Oversee academic transcripts, module registrations, and official student files.' : isPrimary ? 'Manage young learner profiles, parent connections, and foundation phase records.' : 'Manage official student records and link parent accounts.'}
+                      </p>
                     </div>
                     <button 
                       onClick={() => {
@@ -678,9 +691,9 @@ const InstitutionAdminDashboard: React.FC<InstitutionAdminDashboardProps> = ({ u
                     <table className="w-full">
                       <thead>
                         <tr className="border-b border-slate-100 text-left">
-                          <th className="pb-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Student Details</th>
-                          <th className="pb-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Grade/Class</th>
-                          <th className="pb-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Parent Emails</th>
+                          <th className="pb-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Full Name</th>
+                          <th className="pb-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">{isTertiary ? 'Faculty / Year' : isPrimary ? 'Grade / Phase' : 'Grade / Stream'}</th>
+                          <th className="pb-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Guardian Links</th>
                           <th className="pb-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Actions</th>
                         </tr>
                       </thead>
@@ -766,8 +779,12 @@ const InstitutionAdminDashboard: React.FC<InstitutionAdminDashboardProps> = ({ u
                 <section>
                   <div className="flex justify-between items-center mb-8">
                     <div>
-                      <h3 className="text-xl font-black text-slate-900 flex items-center gap-3">📦 Asset & Textbook Management</h3>
-                      <p className="text-sm text-slate-500 mt-1">Track textbook issuance and school physical assets.</p>
+                      <h3 className="text-xl font-black text-slate-900 flex items-center gap-3">
+                        📦 {isTertiary ? 'Asset & Resource Registry' : isPrimary ? 'Supplies & Equipment' : 'Asset & Textbook Management'}
+                      </h3>
+                      <p className="text-sm text-slate-500 mt-1">
+                        {isTertiary ? 'Track laboratory equipment, campus facilities, and research materials.' : isPrimary ? 'Monitor classroom supplies, sports equipment, and learning aids.' : 'Track textbook issuance and school physical assets.'}
+                      </p>
                     </div>
                     <div className="flex gap-4">
                       <button className="bg-white border border-slate-200 text-slate-700 px-6 py-3 rounded-2xl font-black uppercase tracking-widest text-[10px] flex items-center gap-2">
@@ -1358,8 +1375,12 @@ const InstitutionAdminDashboard: React.FC<InstitutionAdminDashboardProps> = ({ u
                 <section>
                   <div className="flex justify-between items-center mb-8">
                     <div>
-                      <h3 className="text-xl font-black text-slate-900 flex items-center gap-3">📅 School Events & Calendar</h3>
-                      <p className="text-sm text-slate-500 mt-1">Manage sports days, exam periods, and cultural festivals.</p>
+                      <h3 className="text-xl font-black text-slate-900 flex items-center gap-3">
+                        📅 {isTertiary ? 'Academic Calendar & Symposia' : isPrimary ? 'School Life Calendar' : 'School Events & Calendar'}
+                      </h3>
+                      <p className="text-sm text-slate-500 mt-1">
+                        {isTertiary ? 'Manage lecture series, exam periods, and graduation ceremonies.' : isPrimary ? 'Coordinate assembly dates, fun days, and foundation phase events.' : 'Manage sports days, exam periods, and cultural festivals.'}
+                      </p>
                     </div>
                     <button 
                       onClick={() => {
@@ -1371,8 +1392,10 @@ const InstitutionAdminDashboard: React.FC<InstitutionAdminDashboardProps> = ({ u
                           time: '08:00 AM',
                           location: 'School Hall',
                           organizer: inst.name,
+                          host: inst.name,
                           description: 'Description of the event goes here...',
-                          registrationRequired: false
+                          registrationRequired: false,
+                          mediaUrl: ''
                         };
                         const updatedEvents = [newEvent, ...(inst.sections.news.events || [])];
                         updateSectionField('news', 'events', updatedEvents);
@@ -1383,99 +1406,171 @@ const InstitutionAdminDashboard: React.FC<InstitutionAdminDashboardProps> = ({ u
                     </button>
                   </div>
 
-                  <div className="space-y-4">
+                  <div className="space-y-6">
                     {(inst.sections.news.events || []).map((event, index) => (
-                      <div key={event.id} className="p-6 bg-slate-50 rounded-3xl border border-slate-100 flex flex-col md:flex-row gap-6 items-start md:items-center">
-                        <div className="flex-1 space-y-4 w-full">
-                           <div className="flex flex-col md:flex-row gap-4">
-                              <input 
-                                className="bg-transparent border-none text-base font-black text-slate-900 flex-1 focus:ring-0 p-0"
-                                value={event.title}
-                                onChange={(e) => {
-                                  const newEvents = [...inst.sections.news.events];
-                                  newEvents[index] = { ...event, title: e.target.value };
-                                  updateSectionField('news', 'events', newEvents);
-                                }}
-                                placeholder="Event Title"
-                              />
-                              <div className="flex gap-2">
-                                <div className="flex items-center gap-2 bg-white px-3 py-1.5 rounded-xl border border-slate-200">
-                                   <Calendar className="w-3 h-3 text-slate-400" />
-                                   <input 
-                                     type="date"
-                                     className="bg-transparent border-none p-0 text-[10px] font-black uppercase text-slate-600 focus:ring-0"
-                                     value={event.date}
-                                     onChange={(e) => {
-                                       const newEvents = [...inst.sections.news.events];
-                                       newEvents[index] = { ...event, date: e.target.value };
-                                       updateSectionField('news', 'events', newEvents);
-                                     }}
-                                   />
-                                </div>
-                                <div className="flex items-center gap-2 bg-white px-3 py-1.5 rounded-xl border border-slate-200">
-                                   <MapPin className="w-3 h-3 text-slate-400" />
-                                   <input 
-                                     className="bg-transparent border-none p-0 text-[10px] font-black uppercase text-slate-600 focus:ring-0 w-24"
-                                     value={event.location}
-                                     onChange={(e) => {
-                                       const newEvents = [...inst.sections.news.events];
-                                       newEvents[index] = { ...event, location: e.target.value };
-                                       updateSectionField('news', 'events', newEvents);
-                                     }}
-                                     placeholder="Location"
-                                   />
-                                </div>
-                                <div className="flex items-center gap-2 bg-white px-3 py-1.5 rounded-xl border border-slate-200">
-                                   <input 
-                                     type="time"
-                                     className="bg-transparent border-none p-0 text-[10px] font-black uppercase text-slate-600 focus:ring-0"
-                                     value={event.time}
-                                     onChange={(e) => {
-                                       const newEvents = [...inst.sections.news.events];
-                                       newEvents[index] = { ...event, time: e.target.value };
-                                       updateSectionField('news', 'events', newEvents);
-                                     }}
-                                   />
-                                </div>
-                                <select 
-                                  className="bg-white px-3 py-1.5 rounded-xl border border-slate-200 text-[10px] font-black uppercase text-slate-600 focus:ring-indigo-500"
-                                  value={event.type}
-                                  onChange={(e) => {
-                                    const newEvents = [...inst.sections.news.events];
-                                    newEvents[index] = { ...event, type: e.target.value as any };
-                                    updateSectionField('news', 'events', newEvents);
-                                  }}
-                                >
-                                  <option value="Academic">Academic</option>
-                                  <option value="Sports">Sports</option>
-                                  <option value="Cultural">Cultural</option>
-                                  <option value="Meeting">Meeting</option>
-                                </select>
-                                <label className="flex items-center gap-2 bg-white px-3 py-1.5 rounded-xl border border-slate-200 cursor-pointer">
+                      <div key={event.id} className="p-8 bg-slate-50 rounded-[40px] border border-slate-100 flex flex-col gap-6">
+                        <div className="flex-1 space-y-6 w-full">
+                           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                              <div className="space-y-4">
+                                <div>
+                                  <label className="block text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1 ml-1">Event Title</label>
                                   <input 
-                                    type="checkbox"
-                                    className="w-3 h-3 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500"
-                                    checked={event.isPast || false}
+                                    className="w-full bg-white border border-slate-200 rounded-2xl px-5 py-3 text-sm font-black text-slate-900 focus:ring-2 focus:ring-indigo-500/20 outline-none transition-all"
+                                    value={event.title}
                                     onChange={(e) => {
                                       const newEvents = [...inst.sections.news.events];
-                                      newEvents[index] = { ...event, isPast: e.target.checked };
+                                      newEvents[index] = { ...event, title: e.target.value };
                                       updateSectionField('news', 'events', newEvents);
                                     }}
+                                    placeholder="e.g., Annual Sports Day 2024"
                                   />
-                                  <span className="text-[10px] font-black uppercase text-slate-600">Past</span>
-                                </label>
+                                </div>
+                                
+                                <div className="grid grid-cols-2 gap-4">
+                                  <div>
+                                    <label className="block text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1 ml-1">Date</label>
+                                    <div className="flex items-center gap-2 bg-white px-4 py-3 rounded-2xl border border-slate-200">
+                                       <Calendar className="w-4 h-4 text-slate-400" />
+                                       <input 
+                                         type="date"
+                                         className="bg-transparent border-none p-0 text-xs font-bold text-slate-600 focus:ring-0 w-full"
+                                         value={event.date}
+                                         onChange={(e) => {
+                                           const newEvents = [...inst.sections.news.events];
+                                           newEvents[index] = { ...event, date: e.target.value };
+                                           updateSectionField('news', 'events', newEvents);
+                                         }}
+                                       />
+                                    </div>
+                                  </div>
+                                  <div>
+                                    <label className="block text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1 ml-1">Time</label>
+                                    <div className="flex items-center gap-2 bg-white px-4 py-3 rounded-2xl border border-slate-200">
+                                       <input 
+                                         type="time"
+                                         className="bg-transparent border-none p-0 text-xs font-bold text-slate-600 focus:ring-0 w-full"
+                                         value={event.time}
+                                         onChange={(e) => {
+                                           const newEvents = [...inst.sections.news.events];
+                                           newEvents[index] = { ...event, time: e.target.value };
+                                           updateSectionField('news', 'events', newEvents);
+                                         }}
+                                       />
+                                    </div>
+                                  </div>
+                                </div>
+
+                                <div className="grid grid-cols-2 gap-4">
+                                  <div>
+                                    <label className="block text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1 ml-1">Location</label>
+                                    <div className="flex items-center gap-2 bg-white px-4 py-3 rounded-2xl border border-slate-200">
+                                       <MapPin className="w-4 h-4 text-slate-400" />
+                                       <input 
+                                         className="bg-transparent border-none p-0 text-xs font-bold text-slate-600 focus:ring-0 w-full"
+                                         value={event.location}
+                                         onChange={(e) => {
+                                           const newEvents = [...inst.sections.news.events];
+                                           newEvents[index] = { ...event, location: e.target.value };
+                                           updateSectionField('news', 'events', newEvents);
+                                         }}
+                                         placeholder="e.g. School Hall"
+                                       />
+                                    </div>
+                                  </div>
+                                  <div>
+                                    <label className="block text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1 ml-1">Event Type</label>
+                                    <select 
+                                      className="w-full bg-white px-4 py-3 rounded-2xl border border-slate-200 text-xs font-bold text-slate-600 focus:ring-2 focus:ring-indigo-500/20 outline-none"
+                                      value={event.type}
+                                      onChange={(e) => {
+                                        const newEvents = [...inst.sections.news.events];
+                                        newEvents[index] = { ...event, type: e.target.value as any };
+                                        updateSectionField('news', 'events', newEvents);
+                                      }}
+                                    >
+                                      <option value="Academic">Academic</option>
+                                      <option value="Sports">Sports</option>
+                                      <option value="Cultural">Cultural</option>
+                                      <option value="Meeting">Meeting</option>
+                                      <option value="Community">Community</option>
+                                    </select>
+                                  </div>
+                                </div>
+                              </div>
+
+                              <div className="space-y-4">
+                                <div>
+                                  <label className="block text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1 ml-1">Event Host/Organizer</label>
+                                  <input 
+                                    className="w-full bg-white border border-slate-200 rounded-2xl px-5 py-3 text-sm font-bold text-slate-700 focus:ring-2 focus:ring-indigo-500/20 outline-none"
+                                    value={event.host || event.organizer}
+                                    onChange={(e) => {
+                                      const newEvents = [...inst.sections.news.events];
+                                      newEvents[index] = { ...event, host: e.target.value, organizer: e.target.value };
+                                      updateSectionField('news', 'events', newEvents);
+                                    }}
+                                    placeholder="Host name"
+                                  />
+                                </div>
+
+                                <div>
+                                  <label className="block text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1 ml-1">Media URL (Optional)</label>
+                                  <div className="flex items-center gap-2 bg-white px-4 py-3 rounded-2xl border border-slate-200">
+                                     <ImageIcon className="w-4 h-4 text-slate-400" />
+                                     <input 
+                                       className="bg-transparent border-none p-0 text-xs font-bold text-slate-600 focus:ring-0 w-full"
+                                       value={event.mediaUrl || ''}
+                                       onChange={(e) => {
+                                         const newEvents = [...inst.sections.news.events];
+                                         newEvents[index] = { ...event, mediaUrl: e.target.value };
+                                         updateSectionField('news', 'events', newEvents);
+                                       }}
+                                       placeholder="https://..."
+                                     />
+                                  </div>
+                                </div>
+
+                                <div className="flex items-center gap-4">
+                                  <label className="flex items-center gap-3 bg-white px-5 py-3 rounded-2xl border border-slate-200 cursor-pointer flex-1 transition-all hover:bg-slate-50">
+                                    <input 
+                                      type="checkbox"
+                                      className="w-4 h-4 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500"
+                                      checked={event.isPast || false}
+                                      onChange={(e) => {
+                                        const newEvents = [...inst.sections.news.events];
+                                        newEvents[index] = { ...event, isPast: e.target.checked };
+                                        updateSectionField('news', 'events', newEvents);
+                                      }}
+                                    />
+                                    <span className="text-[10px] font-black uppercase text-slate-600 tracking-widest">Mark as Past Event</span>
+                                  </label>
+                                  <button 
+                                    onClick={() => {
+                                      const newEvents = inst.sections.news.events.filter(e => e.id !== event.id);
+                                      updateSectionField('news', 'events', newEvents);
+                                    }}
+                                    className="p-3 bg-rose-50 text-rose-500 rounded-2xl hover:bg-rose-100 transition-colors shadow-sm"
+                                  >
+                                    <Trash2 className="w-5 h-5" />
+                                  </button>
+                                </div>
                               </div>
                            </div>
+
+                           <div>
+                             <label className="block text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1 ml-1">Event Description</label>
+                             <textarea 
+                               className="w-full bg-white border border-slate-200 rounded-3xl px-5 py-4 text-xs font-medium text-slate-600 min-h-[100px] focus:ring-2 focus:ring-indigo-500/20 outline-none resize-none"
+                               value={event.description}
+                               onChange={(e) => {
+                                 const newEvents = [...inst.sections.news.events];
+                                 newEvents[index] = { ...event, description: e.target.value };
+                                 updateSectionField('news', 'events', newEvents);
+                               }}
+                               placeholder="Elaborate on the event details, objectives, and attendees..."
+                             />
+                           </div>
                         </div>
-                        <button 
-                          onClick={() => {
-                            const newEvents = inst.sections.news.events.filter(e => e.id !== event.id);
-                            updateSectionField('news', 'events', newEvents);
-                          }}
-                          className="text-slate-300 hover:text-rose-500 transition-colors"
-                        >
-                          <Trash2 className="w-5 h-5" />
-                        </button>
                       </div>
                     ))}
                   </div>
@@ -1544,8 +1639,12 @@ const InstitutionAdminDashboard: React.FC<InstitutionAdminDashboardProps> = ({ u
                 <section>
                   <div className="flex justify-between items-center mb-8">
                     <div>
-                      <h3 className="text-xl font-black text-slate-900 flex items-center gap-3">📊 Regional Peer-Benchmarking</h3>
-                      <p className="text-sm text-slate-500 mt-1">See how your school compares to the Manzini region average.</p>
+                      <h3 className="text-xl font-black text-slate-900 flex items-center gap-3">
+                        📊 {isTertiary ? 'Institutional Benchmarking' : isPrimary ? 'Primary Performance Metrics' : 'Regional Peer-Benchmarking'}
+                      </h3>
+                      <p className="text-sm text-slate-500 mt-1">
+                        {isTertiary ? 'Analyze research output and student success against international standards.' : isPrimary ? 'Compare foundational literacy and numeracy gains against regional norms.' : 'See how your school compares to the Manzini region average.'}
+                      </p>
                     </div>
                   </div>
 
@@ -1851,8 +1950,12 @@ const InstitutionAdminDashboard: React.FC<InstitutionAdminDashboardProps> = ({ u
                 <section>
                   <div className="flex justify-between items-center mb-8">
                     <div>
-                      <h3 className="text-xl font-black text-slate-900 flex items-center gap-3">🎓 Digital Alumni Portal</h3>
-                      <p className="text-sm text-slate-500 mt-1">Manage graduates and the "Digital Eswatini Passport" network.</p>
+                      <h3 className="text-xl font-black text-slate-900 flex items-center gap-3">
+                        🎓 {isTertiary ? 'Alumni Relations & Foundation' : 'Digital Alumni Portal'}
+                      </h3>
+                      <p className="text-sm text-slate-500 mt-1">
+                        {isTertiary ? 'Engage with graduates, manage endowment funds, and track career trajectories.' : 'Manage graduates and the "Digital Eswatini Passport" network.'}
+                      </p>
                     </div>
                   </div>
 

@@ -33,6 +33,9 @@ const BrowsePage: React.FC<BrowsePageProps> = ({
   const [isAiSearching, setIsAiSearching] = useState(false);
   const [aiSuggestions, setAiSuggestions] = useState<string[]>([]);
 
+  const [selectedPrograms, setSelectedPrograms] = useState<string[]>([]);
+  const [selectedDepartments, setSelectedDepartments] = useState<string[]>([]);
+
   const handleAiSearch = async () => {
     if (!aiQuery.trim()) return;
     setIsAiSearching(true);
@@ -78,7 +81,14 @@ const BrowsePage: React.FC<BrowsePageProps> = ({
         const matchesOwnership = selectedOwnership === 'All' || inst.type?.includes(selectedOwnership as InstitutionType);
         const matchesGender = selectedGender === 'All' || inst.metadata.gender === selectedGender;
         const matchesBoarding = !boardingOnly || inst.metadata.isBoarding;
-        return matchesRegion && matchesSearch && matchesType && matchesOwnership && matchesGender && matchesBoarding && inst.status === 'published';
+        
+        const instPrograms = inst.sections?.academics?.programs?.map(p => p.name) || [];
+        const matchesPrograms = selectedPrograms.length === 0 || selectedPrograms.some(p => instPrograms.includes(p));
+
+        const instDepartments = inst.sections?.academics?.departments?.map(d => d.name) || [];
+        const matchesDepartments = selectedDepartments.length === 0 || selectedDepartments.some(d => instDepartments.includes(d));
+
+        return matchesRegion && matchesSearch && matchesType && matchesOwnership && matchesGender && matchesBoarding && matchesPrograms && matchesDepartments && inst.status === 'published';
       })
       .sort((a, b) => {
         if (sortBy === 'featured') {
@@ -95,14 +105,30 @@ const BrowsePage: React.FC<BrowsePageProps> = ({
         }
         return 0;
       });
-  }, [institutions, region, searchTerm, selectedType, selectedOwnership, selectedGender, boardingOnly, aiSuggestions, sortBy]);
+  }, [institutions, region, searchTerm, selectedType, selectedOwnership, selectedGender, boardingOnly, aiSuggestions, sortBy, selectedPrograms, selectedDepartments]);
+
+  const availablePrograms = useMemo(() => {
+    const progs = new Set<string>();
+    institutions.forEach(inst => {
+      inst.sections?.academics?.programs?.forEach(p => Math.abs(p.name.length) && progs.add(p.name));
+    });
+    return Array.from(progs).sort();
+  }, [institutions]);
+
+  const availableDepartments = useMemo(() => {
+    const depts = new Set<string>();
+    institutions.forEach(inst => {
+      inst.sections?.academics?.departments?.forEach(d => Math.abs(d.name.length) && depts.add(d.name));
+    });
+    return Array.from(depts).sort();
+  }, [institutions]);
 
   const totalPages = Math.ceil(filteredInstitutions.length / itemsPerPage);
   const paginatedInstitutions = filteredInstitutions.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchTerm, region, selectedType, selectedOwnership, selectedGender, boardingOnly, aiSuggestions, sortBy]);
+  }, [searchTerm, region, selectedType, selectedOwnership, selectedGender, boardingOnly, aiSuggestions, sortBy, selectedPrograms, selectedDepartments]);
 
   if (!region) {
     return (
@@ -240,6 +266,48 @@ const BrowsePage: React.FC<BrowsePageProps> = ({
                      {['All', GenderType.MIXED, GenderType.BOYS, GenderType.GIRLS].map(g => (
                         <button key={g} onClick={() => setSelectedGender(g)} className={`px-3 py-2 rounded-lg text-[9px] font-black uppercase tracking-widest border transition-all ${selectedGender === g ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-white text-slate-400 hover:border-slate-300'}`}>{g}</button>
                      ))}
+                  </div>
+               </section>
+
+               <section className="space-y-4">
+                  <label className="text-[11px] font-black text-slate-900 uppercase tracking-widest">Departments</label>
+                  <div className="flex flex-col gap-2 max-h-48 overflow-y-auto pr-2">
+                     {availableDepartments.map(dept => (
+                        <label key={dept} className="flex items-center gap-3 p-2 hover:bg-slate-50 rounded-lg cursor-pointer transition-colors">
+                           <input 
+                             type="checkbox" 
+                             className="w-4 h-4 text-blue-600 rounded border-slate-300 focus:ring-blue-500"
+                             checked={selectedDepartments.includes(dept)}
+                             onChange={(e) => {
+                               if (e.target.checked) setSelectedDepartments([...selectedDepartments, dept]);
+                               else setSelectedDepartments(selectedDepartments.filter(d => d !== dept));
+                             }}
+                           />
+                           <span className="text-xs font-bold text-slate-700">{dept}</span>
+                        </label>
+                     ))}
+                     {availableDepartments.length === 0 && <span className="text-xs text-slate-400 font-medium">No departments found</span>}
+                  </div>
+               </section>
+
+               <section className="space-y-4">
+                  <label className="text-[11px] font-black text-slate-900 uppercase tracking-widest">Programs Offered</label>
+                  <div className="flex flex-col gap-2 max-h-48 overflow-y-auto pr-2">
+                     {availablePrograms.map(prog => (
+                        <label key={prog} className="flex items-center gap-3 p-2 hover:bg-slate-50 rounded-lg cursor-pointer transition-colors">
+                           <input 
+                             type="checkbox" 
+                             className="w-4 h-4 text-blue-600 rounded border-slate-300 focus:ring-blue-500"
+                             checked={selectedPrograms.includes(prog)}
+                             onChange={(e) => {
+                               if (e.target.checked) setSelectedPrograms([...selectedPrograms, prog]);
+                               else setSelectedPrograms(selectedPrograms.filter(p => p !== prog));
+                             }}
+                           />
+                           <span className="text-xs font-bold text-slate-700">{prog}</span>
+                        </label>
+                     ))}
+                     {availablePrograms.length === 0 && <span className="text-xs text-slate-400 font-medium">No programs found</span>}
                   </div>
                </section>
 
@@ -419,7 +487,7 @@ const BrowsePage: React.FC<BrowsePageProps> = ({
                 <div className="text-6xl">🔍</div>
                 <h3 className="text-2xl font-black text-slate-900">No schools match your search</h3>
                 <p className="text-slate-500 max-w-xs mx-auto text-sm font-medium">Try adjusting your filters or search for a different region.</p>
-                <button onClick={() => { setSearchTerm(''); onSelectRegion(null); setSelectedType('All'); }} className="text-blue-600 font-black uppercase tracking-widest text-xs">Reset Filters</button>
+                <button onClick={() => { setSearchTerm(''); onSelectRegion(null); setSelectedType('All'); setSelectedGender('All'); setSelectedOwnership('All'); setBoardingOnly(false); setSelectedPrograms([]); setSelectedDepartments([]); setAiSuggestions([]); }} className="text-blue-600 font-black uppercase tracking-widest text-xs">Reset Filters</button>
               </div>
             )}
           </main>

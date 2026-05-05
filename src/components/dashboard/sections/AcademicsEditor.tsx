@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Institution } from '../../../../types';
+import { Institution, InstitutionType } from '../../../../types';
 import { Download } from 'lucide-react';
 
 interface AcademicsEditorProps {
@@ -10,7 +10,24 @@ interface AcademicsEditorProps {
 
 const AcademicsEditor: React.FC<AcademicsEditorProps> = ({ institution, onUpdate }) => {
   const { academics } = institution.sections;
-  const [activeSubTab, setActiveSubTab] = useState<'overview' | 'departments' | 'programs' | 'staff' | 'calendar'>('overview');
+  const [activeSubTab, setActiveSubTab] = useState<'overview' | 'departments' | 'programs' | 'calendar' | 'performance'>('overview');
+
+  const isTertiary = institution.type === InstitutionType.TERTIARY;
+  const isPrimary = institution.type === InstitutionType.PRIMARY;
+  const isHighSchool = institution.type === InstitutionType.HIGH_SCHOOL;
+
+  const subTabs = ['overview', 'departments', 'programs', 'calendar', 'performance'] as const;
+  const currentSubTabs = isHighSchool ? [...subTabs, 'guidance'] : subTabs;
+
+  const getTabLabel = (tab: string) => {
+    switch(tab) {
+      case 'departments': return isTertiary ? 'Faculties & Departments' : isPrimary ? 'Grades / Phases' : 'Departments';
+      case 'programs': return isTertiary ? 'Degree Programs' : isPrimary ? 'Extracurriculars' : 'Programs';
+      case 'performance': return 'Performance';
+      case 'guidance': return 'Career & University Help';
+      default: return tab.charAt(0).toUpperCase() + tab.slice(1); // overview, calendar
+    }
+  };
 
   const updateField = (field: string, value: any) => {
     onUpdate({
@@ -26,17 +43,21 @@ const AcademicsEditor: React.FC<AcademicsEditorProps> = ({ institution, onUpdate
     <div className="space-y-10 animate-in fade-in slide-in-from-right-4">
       <header className="flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div>
-          <h3 className="text-xl font-black text-slate-900 uppercase tracking-tight">Academic Portal Builder</h3>
-          <p className="text-sm text-slate-500 font-medium">Manage departments, programs, and academic standards</p>
+          <h3 className="text-xl font-black text-slate-900 uppercase tracking-tight">
+            {isTertiary ? 'Institutional Academic Builder' : isPrimary ? 'Foundation Phase Builder' : 'Academic Portal Builder'}
+          </h3>
+          <p className="text-sm text-slate-500 font-medium">
+            {isTertiary ? 'Manage faculties, degrees, and faculty research settings.' : isPrimary ? 'Manage grades, learning areas, and simple schedules.' : 'Manage departments, programs, and academic standards'}
+          </p>
         </div>
         <div className="flex bg-slate-100 p-1.5 rounded-2xl overflow-x-auto no-scrollbar">
-          {(['overview', 'departments', 'programs', 'staff', 'calendar'] as const).map(tab => (
+          {currentSubTabs.map(tab => (
             <button 
               key={tab} 
-              onClick={() => setActiveSubTab(tab)}
+              onClick={() => setActiveSubTab(tab as any)}
               className={`px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${activeSubTab === tab ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
             >
-              {tab}
+              {getTabLabel(tab)}
             </button>
           ))}
         </div>
@@ -66,15 +87,93 @@ const AcademicsEditor: React.FC<AcademicsEditorProps> = ({ institution, onUpdate
             </div>
           )}
 
+          {activeSubTab === 'performance' && (
+            <div className="space-y-8 animate-in slide-in-from-left-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div className="group">
+                  <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Overall Pass Rate</label>
+                  <input 
+                    className="w-full bg-slate-50 border-2 border-transparent focus:border-blue-500 focus:bg-white rounded-2xl px-6 py-4 font-bold transition-all outline-none" 
+                    placeholder="e.g., 98%"
+                    value={academics.performance.passRate} 
+                    onChange={e => updateField('performance', { ...academics.performance, passRate: e.target.value })} 
+                  />
+                </div>
+                <div className="group">
+                  <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Ranking / Standing</label>
+                  <input 
+                    className="w-full bg-slate-50 border-2 border-transparent focus:border-blue-500 focus:bg-white rounded-2xl px-6 py-4 font-bold transition-all outline-none" 
+                    placeholder="e.g., Top 5 in Manzini"
+                    value={academics.performance.ranking} 
+                    onChange={e => updateField('performance', { ...academics.performance, ranking: e.target.value })} 
+                  />
+                </div>
+              </div>
+
+              <div className="group">
+                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Notable Distinctions</label>
+                <textarea 
+                  rows={4}
+                  className="w-full bg-slate-50 border-2 border-transparent focus:border-blue-500 focus:bg-white rounded-2xl px-6 py-4 font-medium transition-all outline-none resize-none" 
+                  placeholder="Summarize key academic achievements..."
+                  value={academics.performance.distinctions} 
+                  onChange={e => updateField('performance', { ...academics.performance, distinctions: e.target.value })} 
+                />
+              </div>
+
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Academic Awards</h4>
+                  <button 
+                    onClick={() => updateField('performance', {
+                      ...academics.performance,
+                      awards: [...academics.performance.awards, '']
+                    })}
+                    className="text-[10px] font-black text-blue-600 uppercase tracking-widest hover:underline"
+                  >
+                    + Add Award
+                  </button>
+                </div>
+                <div className="space-y-3">
+                  {academics.performance.awards.map((award, idx) => (
+                    <div key={idx} className="flex items-center gap-4">
+                      <input 
+                        className="flex-1 bg-slate-50 border border-slate-100 rounded-xl px-4 py-3 text-xs font-bold outline-none focus:border-blue-500" 
+                        placeholder="e.g., Science Fair Gold Medal 2023"
+                        value={award} 
+                        onChange={e => {
+                          const newAwards = [...academics.performance.awards];
+                          newAwards[idx] = e.target.value;
+                          updateField('performance', { ...academics.performance, awards: newAwards });
+                        }}
+                      />
+                      <button 
+                        onClick={() => {
+                          const newAwards = academics.performance.awards.filter((_, i) => i !== idx);
+                          updateField('performance', { ...academics.performance, awards: newAwards });
+                        }}
+                        className="text-rose-500 hover:text-rose-700 font-bold"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+
           {activeSubTab === 'departments' && (
             <div className="space-y-6 animate-in slide-in-from-left-4">
               <div className="flex items-center justify-between">
-                <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Departments List</h4>
+                <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                  {isTertiary ? 'Faculty List' : isPrimary ? 'Grades & Phases' : 'Departments List'}
+                </h4>
                 <button 
-                  onClick={() => updateField('departments', [...academics.departments, { id: Date.now(), name: 'New Department', head: '', overview: '', subjects: [], icon: '🎓' }])}
+                  onClick={() => updateField('departments', [...academics.departments, { id: Date.now(), name: isTertiary ? 'New Faculty' : isPrimary ? 'New Grade/Phase' : 'New Department', head: '', overview: '', subjects: [], icon: '🎓' }])}
                   className="text-[10px] font-black text-blue-600 uppercase tracking-widest hover:underline"
                 >
-                  + Add Department
+                  + Add {isTertiary ? 'Faculty' : isPrimary ? 'Grade/Phase' : 'Department'}
                 </button>
               </div>
               <div className="space-y-4">
@@ -99,12 +198,14 @@ const AcademicsEditor: React.FC<AcademicsEditorProps> = ({ institution, onUpdate
                       </button>
                     </div>
                     
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Head of Department</label>
+                        <label className="block text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">
+                          {isTertiary ? 'Dean / Head of Faculty' : 'Head of Department'}
+                        </label>
                         <input 
-                          className="w-full bg-white border rounded-xl px-4 py-2 text-xs font-bold" 
-                          placeholder="e.g., Dr. Jane Smith" 
+                          className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-xs font-bold outline-none focus:border-blue-500" 
+                          placeholder={isTertiary ? "e.g., Prof. Jane Smith" : "e.g., Dr. Jane Smith"} 
                           value={dept.head || ''} 
                           onChange={e => {
                             const newDepts = [...academics.departments];
@@ -114,22 +215,9 @@ const AcademicsEditor: React.FC<AcademicsEditorProps> = ({ institution, onUpdate
                         />
                       </div>
                       <div>
-                        <label className="block text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Subjects (Comma Separated)</label>
-                        <input 
-                          className="w-full bg-white border rounded-xl px-4 py-2 text-xs font-bold" 
-                          placeholder="e.g., Math, Science, English" 
-                          value={dept.subjects ? dept.subjects.join(', ') : ''} 
-                          onChange={e => {
-                            const newDepts = [...academics.departments];
-                            newDepts[idx].subjects = e.target.value.split(',').map(s => s.trim()).filter(Boolean);
-                            updateField('departments', newDepts);
-                          }}
-                        />
-                      </div>
-                      <div>
                         <label className="block text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Icon (Emoji)</label>
                         <input 
-                          className="w-full bg-white border rounded-xl px-4 py-2 text-xs font-bold" 
+                          className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-xs font-bold outline-none focus:border-blue-500" 
                           placeholder="e.g., 🎓" 
                           value={dept.icon || ''} 
                           onChange={e => {
@@ -140,12 +228,50 @@ const AcademicsEditor: React.FC<AcademicsEditorProps> = ({ institution, onUpdate
                         />
                       </div>
                     </div>
+
+                    <div>
+                      <label className="block text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2">Subjects Offered</label>
+                      <div className="flex flex-wrap gap-2 mb-2">
+                        {(dept.subjects || []).map(sub => (
+                          <span key={sub} className="px-3 py-1 bg-slate-100 text-slate-700 rounded-lg text-xs font-bold border border-slate-200 flex items-center gap-2">
+                            {sub}
+                            <button 
+                              onClick={() => {
+                                const newDepts = [...academics.departments];
+                                newDepts[idx].subjects = (dept.subjects || []).filter(s => s !== sub);
+                                updateField('departments', newDepts);
+                              }} 
+                              className="hover:text-rose-500 transition-colors"
+                            >
+                              ✕
+                            </button>
+                          </span>
+                        ))}
+                      </div>
+                      <input 
+                        className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-xs font-bold outline-none focus:border-blue-500"
+                        placeholder="Type a subject and press Enter (e.g. Mathematics)"
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            e.preventDefault();
+                            const input = e.currentTarget;
+                            const val = input.value.trim();
+                            if (val && !(dept.subjects || []).includes(val)) {
+                              const newDepts = [...academics.departments];
+                              newDepts[idx].subjects = [...(dept.subjects || []), val];
+                              updateField('departments', newDepts);
+                              input.value = '';
+                            }
+                          }
+                        }}
+                      />
+                    </div>
                     
                     <div>
                       <label className="block text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Department Overview</label>
                       <textarea
-                        rows={3}
-                        className="w-full bg-white border rounded-xl px-4 py-3 text-xs font-medium resize-none outline-none focus:border-blue-500"
+                        rows={4}
+                        className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-xs font-medium resize-none outline-none focus:border-blue-500"
                         placeholder="Provide a brief overview of the department..."
                         value={dept.overview || ''}
                         onChange={e => {
@@ -164,12 +290,14 @@ const AcademicsEditor: React.FC<AcademicsEditorProps> = ({ institution, onUpdate
           {activeSubTab === 'programs' && (
             <div className="space-y-6 animate-in slide-in-from-left-4">
               <div className="flex items-center justify-between">
-                <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest text-blue-600">Programs & Courses</h4>
+                <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest text-blue-600">
+                  {isTertiary ? 'Degree Programs' : isPrimary ? 'Extracurriculars' : 'Programs & Courses'}
+                </h4>
                 <button 
-                  onClick={() => updateField('programs', [...academics.programs, { id: Date.now().toString(), name: 'New Program', qualification: 'Undergraduate', duration: '4 Years', subjects: [], requirements: '', description: '', syllabusUrl: '' }])}
+                  onClick={() => updateField('programs', [...academics.programs, { id: Date.now().toString(), name: isTertiary ? 'New Degree Program' : isPrimary ? 'New Extracurricular' : 'New Program', qualification: isTertiary ? 'Undergraduate' : isPrimary ? 'Primary' : 'Secondary', duration: isTertiary ? '4 Years' : '1 Year', subjects: [], requirements: { academic: [], documents: [], additional: [] }, description: '', syllabusUrl: '' }])}
                   className="text-[10px] font-black text-blue-600 uppercase tracking-widest hover:underline"
                 >
-                  + Add Program
+                  + Add {isTertiary ? 'Program' : isPrimary ? 'Activity' : 'Program'}
                 </button>
               </div>
               <div className="space-y-4">
@@ -239,21 +367,60 @@ const AcademicsEditor: React.FC<AcademicsEditorProps> = ({ institution, onUpdate
                       />
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
+                      <div className="md:col-span-2">
                         <label className="block text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Entry Requirements</label>
-                        <textarea 
-                          rows={3}
-                          className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-xs font-medium outline-none focus:border-blue-500 resize-none" 
-                          placeholder="e.g. Pass in IGCSE with minimum 5 Cs" 
-                          value={prog.requirements || ''} 
-                          onChange={e => {
-                            const newProgs = [...academics.programs];
-                            newProgs[idx].requirements = e.target.value;
-                            updateField('programs', newProgs);
-                          }}
-                        />
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                          <div>
+                            <label className="block text-[9px] font-bold text-slate-500 mb-1">Academic (One per line)</label>
+                            <textarea 
+                              rows={3}
+                              className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-xs font-medium outline-none focus:border-blue-500 resize-none" 
+                              placeholder="e.g. Pass in IGCSE with minimum 5 Cs" 
+                              value={typeof prog.requirements === 'string' ? prog.requirements : (prog.requirements?.academic || []).join('\n')} 
+                              onChange={e => {
+                                const newProgs = [...academics.programs];
+                                const req = typeof newProgs[idx].requirements === 'string' ? { academic: [], documents: [], additional: [] } : (newProgs[idx].requirements || { academic: [], documents: [], additional: [] });
+                                req.academic = e.target.value.split('\n').filter(s => s.trim() !== '');
+                                newProgs[idx].requirements = req;
+                                updateField('programs', newProgs);
+                              }}
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-[9px] font-bold text-slate-500 mb-1">Required Documents</label>
+                            <textarea 
+                              rows={3}
+                              className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-xs font-medium outline-none focus:border-blue-500 resize-none" 
+                              placeholder="e.g. Birth certificate, Past reports" 
+                              value={typeof prog.requirements === 'string' ? '' : (prog.requirements?.documents || []).join('\n')} 
+                              onChange={e => {
+                                const newProgs = [...academics.programs];
+                                const req = typeof newProgs[idx].requirements === 'string' ? { academic: [newProgs[idx].requirements as string], documents: [], additional: [] } : (newProgs[idx].requirements || { academic: [], documents: [], additional: [] });
+                                req.documents = e.target.value.split('\n').filter(s => s.trim() !== '');
+                                newProgs[idx].requirements = req;
+                                updateField('programs', newProgs);
+                              }}
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-[9px] font-bold text-slate-500 mb-1">Additional Requirements</label>
+                            <textarea 
+                              rows={3}
+                              className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-xs font-medium outline-none focus:border-blue-500 resize-none" 
+                              placeholder="e.g. Entrance exam, Interview" 
+                              value={typeof prog.requirements === 'string' ? '' : (prog.requirements?.additional || []).join('\n')} 
+                              onChange={e => {
+                                const newProgs = [...academics.programs];
+                                const req = typeof newProgs[idx].requirements === 'string' ? { academic: [newProgs[idx].requirements as string], documents: [], additional: [] } : (newProgs[idx].requirements || { academic: [], documents: [], additional: [] });
+                                req.additional = e.target.value.split('\n').filter(s => s.trim() !== '');
+                                newProgs[idx].requirements = req;
+                                updateField('programs', newProgs);
+                              }}
+                            />
+                          </div>
+                        </div>
                       </div>
-                      <div className="flex flex-col gap-2">
+                      <div className="flex flex-col gap-2 md:col-span-2">
                         <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Syllabus URL</label>
                         <div className="flex items-center gap-3">
                           <input 
@@ -267,8 +434,8 @@ const AcademicsEditor: React.FC<AcademicsEditorProps> = ({ institution, onUpdate
                               updateField('programs', newProgs);
                             }}
                           />
-                          <label className="cursor-pointer bg-blue-50 text-blue-600 hover:bg-blue-100 flex-shrink-0 px-4 py-2 rounded-xl text-xs font-bold transition-colors">
-                            Upload File
+                          <label className="cursor-pointer bg-blue-100 text-blue-700 hover:bg-blue-200 border border-blue-200 flex-shrink-0 px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all shadow-sm flex items-center gap-2">
+                            <span className="text-blue-500">📄</span> Upload PDF
                             <input 
                               type="file" 
                               className="hidden" 
@@ -276,13 +443,12 @@ const AcademicsEditor: React.FC<AcademicsEditorProps> = ({ institution, onUpdate
                               onChange={e => {
                                 const file = e.target.files?.[0];
                                 if (file) {
-                                  const reader = new FileReader();
-                                  reader.onloadend = () => {
-                                    const newProgs = [...academics.programs];
-                                    newProgs[idx].syllabusUrl = reader.result as string;
-                                    updateField('programs', newProgs);
-                                  };
-                                  reader.readAsDataURL(file);
+                                  // Since we don't have a real storage backend, we simulate an upload
+                                  // For a real app, this would upload to Firebase Storage and return the download URL
+                                  const fakeUrl = `https://storage.schools.sz/pdf/${encodeURIComponent(file.name.replace(/\s+/g, '-'))}`;
+                                  const newProgs = [...academics.programs];
+                                  newProgs[idx].syllabusUrl = fakeUrl;
+                                  updateField('programs', newProgs);
                                 }
                               }}
                             />
@@ -313,127 +479,7 @@ const AcademicsEditor: React.FC<AcademicsEditorProps> = ({ institution, onUpdate
             </div>
           )}
 
-          {activeSubTab === 'staff' && (
-            <div className="space-y-6 animate-in slide-in-from-left-4">
-              <div className="flex items-center justify-between">
-                <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest text-blue-600">Academic Staff Profiles</h4>
-                <button 
-                  onClick={() => updateField('staff', {
-                    ...academics.staff, 
-                    profiles: [...(academics.staff.profiles || []), { id: Date.now().toString(), name: 'New Staff Member', role: 'Teacher', qualifications: '', professionalBackground: '', image: '' }]
-                  })}
-                  className="text-[10px] font-black text-blue-600 uppercase tracking-widest hover:underline"
-                >
-                  + Add Staff Profile
-                </button>
-              </div>
-              <div className="space-y-4">
-                {(academics.staff.profiles || []).map((profile, idx) => (
-                  <div key={profile.id} className="bg-slate-50 p-6 rounded-3xl border border-slate-100 space-y-4 relative group">
-                    <div className="flex justify-between items-center">
-                      <input 
-                        className="bg-transparent border-none font-black text-slate-900 p-0 focus:ring-0 text-lg w-full" 
-                        value={profile.name} 
-                        onChange={e => {
-                          const newProfiles = [...(academics.staff.profiles || [])];
-                          newProfiles[idx].name = e.target.value;
-                          updateField('staff', { ...academics.staff, profiles: newProfiles });
-                        }}
-                        placeholder="Staff Name"
-                      />
-                      <button 
-                        onClick={() => {
-                          const newProfiles = (academics.staff.profiles || []).filter((_, i) => i !== idx);
-                          updateField('staff', { ...academics.staff, profiles: newProfiles });
-                        }}
-                        className="text-rose-500 hover:text-rose-700 ml-4"
-                      >
-                        ✕
-                      </button>
-                    </div>
-                    <div className="grid grid-cols-1 gap-4">
-                      <div>
-                        <label className="block text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Role / Title</label>
-                        <input 
-                          className="w-full bg-white border border-slate-200 rounded-xl px-4 py-2 text-xs font-bold outline-none focus:border-blue-500" 
-                          placeholder="e.g. Senior Lecturer" 
-                          value={profile.role || ''} 
-                          onChange={e => {
-                            const newProfiles = [...(academics.staff.profiles || [])];
-                            newProfiles[idx].role = e.target.value;
-                            updateField('staff', { ...academics.staff, profiles: newProfiles });
-                          }}
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Qualifications</label>
-                        <input 
-                          className="w-full bg-white border border-slate-200 rounded-xl px-4 py-2 text-xs font-bold outline-none focus:border-blue-500" 
-                          placeholder="e.g. Ph.D. in Biology, M.Ed." 
-                          value={profile.qualifications || ''} 
-                          onChange={e => {
-                            const newProfiles = [...(academics.staff.profiles || [])];
-                            newProfiles[idx].qualifications = e.target.value;
-                            updateField('staff', { ...academics.staff, profiles: newProfiles });
-                          }}
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Staff Bio</label>
-                        <textarea 
-                          rows={3}
-                          className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-xs font-medium outline-none focus:border-blue-500 resize-none" 
-                          placeholder="Brief description of experience, awards, and specialties..." 
-                          value={profile.professionalBackground || ''} 
-                          onChange={e => {
-                            const newProfiles = [...(academics.staff.profiles || [])];
-                            newProfiles[idx].professionalBackground = e.target.value;
-                            updateField('staff', { ...academics.staff, profiles: newProfiles });
-                          }}
-                        />
-                      </div>
-                      <div className="flex flex-col gap-2">
-                          <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Profile Photo URL</label>
-                          <div className="flex items-center gap-3">
-                            <input 
-                              type="text" 
-                              className="flex-1 bg-white border border-slate-200 rounded-xl px-4 py-2 text-xs font-medium outline-none focus:border-blue-500" 
-                              placeholder="URL to photo (or upload file)" 
-                              value={profile.image || ''} 
-                              onChange={e => {
-                                const newProfiles = [...(academics.staff.profiles || [])];
-                                newProfiles[idx].image = e.target.value;
-                                updateField('staff', { ...academics.staff, profiles: newProfiles });
-                              }}
-                            />
-                            <label className="cursor-pointer bg-blue-50 text-blue-600 hover:bg-blue-100 flex-shrink-0 px-4 py-2 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-colors">
-                              Upload
-                              <input 
-                                type="file" 
-                                className="hidden" 
-                                accept="image/*"
-                                onChange={e => {
-                                  const file = e.target.files?.[0];
-                                  if (file) {
-                                    const reader = new FileReader();
-                                    reader.onloadend = () => {
-                                      const newProfiles = [...(academics.staff.profiles || [])];
-                                      newProfiles[idx].image = reader.result as string;
-                                      updateField('staff', { ...academics.staff, profiles: newProfiles });
-                                    };
-                                    reader.readAsDataURL(file);
-                                  }
-                                }}
-                              />
-                            </label>
-                          </div>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
+
 
           {activeSubTab === 'calendar' && (
             <div className="space-y-8 animate-in slide-in-from-left-4">
@@ -549,38 +595,47 @@ const AcademicsEditor: React.FC<AcademicsEditorProps> = ({ institution, onUpdate
                 <p className="text-slate-500 font-medium text-sm leading-relaxed">{academics.overview.introduction}</p>
               </div>
 
-              {activeSubTab === 'staff' && (
-                <div className="space-y-4 animate-in fade-in">
-                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Faculty & Staff</p>
-                  <div className="grid grid-cols-1 gap-4">
-                    {(academics.staff.profiles || []).map(profile => (
-                      <div key={profile.id} className="p-4 bg-slate-50 rounded-2xl border border-slate-100 flex items-center gap-4">
-                        <div className="w-12 h-12 rounded-xl overflow-hidden bg-white shrink-0 shadow-sm">
-                           {profile.image ? (
-                             <img src={profile.image} alt={profile.name} className="w-full h-full object-cover" />
-                           ) : (
-                             <div className="w-full h-full flex items-center justify-center bg-blue-50 text-blue-300 text-xl font-black">
-                               {profile.name.charAt(0)}
-                             </div>
-                           )}
-                        </div>
-                        <div className="overflow-hidden">
-                          <p className="text-sm font-black text-slate-900 truncate">{profile.name}</p>
-                          <p className="text-[9px] text-blue-600 font-black uppercase tracking-widest truncate">{profile.role}</p>
-                          <p className="text-[8px] text-slate-400 font-bold uppercase truncate">{profile.qualifications}</p>
+              {activeSubTab === 'performance' && (
+                <div className="space-y-4 animate-in fade-in py-4 border-t border-slate-100">
+                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Performance Metrics</p>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100">
+                       <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Pass Rate</p>
+                       <p className="text-lg font-black text-slate-900">{academics.performance.passRate || '--'}</p>
+                    </div>
+                    <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100">
+                       <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Ranking</p>
+                       <p className="text-lg font-black text-slate-900 truncate">{academics.performance.ranking || '--'}</p>
+                    </div>
+                  </div>
+                  <div className="pt-4 space-y-4">
+                    <div>
+                      <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2">Distinctions</p>
+                      <p className="text-xs text-slate-600 font-medium leading-relaxed italic">"{academics.performance.distinctions || 'No distinctions recorded.'}"</p>
+                    </div>
+                    {academics.performance.awards.length > 0 && (
+                      <div>
+                        <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2">Recent Awards</p>
+                        <div className="flex flex-wrap gap-2">
+                          {academics.performance.awards.map((award, i) => (
+                             <span key={i} className="px-3 py-1 bg-blue-50 text-blue-600 rounded-full text-[9px] font-black uppercase tracking-widest">
+                               🏆 {award}
+                             </span>
+                          ))}
                         </div>
                       </div>
-                    ))}
-                    {(academics.staff.profiles || []).length === 0 && (
-                      <div className="text-center py-10 opacity-30 text-slate-400 italic">No profiles added yet.</div>
                     )}
                   </div>
                 </div>
               )}
 
+
+
               {activeSubTab === 'departments' && (
                 <div className="space-y-4 animate-in fade-in">
-                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Academic Departments</p>
+                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                    {isTertiary ? 'Academic Faculties' : isPrimary ? 'Grades & Phases' : 'Academic Departments'}
+                  </p>
                   <div className="grid grid-cols-1 gap-4">
                     {academics.departments.map(dept => (
                       <div key={dept.id} className="p-5 bg-slate-50 rounded-3xl border border-slate-100 flex items-start gap-4">
@@ -598,7 +653,9 @@ const AcademicsEditor: React.FC<AcademicsEditorProps> = ({ institution, onUpdate
 
               {activeSubTab === 'programs' && (
                 <div className="space-y-4 animate-in fade-in">
-                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Available Programs</p>
+                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                    {isTertiary ? 'Degree Programs' : isPrimary ? 'Extracurriculars' : 'Available Programs'}
+                  </p>
                   <div className="space-y-4">
                     {academics.programs.map(prog => (
                       <div key={prog.id} className="p-6 bg-slate-50 rounded-3xl border-l-4 border-l-blue-600 space-y-3 shadow-sm transition-all hover:bg-slate-100">
@@ -615,7 +672,21 @@ const AcademicsEditor: React.FC<AcademicsEditorProps> = ({ institution, onUpdate
                            <p className="text-xs text-slate-600 font-medium line-clamp-2 italic">"{prog.description}"</p>
                            <div className="pt-2 border-t border-slate-200">
                               <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Entry Requirements</p>
-                              <p className="text-[10px] text-slate-700 font-bold">{prog.requirements}</p>
+                              {typeof prog.requirements === 'string' ? (
+                                <p className="text-[10px] text-slate-700 font-bold">{prog.requirements}</p>
+                              ) : (
+                                <ul className="list-disc pl-4 text-[10px] text-slate-700 font-bold">
+                                  {(prog.requirements?.academic || []).map((req, i) => <li key={`ac-${i}`}>{req}</li>)}
+                                  {(prog.requirements?.documents || []).length > 0 && 
+                                    <span className="text-[9px] text-slate-400 uppercase">Documents:</span>
+                                  }
+                                  {(prog.requirements?.documents || []).map((req, i) => <li key={`doc-${i}`}>{req}</li>)}
+                                  {(prog.requirements?.additional || []).length > 0 && 
+                                    <span className="text-[9px] text-slate-400 uppercase">Additional:</span>
+                                  }
+                                  {(prog.requirements?.additional || []).map((req, i) => <li key={`add-${i}`}>{req}</li>)}
+                                </ul>
+                              )}
                            </div>
                            {prog.syllabusUrl && (
                              <a 
@@ -660,6 +731,38 @@ const AcademicsEditor: React.FC<AcademicsEditorProps> = ({ institution, onUpdate
                         <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2">Holidays</p>
                         <p className="text-[11px] text-slate-800 font-medium leading-relaxed">{academics.calendar.holidays || 'TBD'}</p>
                       </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {activeSubTab === 'guidance' && isHighSchool && (
+                <div className="space-y-8 animate-in slide-in-from-left-4">
+                  <div className="bg-indigo-50 p-6 rounded-3xl border border-indigo-100 flex items-center gap-4">
+                    <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center shadow-sm">
+                      <Rocket className="w-6 h-6 text-indigo-600" />
+                    </div>
+                    <div>
+                      <h4 className="font-black text-slate-900">Career Guidance Hub</h4>
+                      <p className="text-xs text-slate-500 font-medium">Manage scholarship alerts and university links.</p>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 gap-6">
+                    <div className="group">
+                      <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Featured Scholarship</label>
+                      <input 
+                        className="w-full bg-slate-50 border-2 border-transparent focus:border-indigo-500 focus:bg-white rounded-2xl px-6 py-4 font-bold transition-all outline-none" 
+                        placeholder="e.g., Eswatini Government Open Scholarship 2026"
+                      />
+                    </div>
+                    <div className="group">
+                      <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Partner Universities</label>
+                      <textarea 
+                        rows={5}
+                        className="w-full bg-slate-50 border-2 border-transparent focus:border-indigo-500 focus:bg-white rounded-2xl px-6 py-4 font-medium text-sm transition-all outline-none resize-none" 
+                        placeholder="- University of Eswatini (UNESWA)&#10;- Limkokwing University"
+                      />
                     </div>
                   </div>
                 </div>
