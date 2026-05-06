@@ -16,7 +16,7 @@ const AcademicsEditor: React.FC<AcademicsEditorProps> = ({ institution, onUpdate
   const isPrimary = institution.type.includes(InstitutionType.PRIMARY);
   const isHighSchool = institution.type.includes(InstitutionType.HIGH_SCHOOL);
 
-  const subTabs = ['overview', 'departments', 'programs', 'calendar', 'performance'] as const;
+  const subTabs = ['overview', 'departments', 'programs', 'calendar', 'performance', 'faculty'] as const;
   const currentSubTabs = isHighSchool ? [...subTabs, 'guidance'] : subTabs;
 
   const getTabLabel = (tab: string) => {
@@ -25,6 +25,7 @@ const AcademicsEditor: React.FC<AcademicsEditorProps> = ({ institution, onUpdate
       case 'programs': return isTertiary ? 'Degree Programs' : isPrimary ? 'Extracurriculars' : 'Programs';
       case 'performance': return 'Performance';
       case 'guidance': return 'Career & University Help';
+      case 'faculty': return 'Faculty';
       default: return tab.charAt(0).toUpperCase() + tab.slice(1); // overview, calendar
     }
   };
@@ -281,6 +282,90 @@ const AcademicsEditor: React.FC<AcademicsEditorProps> = ({ institution, onUpdate
                         }}
                       />
                     </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {activeSubTab === 'faculty' && (
+            <div className="space-y-6 animate-in slide-in-from-left-4">
+              <div className="flex items-center justify-between">
+                <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Faculty Members</h4>
+                <button 
+                  onClick={() => updateField('faculty', [...(academics.faculty || []), { name: 'New Faculty Member', title: 'Teacher', qualifications: '', bio: '', photo: '' }])}
+                  className="text-[10px] font-black text-blue-600 uppercase tracking-widest hover:underline"
+                >
+                  + Add Faculty Member
+                </button>
+              </div>
+              <div className="space-y-4">
+                {(academics.faculty || []).map((f, idx) => (
+                  <div key={idx} className="bg-slate-50 p-6 rounded-3xl border border-slate-100 space-y-4 relative group">
+                    <div className="flex justify-between items-center">
+                      <input 
+                        className="bg-transparent border-none font-black text-slate-900 p-0 focus:ring-0 text-lg w-full" 
+                        value={f.name}
+                        onChange={e => {
+                          const newFaculty = [...(academics.faculty || [])];
+                          newFaculty[idx].name = e.target.value;
+                          updateField('faculty', newFaculty);
+                        }}
+                        placeholder="Name"
+                      />
+                      <button 
+                        onClick={() => {
+                          const newFaculty = (academics.faculty || []).filter((_, i) => i !== idx);
+                          updateField('faculty', newFaculty);
+                        }}
+                        className="text-rose-500 hover:text-rose-700 ml-4"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <input 
+                        className="w-full border-none rounded-xl px-4 py-3 text-xs font-bold outline-none focus:border-blue-500" 
+                        value={f.title}
+                        onChange={e => {
+                          const newFaculty = [...(academics.faculty || [])];
+                          newFaculty[idx].title = e.target.value;
+                          updateField('faculty', newFaculty);
+                        }}
+                        placeholder="Title"
+                      />
+                      <input 
+                        className="w-full border-none rounded-xl px-4 py-3 text-xs font-bold outline-none focus:border-blue-500" 
+                        value={f.qualifications}
+                        onChange={e => {
+                          const newFaculty = [...(academics.faculty || [])];
+                          newFaculty[idx].qualifications = e.target.value;
+                          updateField('faculty', newFaculty);
+                        }}
+                        placeholder="Qualifications"
+                      />
+                    </div>
+                    <textarea 
+                      className="w-full border-none rounded-xl px-4 py-3 text-xs font-medium outline-none focus:border-blue-500" 
+                      rows={3}
+                      value={f.bio}
+                      onChange={e => {
+                        const newFaculty = [...(academics.faculty || [])];
+                        newFaculty[idx].bio = e.target.value;
+                        updateField('faculty', newFaculty);
+                      }}
+                      placeholder="Biography"
+                    />
+                    <input 
+                      className="w-full border-none rounded-xl px-4 py-3 text-xs font-bold outline-none focus:border-blue-500" 
+                      value={f.photo || ''}
+                      onChange={e => {
+                        const newFaculty = [...(academics.faculty || [])];
+                        newFaculty[idx].photo = e.target.value;
+                        updateField('faculty', newFaculty);
+                      }}
+                      placeholder="Photo URL"
+                    />
                   </div>
                 ))}
               </div>

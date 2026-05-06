@@ -29,7 +29,7 @@ interface AcademicsSectionProps {
 }
 
 const AcademicsSection: React.FC<AcademicsSectionProps> = ({ academics, primaryColor, institutionType }) => {
-  const [activeTab, setActiveTab] = useState<'overview' | 'staff' | 'departments' | 'performance'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'staff' | 'departments' | 'performance' | 'faculty'>('overview');
   const [selectedDept, setSelectedDept] = useState<number | null>(null);
   const [selectedProgram, setSelectedProgram] = useState<string | null>(null);
 
@@ -43,6 +43,9 @@ const AcademicsSection: React.FC<AcademicsSectionProps> = ({ academics, primaryC
     if (id === 'staff') {
       return isTertiary ? 'Faculty' : isPrimary ? 'Teachers' : 'Staff';
     }
+    if (id === 'faculty') {
+      return 'Faculty Experts';
+    }
     return defaultLabel;
   };
 
@@ -50,6 +53,7 @@ const AcademicsSection: React.FC<AcademicsSectionProps> = ({ academics, primaryC
     { id: 'overview', label: 'Overview & Curriculum', icon: <BookOpen className="w-4 h-4" /> },
     { id: 'departments', label: `${getTabLabel('departments', 'Departments')} & Programs`, icon: <GraduationCap className="w-4 h-4" /> },
     { id: 'staff', label: `${getTabLabel('staff', 'Staff')} Profiles`, icon: <Users className="w-4 h-4" /> },
+    { id: 'faculty', label: getTabLabel('faculty', 'Faculty'), icon: <Users className="w-4 h-4" /> },
     { id: 'performance', label: 'Performance & Tools', icon: <Award className="w-4 h-4" /> },
   ] as const;
 
@@ -431,6 +435,25 @@ const AcademicsSection: React.FC<AcademicsSectionProps> = ({ academics, primaryC
                   ))}
                 </div>
               )}
+            </section>
+          )}
+
+          {activeTab === 'faculty' && (
+            <section className="space-y-16 animate-in fade-in transition-all duration-700">
+              <div className="text-center space-y-4">
+                <h3 className="text-5xl font-black text-slate-900 tracking-tight">Faculty Experts</h3>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                {(academics.faculty || []).map((f, idx) => (
+                  <div key={idx} className="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm space-y-4">
+                    {f.photo && <img src={f.photo} alt={f.name} className="w-24 h-24 rounded-full object-cover" />}
+                    <h4 className="text-xl font-black text-slate-900">{f.name}</h4>
+                    <p className="text-sm font-bold text-blue-600 uppercase tracking-widest">{f.title}</p>
+                    <p className="text-xs font-bold text-slate-500">{f.qualifications}</p>
+                    <p className="text-sm text-slate-600">{f.bio}</p>
+                  </div>
+                ))}
+              </div>
             </section>
           )}
 

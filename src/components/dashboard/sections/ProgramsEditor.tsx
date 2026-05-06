@@ -76,7 +76,20 @@ const ProgramsEditor: React.FC<ProgramsEditorProps> = ({ institution, onUpdate }
             </div>
           </div>
           <div>
-            <label className="block text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Brief Description</label>
+            <label className="block text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Entry Requirements</label>
+            <textarea 
+              rows={2}
+              className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-xs font-medium outline-none resize-none" 
+              value={typeof prog.requirements === 'string' ? prog.requirements : JSON.stringify(prog.requirements)}
+              onChange={e => {
+                const newProgs = [...academics.programs];
+                newProgs[idx].requirements = e.target.value;
+                updatePrograms(newProgs);
+              }}
+            />
+          </div>
+          <div>
+            <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-1">Brief Description</label>
             <textarea 
               rows={3}
               className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-xs font-medium outline-none resize-none" 

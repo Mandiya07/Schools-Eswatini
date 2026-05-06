@@ -22,7 +22,8 @@ const mockTutors = [
     level: 'Form 5 / EGCSE',
     hourlyRate: 150,
     image: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&q=80&w=400',
-    status: 'available'
+    status: 'available',
+    meetingLink: 'https://meet.google.com/abc-defg-hij'
   },
   {
     id: 'tutor-2',
@@ -34,7 +35,8 @@ const mockTutors = [
     level: 'Form 5 / IGCSE',
     hourlyRate: 200,
     image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=400',
-    status: 'busy'
+    status: 'busy',
+    meetingLink: 'https://zoom.us/j/123456789'
   },
   {
     id: 'tutor-3',
@@ -46,7 +48,8 @@ const mockTutors = [
     level: 'Form 3-5',
     hourlyRate: 180,
     image: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&q=80&w=400',
-    status: 'available'
+    status: 'available',
+    meetingLink: 'https://teams.microsoft.com/l/meetup-join/...'
   }
 ];
 
@@ -121,6 +124,7 @@ const TutoringMarketplace: React.FC = () => {
                     <div className="space-y-2 mb-6">
                         <p className="text-xs font-bold text-slate-500">Subjects: <span className="text-slate-900">{tutor.subjects.join(', ')}</span></p>
                         <p className="text-xs font-bold text-slate-500">Level: <span className="text-slate-900">{tutor.level}</span></p>
+                        <p className="text-xs font-bold text-slate-500">Meeting: <a href={tutor.meetingLink} target="_blank" rel="noopener noreferrer" className="text-indigo-600 hover:underline">Join Session</a></p>
                     </div>
 
                     <div className="mt-auto pt-6 border-t border-slate-100 flex items-center justify-between">

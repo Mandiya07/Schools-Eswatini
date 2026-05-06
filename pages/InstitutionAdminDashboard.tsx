@@ -24,7 +24,7 @@ interface InstitutionAdminDashboardProps {
 const InstitutionAdminDashboard: React.FC<InstitutionAdminDashboardProps> = ({ user, institutions, onUpdate, onAdd }) => {
   const inst = institutions.find(i => i.id === (user.institutionId || institutions.find(i => i.adminId === user.id)?.id));
   const { tasks, notifications, markNotificationAsRead } = useWorkflow();
-  const [activeTab, setActiveTab] = useState<'identity' | 'theme' | 'sections' | 'media' | 'seo' | 'plan' | 'security' | 'analytics' | 'compliance' | 'academic' | 'academicsContent' | 'finance' | 'ai' | 'workflows' | 'staff' | 'inventory' | 'timetabling' | 'health' | 'alumni' | 'logistics' | 'benchmarking' | 'marketing' | 'news' | 'monetization' | 'applications' | 'inbox'>('identity');
+  const [activeTab, setActiveTab] = useState<'identity' | 'theme' | 'sections' | 'media' | 'seo' | 'plan' | 'security' | 'analytics' | 'compliance' | 'academic' | 'academicsContent' | 'finance' | 'ai' | 'workflows' | 'staff' | 'inventory' | 'timetabling' | 'health' | 'alumni' | 'logistics' | 'benchmarking' | 'marketing' | 'news' | 'monetization' | 'applications' | 'inbox' | 'downloads'>('identity');
   const [showPreview, setShowPreview] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
 
@@ -100,6 +100,7 @@ const InstitutionAdminDashboard: React.FC<InstitutionAdminDashboardProps> = ({ u
     { id: 'identity', label: 'Identity', icon: '🆔' },
     { id: 'theme', label: 'Appearance', icon: '✨' },
     { id: 'sections', label: 'Site Modules', icon: '🎨' },
+    { id: 'downloads', label: 'Downloads', icon: <Download className="w-5 h-5" /> },
     { id: 'media', label: 'Media Manager', icon: <ImageIcon className="w-5 h-5" /> },
     { id: 'academic', label: isTertiary ? 'Academic Systems' : isPrimary ? 'Classroom Tools' : 'Academic Tools', icon: '📅' },
     { id: 'academicsContent', label: isTertiary ? 'Faculties & Degrees' : isPrimary ? 'Grades & Phases' : 'Academics Content', icon: '📝' },
@@ -443,6 +444,59 @@ const InstitutionAdminDashboard: React.FC<InstitutionAdminDashboardProps> = ({ u
                 institution={inst} 
                 onUpdate={handleUpdate} 
               />
+            )}
+            {activeTab === 'downloads' && (
+              <div className="bg-white p-10 rounded-[40px] border border-slate-100 shadow-sm space-y-12 animate-in fade-in">
+                <section>
+                  <h3 className="text-xl font-black text-slate-900 mb-8 flex items-center gap-3">⬇️ Institution Downloads</h3>
+                  <div className="space-y-6">
+                    {(inst.downloads || []).map((download, idx) => (
+                      <div key={idx} className="flex items-center justify-between bg-slate-50 p-6 rounded-2xl border border-slate-100">
+                        <div className="flex-1">
+                          <input 
+                            className="w-full bg-transparent border-none font-bold text-slate-900 p-0 focus:ring-0 mb-1"
+                            value={download.label}
+                            placeholder="Label (e.g. Prospectus 2024)"
+                            onChange={e => {
+                                const downloads = [...(inst.downloads || [])];
+                                downloads[idx].label = e.target.value;
+                                handleUpdate({ ...inst, downloads });
+                            }}
+                          />
+                          <input 
+                            className="w-full bg-transparent border-none text-xs text-slate-500 p-0 focus:ring-0"
+                            value={download.url}
+                            placeholder="URL (e.g. /docs/...) or link"
+                            onChange={e => {
+                                const downloads = [...(inst.downloads || [])];
+                                downloads[idx].url = e.target.value;
+                                handleUpdate({ ...inst, downloads });
+                            }}
+                          />
+                        </div>
+                        <button 
+                          onClick={() => {
+                              const downloads = (inst.downloads || []).filter((_, i) => i !== idx);
+                              handleUpdate({ ...inst, downloads });
+                          }}
+                          className="text-slate-400 hover:text-rose-500 ml-4"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    ))}
+                    <button 
+                      onClick={() => {
+                          const downloads = [...(inst.downloads || []), { label: 'New Document', url: '' }];
+                          handleUpdate({ ...inst, downloads });
+                      }}
+                      className="w-full py-4 border-2 border-dashed border-slate-200 rounded-2xl text-slate-500 font-bold uppercase tracking-widest text-xs flex items-center justify-center gap-2 hover:border-indigo-300 hover:text-indigo-600 transition-colors"
+                    >
+                      <Plus className="w-4 h-4" /> Add Download
+                    </button>
+                  </div>
+                </section>
+              </div>
             )}
             {activeTab === 'media' && (
               <div className="bg-white p-10 rounded-[40px] border border-slate-100 shadow-sm animate-in fade-in">

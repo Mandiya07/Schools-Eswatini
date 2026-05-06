@@ -50,6 +50,10 @@ export const MOCK_INSTITUTIONS: Institution[] = [
   {
     id: 'inst-1',
     name: 'Waterford Kamhlaba UWCSA',
+    downloads: [
+      { label: 'School Prospectus 2024', url: '/docs/prospectus.pdf' },
+      { label: 'School Policies', url: '/docs/policies.pdf' }
+    ],
     slug: 'waterford-kamhlaba',
     subdomain: 'waterford',
     logo: 'https://picsum.photos/seed/waterford/200/200',
@@ -86,6 +90,34 @@ export const MOCK_INSTITUTIONS: Institution[] = [
         active: true,
         startDate: '2024-01-01',
         endDate: '2024-12-31'
+      }
+    ],
+    alumni: [
+      {
+        id: 'alum-1',
+        name: 'Dr. Jane Smith',
+        graduationYear: 2010,
+        careerPath: 'Medicine',
+        expertise: ['Healthcare', 'Research', 'Pre-Med Advice'],
+        company: 'Mbabane Government Hospital',
+        role: 'Pediatrician',
+        photo: 'https://images.unsplash.com/photo-1559839734-2b71ea197ec2?auto=format&fit=crop&q=80&w=200&h=200',
+        bio: 'Passionate about improving pediatric care in Eswatini.',
+        isMentor: true,
+        contactUrl: 'mailto:jane.smith@example.com'
+      },
+      {
+        id: 'alum-2',
+        name: 'Michael Zwane',
+        graduationYear: 2015,
+        careerPath: 'Software Engineering',
+        expertise: ['Tech', 'Startups', 'Frontend Development'],
+        company: 'Tech Eswatini',
+        role: 'Senior Developer',
+        photo: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=200&h=200',
+        bio: 'Building digital solutions for the next generation of Africans.',
+        isMentor: true,
+        contactUrl: 'mailto:mike.z@example.com'
       }
     ],
     seo: {
@@ -617,6 +649,22 @@ export const MOCK_INSTITUTIONS: Institution[] = [
             }
           ]
         },
+        faculty: [
+          {
+            name: 'Dr. John Mamba',
+            title: 'Head of Sciences',
+            qualifications: 'PhD in Particle Physics, Stanford',
+            description: 'Dr. Mamba has over 15 years of experience in research and teaching. He previously worked at CERN and is passionate about making physics accessible to all students.',
+            photo: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=200&h=200'
+          },
+          {
+            name: 'Ms. Sarah Dlamini',
+            title: 'Head of Mathematics',
+            qualifications: 'MSc in Pure Mathematics, Oxford',
+            description: 'With a decade of experience in international education, Ms. Dlamini specializes in the IB Higher Level Mathematics curriculum.',
+            photo: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=200&h=200'
+          }
+        ],
         performance: {
           passRate: '98%',
           ranking: 'Top 5 in Southern Africa',

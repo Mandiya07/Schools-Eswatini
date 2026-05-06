@@ -340,6 +340,7 @@ export interface BannerAd {
 export interface Institution {
   id: string;
   name: string;
+  downloads?: { label: string; url: string }[];
   slug: string;
   subdomain?: string;
   logo: string;
@@ -379,6 +380,19 @@ export interface Institution {
   status: 'pending' | 'published' | 'suspended';
   seo: SEOMetadata;
   bannerAds?: BannerAd[];
+  alumni?: {
+    id: string;
+    name: string;
+    graduationYear: number;
+    careerPath: string;
+    expertise: string[];
+    company?: string;
+    role?: string;
+    photo?: string;
+    bio?: string;
+    isMentor?: boolean;
+    contactUrl?: string;
+  }[];
   theme: {
     primaryColor: string;
     fontFamily: string;
@@ -755,6 +769,7 @@ export interface Institution {
           image?: string;
         }[];
       };
+      faculty?: LeadershipMember[];
       performance: {
         passRate: string;
         ranking: string;
@@ -927,6 +942,7 @@ export interface User {
     rating?: number;
     connections?: number;
     weeklyTeachingLoad?: number;
+    meetingLink?: string;
   };
   teacherProfile?: {
     subjects: string[];

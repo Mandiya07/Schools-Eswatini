@@ -1057,6 +1057,24 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({ user }) => {
                                     placeholder="Observations about discipline..."
                                   />
                                </div>
+                               <div className="space-y-4">
+                                  <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest uppercase tracking-widest">Meeting Link</label>
+                                  <input 
+                                    className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-6 py-4 font-bold text-slate-900 outline-none"
+                                    value={tutorProfileForm?.meetingLink || ''}
+                                    placeholder="e.g. Zoom/Meet/Teams link"
+                                    onChange={(e) => setTutorProfileForm(prev => ({ ...prev!, meetingLink: e.target.value }))}
+                                  />
+                               </div>
+                               <div className="space-y-4">
+                                  <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest uppercase tracking-widest">Meeting Link</label>
+                                  <input 
+                                    className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-6 py-4 font-bold text-slate-900 outline-none"
+                                    value={tutorProfileForm?.meetingLink || ''}
+                                    placeholder="e.g. Zoom/Meet/Teams link"
+                                    onChange={(e) => setTutorProfileForm(prev => ({ ...prev!, meetingLink: e.target.value }))}
+                                  />
+                               </div>
                             </div>
                           ) : (
                             <div className="flex flex-col gap-6">

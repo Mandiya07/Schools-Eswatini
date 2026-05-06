@@ -116,6 +116,9 @@ const CareerAndScholarshipHub: React.FC<ScholarshipHubProps> = ({ institutions }
   
   // Pathways State
   const [selectedSubjects, setSelectedSubjects] = useState<string[]>([]);
+  
+  // Mentorship State
+  const [mentorFilter, setMentorFilter] = useState('');
 
   // Aggregate Internal Scholarships
   const internalScholarships = institutions.flatMap(inst => {
@@ -136,6 +139,22 @@ const CareerAndScholarshipHub: React.FC<ScholarshipHubProps> = ({ institutions }
   const filteredScholarships = allScholarships.filter(s => 
     s.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     s.provider.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  // Aggregate Alumni from institutions
+  const platformAlumni = institutions.flatMap(inst => {
+    if (!inst.alumni) return [];
+    return inst.alumni.map(alum => ({
+      ...alum,
+      schoolName: inst.name,
+      schoolLogo: inst.logo
+    }));
+  }).filter(alum => alum.isMentor);
+
+  const filteredAlumni = platformAlumni.filter(alum => 
+    alum.name.toLowerCase().includes(mentorFilter.toLowerCase()) ||
+    alum.careerPath.toLowerCase().includes(mentorFilter.toLowerCase()) ||
+    alum.expertise.some(e => e.toLowerCase().includes(mentorFilter.toLowerCase()))
   );
 
   const toggleSubject = (subject: string) => {
@@ -485,45 +504,67 @@ const CareerAndScholarshipHub: React.FC<ScholarshipHubProps> = ({ institutions }
                 </div>
               </div>
 
+              {/* Filter */}
+              <div className="relative">
+                <Search className="w-5 h-5 absolute left-6 top-1/2 -translate-y-1/2 text-slate-400" />
+                <input 
+                  type="text" 
+                  placeholder="Filter by career path, expertise, or name..." 
+                  className="w-full bg-slate-50 border border-slate-200 rounded-2xl py-5 pl-14 pr-6 font-bold text-slate-900 outline-none focus:border-emerald-500 transition-colors"
+                  value={mentorFilter}
+                  onChange={(e) => setMentorFilter(e.target.value)}
+                />
+              </div>
+
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                {MOCK_ALUMNI.map((alumni) => (
+                {filteredAlumni.map((alumni) => (
                   <div key={alumni.id} className="p-8 bg-slate-50 border border-slate-100 rounded-[32px] space-y-6 group hover:shadow-xl hover:border-emerald-200 transition-all">
                     <div className="flex items-center gap-4">
-                      <div className="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center text-xl shadow-sm font-black">
-                        {alumni.name.charAt(0)}
-                      </div>
+                      {alumni.photo ? (
+                        <img src={alumni.photo} alt={alumni.name} className="w-16 h-16 rounded-full object-cover shadow-sm" />
+                      ) : (
+                        <div className="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center text-xl shadow-sm font-black">
+                          {alumni.name.charAt(0)}
+                        </div>
+                      )}
                       <div>
                         <h4 className="text-lg font-black text-slate-900 leading-tight">{alumni.name}</h4>
-                        <p className="text-xs font-bold text-emerald-600 mt-1">{alumni.role}</p>
+                        <p className="text-xs font-bold text-emerald-600 mt-1">{alumni.role} • Class of {alumni.graduationYear}</p>
                       </div>
                     </div>
                     
                     <div className="space-y-3 pt-4 border-t border-slate-200/60">
                       <div className="flex items-center gap-3 text-sm text-slate-500">
                         <Briefcase className="w-4 h-4 shrink-0 text-slate-400" />
-                        <span className="truncate">{alumni.company}</span>
-                      </div>
-                      <div className="flex items-center gap-3 text-sm text-slate-500">
-                        <GraduationCap className="w-4 h-4 shrink-0 text-slate-400" />
-                        <span className="truncate">{alumni.uni}</span>
+                        <span className="truncate">{alumni.company || 'Independent'}</span>
                       </div>
                       <div className="flex items-center gap-3 text-sm text-slate-500">
                         <BookOpen className="w-4 h-4 shrink-0 text-slate-400" />
-                        <span className="truncate">Prev: {alumni.school}</span>
+                        <span className="truncate">Prev: {alumni.schoolName}</span>
                       </div>
+                      <p className="text-sm text-slate-600 line-clamp-2 mt-2">{alumni.bio}</p>
                     </div>
 
                     <div className="flex flex-wrap gap-2 pt-2">
-                      {alumni.tags.map(tag => (
+                      {alumni.expertise.map(tag => (
                         <span key={tag} className="px-3 py-1.5 bg-white border border-slate-200 rounded-full text-[9px] font-black uppercase tracking-widest text-slate-600">{tag}</span>
                       ))}
                     </div>
 
-                    <button className="w-full bg-slate-900 text-white font-black text-[10px] uppercase tracking-widest py-4 rounded-xl flex items-center justify-center gap-3 hover:bg-emerald-600 transition-colors">
-                      <MessageCircle className="w-4 h-4" /> Message Alumni
+                    <button 
+                      onClick={() => alert(`Connection request sent to ${alumni.name}!`)}
+                      className="w-full bg-slate-900 text-white font-black text-[10px] uppercase tracking-widest py-4 rounded-xl flex items-center justify-center gap-3 hover:bg-emerald-600 transition-colors"
+                    >
+                      <MessageCircle className="w-4 h-4" /> Send Request
                     </button>
                   </div>
                 ))}
+                
+                {filteredAlumni.length === 0 && (
+                  <div className="col-span-full py-10 text-center text-slate-500 font-bold">
+                    No mentors found matching "{mentorFilter}".
+                  </div>
+                )}
               </div>
             </motion.div>
           )}
