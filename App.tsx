@@ -40,6 +40,7 @@ import TutoringMarketplace from './pages/TutoringMarketplace';
 import MinistryCorner from './pages/MinistryCorner';
 import AIStudyAssistant from './pages/AIStudyAssistant';
 import EducatorMarketplace from './pages/EducatorMarketplace';
+import PaymentCheckoutPage from './pages/PaymentCheckoutPage';
 
 // Components
 import Navbar from './components/Navbar';
@@ -427,6 +428,7 @@ const App: React.FC = () => {
 
             <Route path="/marketplace" element={<EducatorMarketplace />} />
             <Route path="/tutors" element={<TutoringMarketplace />} />
+            <Route path="/payment-checkout" element={<PaymentCheckoutPage />} />
 
             <Route 
               path="/ministry" 

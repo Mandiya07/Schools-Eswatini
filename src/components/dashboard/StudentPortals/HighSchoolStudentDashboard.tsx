@@ -1,7 +1,7 @@
 
-import React from 'react';
-import { Clock, MapPin, TrendingUp, BookOpen, GraduationCap, FileText, Calendar as CalendarIcon, CheckCircle2, Bell, Rocket } from 'lucide-react';
-import { motion } from 'motion/react';
+import React, { useState } from 'react';
+import { Clock, MapPin, TrendingUp, BookOpen, GraduationCap, FileText, Calendar as CalendarIcon, CheckCircle2, Bell, Rocket, XCircle, Download } from 'lucide-react';
+import { motion, AnimatePresence } from 'motion/react';
 
 const MOCK_TIMETABLE = [
   { id: 1, time: '08:00 AM', subject: 'Mathematics Core', teacher: 'Mr. Dlamini', room: 'Block A, Rm 12', status: 'completed' },
@@ -30,8 +30,60 @@ const MOCK_EXAMS = [
   { id: 2, subject: 'Mathematics Core Paper 2', date: '2026-05-24', daysLeft: 12, type: 'EGCSE Mock' },
 ];
 
-export const HighSchoolStudentDashboard = () => (
-  <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+const PAST_TRANSCRIPTS = [
+  { term: 'Term 1, 2026', overall: 'A-', score: 85, url: '#' },
+  { term: 'Term 3, 2025', overall: 'B+', score: 79, url: '#' },
+  { term: 'Term 2, 2025', overall: 'B', score: 76, url: '#' },
+];
+
+export const HighSchoolStudentDashboard = () => {
+  const [showReportModal, setShowReportModal] = useState(false);
+
+  return (
+  <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 relative">
+      <AnimatePresence>
+        {showReportModal && (
+          <motion.div 
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm"
+          >
+            <motion.div 
+              initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }}
+              className="bg-white p-8 rounded-[40px] shadow-2xl max-w-2xl w-full border border-slate-100"
+            >
+              <div className="flex justify-between items-center mb-8">
+                <div>
+                  <h3 className="text-2xl font-black text-slate-900">Academic History & Results</h3>
+                  <p className="text-sm font-medium text-slate-500 mt-1">View and download previous report cards</p>
+                </div>
+                <button onClick={() => setShowReportModal(false)} className="bg-slate-100 p-3 rounded-full text-slate-500 hover:bg-slate-200">
+                  <XCircle className="w-6 h-6" />
+                </button>
+              </div>
+
+              <div className="space-y-4">
+                {PAST_TRANSCRIPTS.map((t, i) => (
+                  <div key={i} className="flex flex-col sm:flex-row justify-between items-start sm:items-center p-6 bg-slate-50 border border-slate-100 rounded-3xl gap-4 hover:border-blue-200 transition-colors">
+                    <div className="flex items-center gap-4">
+                      <div className="w-12 h-12 bg-blue-100 text-blue-600 rounded-2xl flex items-center justify-center font-black">
+                        {t.overall}
+                      </div>
+                      <div>
+                        <h4 className="font-bold text-slate-900">{t.term}</h4>
+                        <p className="text-xs font-bold text-slate-400">Class Average: {t.score}%</p>
+                      </div>
+                    </div>
+                    <button className="flex items-center gap-2 px-6 py-3 bg-white border border-slate-200 text-slate-700 font-black text-[10px] uppercase tracking-widest rounded-xl hover:bg-slate-900 hover:text-white transition-all w-full sm:w-auto justify-center">
+                      <Download className="w-4 h-4" /> Download PDF
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* LEFT COLUMN: LIVE TIMETABLE */}
       <div className="lg:col-span-4 space-y-6">
         <div className="flex justify-between items-center px-2">
@@ -121,7 +173,7 @@ export const HighSchoolStudentDashboard = () => (
             <h2 className="text-xl font-black text-slate-900 flex items-center gap-2">
               <TrendingUp className="w-5 h-5 text-emerald-600" /> Syllabus & Grade Tracking
             </h2>
-            <button className="text-[10px] font-black uppercase tracking-widest text-blue-600 hover:text-blue-700 bg-blue-50 px-4 py-2 rounded-xl transition-colors">
+            <button onClick={() => setShowReportModal(true)} className="text-[10px] font-black uppercase tracking-widest text-blue-600 hover:text-blue-700 bg-blue-50 px-4 py-2 rounded-xl transition-colors">
               View Full Report Card
             </button>
           </div>
@@ -249,4 +301,5 @@ export const HighSchoolStudentDashboard = () => (
         </div>
       </div>
   </div>
-);
+  );
+};

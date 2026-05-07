@@ -13,6 +13,8 @@ import MediaManager from '../src/components/MediaManager';
 import { useWorkflow } from '../src/context/WorkflowContext';
 
 import InboxManager from '../src/components/dashboard/sections/InboxManager';
+import { StudentsManager } from '../src/components/dashboard/sections/StudentsManager';
+import { AnalyticsDashboard } from '../src/components/dashboard/sections/AnalyticsDashboard';
 
 interface InstitutionAdminDashboardProps {
   user: User;
@@ -24,7 +26,7 @@ interface InstitutionAdminDashboardProps {
 const InstitutionAdminDashboard: React.FC<InstitutionAdminDashboardProps> = ({ user, institutions, onUpdate, onAdd }) => {
   const inst = institutions.find(i => i.id === (user.institutionId || institutions.find(i => i.adminId === user.id)?.id));
   const { tasks, notifications, markNotificationAsRead } = useWorkflow();
-  const [activeTab, setActiveTab] = useState<'identity' | 'theme' | 'sections' | 'media' | 'seo' | 'plan' | 'security' | 'analytics' | 'compliance' | 'academic' | 'academicsContent' | 'finance' | 'ai' | 'workflows' | 'staff' | 'inventory' | 'timetabling' | 'health' | 'alumni' | 'logistics' | 'benchmarking' | 'marketing' | 'news' | 'monetization' | 'applications' | 'inbox' | 'downloads'>('identity');
+  const [activeTab, setActiveTab] = useState<'basics' | 'identity' | 'theme' | 'sections' | 'media' | 'seo' | 'plan' | 'security' | 'analytics' | 'compliance' | 'academic' | 'academicsContent' | 'finance' | 'ai' | 'workflows' | 'staff' | 'inventory' | 'timetabling' | 'health' | 'alumni' | 'logistics' | 'benchmarking' | 'marketing' | 'news' | 'monetization' | 'applications' | 'inbox' | 'downloads'>('basics');
   const [showPreview, setShowPreview] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
 
@@ -97,6 +99,7 @@ const InstitutionAdminDashboard: React.FC<InstitutionAdminDashboardProps> = ({ u
   const isPrimary = inst.type.includes(InstitutionType.PRIMARY);
 
   const tabs = [
+    { id: 'basics', label: 'Basic Details', icon: '📋' },
     { id: 'identity', label: 'Identity', icon: '🆔' },
     { id: 'theme', label: 'Appearance', icon: '✨' },
     { id: 'sections', label: 'Site Modules', icon: '🎨' },
@@ -184,6 +187,125 @@ const InstitutionAdminDashboard: React.FC<InstitutionAdminDashboardProps> = ({ u
          </aside>
 
          <div className="lg:col-span-3">
+            {activeTab === 'basics' && (
+              <div className="bg-white p-10 rounded-[40px] border border-slate-100 shadow-sm space-y-12 animate-in fade-in">
+                <section>
+                  <h3 className="text-xl font-black text-slate-900 mb-8 flex items-center gap-3">📋 Basic Details</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div>
+                      <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Institution Name</label>
+                      <input 
+                        className="w-full bg-slate-50 border-none rounded-xl px-4 py-3 font-bold text-slate-900" 
+                        value={inst.name || ''} 
+                        onChange={e => handleUpdate({ ...inst, name: e.target.value })} 
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Primary Type</label>
+                      <select 
+                        className="w-full bg-slate-50 border-none rounded-xl px-4 py-3 font-bold text-slate-900"
+                        value={inst.type && inst.type.length > 0 ? inst.type[0] : ''}
+                        onChange={e => {
+                          const newType = e.target.value as any;
+                          // Basic logic to replace the primary type while keeping other possible types like Private/Public if they exist
+                          const otherTypes = (inst.type || []).filter(t => t === 'Private' || t === 'Public' || t === 'Association');
+                          handleUpdate({ ...inst, type: [newType, ...otherTypes] });
+                        }}
+                      >
+                        <option value="">Select Type</option>
+                        <option value="Primary">Primary</option>
+                        <option value="High School">High School</option>
+                        <option value="Tertiary">Tertiary</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Verification Status</label>
+                      <select
+                        className="w-full bg-slate-50 border-none rounded-xl px-4 py-3 font-bold text-slate-900"
+                        value={inst.verificationStatus || 'unverified'}
+                        onChange={e => handleUpdate({ ...inst, verificationStatus: e.target.value as any, isVerified: e.target.value === 'verified' })}
+                      >
+                        <option value="unverified">Unverified</option>
+                        <option value="pending">Pending</option>
+                        <option value="verified">Verified</option>
+                        <option value="rejected">Rejected</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">MoET Registration No.</label>
+                      <input 
+                        className="w-full bg-slate-50 border-none rounded-xl px-4 py-3 font-bold text-slate-900" 
+                        value={inst.moetRegistration || ''} 
+                        onChange={e => handleUpdate({ ...inst, moetRegistration: e.target.value })} 
+                      />
+                    </div>
+                  </div>
+                </section>
+
+                <section>
+                  <h3 className="text-xl font-black text-slate-900 mb-8 flex items-center gap-3">🌍 Contact Information</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div className="md:col-span-2">
+                      <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Contact Address</label>
+                      <input 
+                        className="w-full bg-slate-50 border-none rounded-xl px-4 py-3 font-bold text-slate-900" 
+                        placeholder="e.g. 123 School Road, Mbabane"
+                        value={inst.contact?.address || ''} 
+                        onChange={e => handleUpdate({ ...inst, contact: { ...inst.contact, address: e.target.value } })} 
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Phone</label>
+                      <input 
+                        className="w-full bg-slate-50 border-none rounded-xl px-4 py-3 font-bold text-slate-900" 
+                        placeholder="e.g. +268 7600 0000"
+                        value={inst.contact?.phone || ''} 
+                        onChange={e => handleUpdate({ ...inst, contact: { ...inst.contact, phone: e.target.value } })} 
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Email</label>
+                      <input 
+                        type="email"
+                        className="w-full bg-slate-50 border-none rounded-xl px-4 py-3 font-bold text-slate-900" 
+                        placeholder="e.g. admin@school.ac.sz"
+                        value={inst.contact?.email || ''} 
+                        onChange={e => handleUpdate({ ...inst, contact: { ...inst.contact, email: e.target.value } })} 
+                      />
+                    </div>
+                    <div className="md:col-span-2">
+                      <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Website</label>
+                      <input 
+                        type="url"
+                        className="w-full bg-slate-50 border-none rounded-xl px-4 py-3 font-bold text-slate-900" 
+                        placeholder="e.g. https://www.school.ac.sz"
+                        value={inst.contact?.website || ''} 
+                        onChange={e => handleUpdate({ ...inst, contact: { ...inst.contact, website: e.target.value } })} 
+                      />
+                    </div>
+                  </div>
+                </section>
+
+                <section>
+                  <h3 className="text-xl font-black text-slate-900 mb-8 flex items-center gap-3">🌐 Social Presence</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    <div>
+                      <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 px-1">Facebook URL</label>
+                      <input className="w-full bg-slate-50 border-none rounded-xl px-4 py-3 font-bold" value={inst.contact.facebook || ''} onChange={e => handleUpdate({ ...inst, contact: { ...inst.contact, facebook: e.target.value } })} />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 px-1">Twitter/X URL</label>
+                      <input className="w-full bg-slate-50 border-none rounded-xl px-4 py-3 font-bold" value={inst.contact.twitter || ''} onChange={e => handleUpdate({ ...inst, contact: { ...inst.contact, twitter: e.target.value } })} />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 px-1">LinkedIn URL</label>
+                      <input className="w-full bg-slate-50 border-none rounded-xl px-4 py-3 font-bold" value={inst.contact.linkedin || ''} onChange={e => handleUpdate({ ...inst, contact: { ...inst.contact, linkedin: e.target.value } })} />
+                    </div>
+                  </div>
+                </section>
+              </div>
+            )}
+
             {activeTab === 'identity' && (
               <div className="bg-white p-10 rounded-[40px] border border-slate-100 shadow-sm space-y-12 animate-in fade-in">
                 <section>
@@ -211,24 +333,6 @@ const InstitutionAdminDashboard: React.FC<InstitutionAdminDashboardProps> = ({ u
                         </div>
                       </div>
                       <p className="text-[10px] text-slate-400 mt-2">Only lowercase letters, numbers, and hyphens allowed.</p>
-                    </div>
-                  </div>
-                </section>
-                
-                <section>
-                  <h3 className="text-xl font-black text-slate-900 mb-8 flex items-center gap-3">🌐 Social Media Links</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                    <div>
-                      <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Facebook URL</label>
-                      <input className="w-full bg-slate-50 border-none rounded-xl px-4 py-3 font-bold" value={inst.contact.facebook || ''} onChange={e => handleUpdate({ ...inst, contact: { ...inst.contact, facebook: e.target.value } })} />
-                    </div>
-                    <div>
-                      <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Twitter/X URL</label>
-                      <input className="w-full bg-slate-50 border-none rounded-xl px-4 py-3 font-bold" value={inst.contact.twitter || ''} onChange={e => handleUpdate({ ...inst, contact: { ...inst.contact, twitter: e.target.value } })} />
-                    </div>
-                    <div>
-                      <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">LinkedIn URL</label>
-                      <input className="w-full bg-slate-50 border-none rounded-xl px-4 py-3 font-bold" value={inst.contact.linkedin || ''} onChange={e => handleUpdate({ ...inst, contact: { ...inst.contact, linkedin: e.target.value } })} />
                     </div>
                   </div>
                 </section>
@@ -490,10 +594,50 @@ const InstitutionAdminDashboard: React.FC<InstitutionAdminDashboardProps> = ({ u
                           const downloads = [...(inst.downloads || []), { label: 'New Document', url: '' }];
                           handleUpdate({ ...inst, downloads });
                       }}
-                      className="w-full py-4 border-2 border-dashed border-slate-200 rounded-2xl text-slate-500 font-bold uppercase tracking-widest text-xs flex items-center justify-center gap-2 hover:border-indigo-300 hover:text-indigo-600 transition-colors"
+                      className="w-full py-4 border-2 border-dashed border-slate-200 rounded-2xl text-slate-500 font-bold uppercase tracking-widest text-[10px] flex items-center justify-center gap-2 hover:border-indigo-300 hover:text-indigo-600 transition-colors"
                     >
-                      <Plus className="w-4 h-4" /> Add Download
+                      <Plus className="w-4 h-4" /> Add Public Download
                     </button>
+                  </div>
+                </section>
+
+                <section className="pt-12 border-t border-slate-100">
+                  <div className="bg-blue-50 rounded-[32px] p-8 border border-blue-100 mb-8">
+                    <div className="flex items-start gap-4">
+                      <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center shadow-sm text-blue-600 flex-shrink-0">
+                        <Zap className="w-6 h-6" />
+                      </div>
+                      <div>
+                        <h4 className="font-black text-blue-900 uppercase tracking-widest text-[10px] mb-1">Offline Access Enabled</h4>
+                        <p className="text-xs text-blue-700 font-medium leading-relaxed">
+                          Your school portal now supports intelligent offline persistence. Data you view while online is automatically cached securely, allowing you to access students, staff, and records even without an active internet connection.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <h3 className="text-xl font-black text-slate-900 mb-4 flex items-center gap-3">🎒 Admin Data Backup</h3>
+                  <p className="text-sm text-slate-500 mb-6 font-medium leading-relaxed">
+                    Download a full snapshot of your institution's digital profile for offline use or compliance archiving. This includes all configuration, staff lists, and public settings.
+                  </p>
+                  <div className="flex flex-wrap gap-4 items-center">
+                    <button 
+                      onClick={() => {
+                        const data = JSON.stringify(inst, null, 2);
+                        const blob = new Blob([data], { type: 'application/json' });
+                        const url = URL.createObjectURL(blob);
+                        const link = document.createElement('a');
+                        link.href = url;
+                        link.download = `${inst.name.replace(/\s+/g, '_')}_backup_${new Date().toISOString().split('T')[0]}.json`;
+                        link.click();
+                      }}
+                      className="bg-slate-900 text-white px-8 py-4 rounded-3xl font-black uppercase tracking-widest text-[10px] flex items-center gap-2 hover:bg-blue-600 transition-all shadow-xl"
+                    >
+                      <Download className="w-4 h-4" /> Export System Backup (JSON)
+                    </button>
+                    <p className="text-[10px] text-slate-400 max-w-xs italic">
+                      * For the complete Student Registry CSV, please navigate to the Student Records tab.
+                    </p>
                   </div>
                 </section>
               </div>
@@ -706,125 +850,8 @@ const InstitutionAdminDashboard: React.FC<InstitutionAdminDashboardProps> = ({ u
             )}
 
             {activeTab === 'students' && (
-              <div className="bg-white p-10 rounded-[40px] border border-slate-100 shadow-sm space-y-12 animate-in fade-in">
-                <section>
-                  <div className="flex justify-between items-center mb-8">
-                    <div>
-                      <h3 className="text-xl font-black text-slate-900 flex items-center gap-3">
-                        👥 {isTertiary ? 'Student Enrollment & Records' : isPrimary ? 'Pupil Registry' : 'Student Management'}
-                      </h3>
-                      <p className="text-sm text-slate-500 mt-1">
-                        {isTertiary ? 'Oversee academic transcripts, module registrations, and official student files.' : isPrimary ? 'Manage young learner profiles, parent connections, and foundation phase records.' : 'Manage official student records and link parent accounts.'}
-                      </p>
-                    </div>
-                    <button 
-                      onClick={() => {
-                        const newStudent = {
-                          id: `stu_${Date.now()}`,
-                          institutionId: inst.id,
-                          name: 'New Student',
-                          studentId: `S-${Math.floor(1000 + Math.random() * 9000)}`,
-                          grade: 'Grade 8',
-                          class: 'A',
-                          dob: '2010-01-01',
-                          parentEmails: [],
-                          createdAt: new Date().toISOString()
-                        };
-                        // Since students might be many, we use a separate collection normally.
-                        // For this demo/impl, we'll store a small list in institutional metadata or simulate.
-                        const students = [...(inst.metadata?.students || []), newStudent];
-                        handleUpdate({ ...inst, metadata: { ...inst.metadata, students } });
-                      }}
-                      className="px-6 py-3 bg-indigo-600 text-white rounded-xl font-black uppercase tracking-widest text-[10px] flex items-center gap-2"
-                    >
-                      <Plus className="w-4 h-4" /> Add Student
-                    </button>
-                  </div>
-
-                  <div className="overflow-x-auto">
-                    <table className="w-full">
-                      <thead>
-                        <tr className="border-b border-slate-100 text-left">
-                          <th className="pb-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Full Name</th>
-                          <th className="pb-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">{isTertiary ? 'Faculty / Year' : isPrimary ? 'Grade / Phase' : 'Grade / Stream'}</th>
-                          <th className="pb-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Guardian Links</th>
-                          <th className="pb-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Actions</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {(inst.metadata?.students || []).map((student: any, idx: number) => (
-                          <tr key={student.id} className="group border-b border-slate-50 last:border-0">
-                            <td className="py-6">
-                              <input 
-                                className="block font-bold text-slate-900 bg-transparent border-none p-0 focus:ring-0 mb-1" 
-                                value={student.name} 
-                                onChange={e => {
-                                  const students = [...inst.metadata!.students];
-                                  students[idx].name = e.target.value;
-                                  handleUpdate({ ...inst, metadata: { ...inst.metadata!, students } });
-                                }}
-                              />
-                              <p className="text-[10px] font-bold text-indigo-600 uppercase tracking-widest">ID: {student.studentId}</p>
-                            </td>
-                            <td className="py-6">
-                              <div className="flex gap-2">
-                                <input 
-                                  className="w-20 bg-slate-50 border-none rounded-lg px-2 py-1 text-xs font-bold" 
-                                  value={student.grade} 
-                                  onChange={e => {
-                                    const students = [...inst.metadata!.students];
-                                    students[idx].grade = e.target.value;
-                                    handleUpdate({ ...inst, metadata: { ...inst.metadata!, students } });
-                                  }}
-                                />
-                                <input 
-                                  className="w-12 bg-slate-50 border-none rounded-lg px-2 py-1 text-xs font-bold" 
-                                  value={student.class} 
-                                  onChange={e => {
-                                    const students = [...inst.metadata!.students];
-                                    students[idx].class = e.target.value;
-                                    handleUpdate({ ...inst, metadata: { ...inst.metadata!, students } });
-                                  }}
-                                />
-                              </div>
-                            </td>
-                            <td className="py-6">
-                               <input 
-                                className="w-full text-xs text-slate-500 bg-transparent border-none p-0 focus:ring-0" 
-                                value={student.parentEmails?.join(', ')} 
-                                onChange={e => {
-                                  const students = [...inst.metadata!.students];
-                                  students[idx].parentEmails = e.target.value.split(',').map(s => s.trim()).filter(s => s !== '');
-                                  handleUpdate({ ...inst, metadata: { ...inst.metadata!, students } });
-                                }}
-                                placeholder="parent@email.com, ..."
-                              />
-                              <p className="text-[9px] text-slate-400 italic">Parents with these emails will see this student.</p>
-                            </td>
-                            <td className="py-6">
-                              <button 
-                                onClick={() => {
-                                  const students = inst.metadata!.students.filter((s: any) => s.id !== student.id);
-                                  handleUpdate({ ...inst, metadata: { ...inst.metadata!, students } });
-                                }}
-                                className="text-slate-300 hover:text-rose-500 opacity-0 group-hover:opacity-100 transition-all"
-                              >
-                                <Trash2 className="w-4 h-4" />
-                              </button>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-
-                  {(!inst.metadata?.students || inst.metadata.students.length === 0) && (
-                    <div className="text-center py-12 bg-slate-50 rounded-[32px] border border-dashed border-slate-200">
-                      <Users className="w-12 h-12 text-slate-200 mx-auto mb-4" />
-                      <p className="text-slate-400 font-bold uppercase tracking-widest text-[10px]">No student records in this institution.</p>
-                    </div>
-                  )}
-                </section>
+              <div className="bg-white p-10 rounded-[40px] border border-slate-100 shadow-sm animate-in fade-in">
+                <StudentsManager institution={inst} isTertiary={isTertiary} isPrimary={isPrimary} />
               </div>
             )}
 
@@ -1161,61 +1188,14 @@ const InstitutionAdminDashboard: React.FC<InstitutionAdminDashboardProps> = ({ u
             {activeTab === 'analytics' && (
               <div className="bg-white p-10 rounded-[40px] border border-slate-100 shadow-sm space-y-12 animate-in fade-in">
                 <section>
-                  <h3 className="text-xl font-black text-slate-900 mb-8 flex items-center gap-3">📊 Performance Analytics</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
-                    <div className="p-6 bg-slate-50 rounded-3xl border border-slate-100">
-                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Total Page Views</p>
-                      <p className="text-3xl font-black text-slate-900">{inst.stats.views.toLocaleString()}</p>
-                    </div>
-                    <div className="p-6 bg-slate-50 rounded-3xl border border-slate-100">
-                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Applications Started</p>
-                      <p className="text-3xl font-black text-slate-900">{inst.stats.applications.toLocaleString()}</p>
-                    </div>
-                    <div className="p-6 bg-slate-50 rounded-3xl border border-slate-100">
-                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Conversion Rate</p>
-                      <p className="text-3xl font-black text-slate-900">{((inst.stats.applications / Math.max(inst.stats.views, 1)) * 100).toFixed(1)}%</p>
+                  <div className="flex items-center justify-between mb-8">
+                    <h3 className="text-xl font-black text-slate-900 flex items-center gap-3">📊 Performance Analytics</h3>
+                    <div className="flex items-center gap-2 bg-slate-100 px-4 py-2 rounded-2xl">
+                      <span className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse" />
+                      <span className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Real-time Insights</span>
                     </div>
                   </div>
-
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                    <div className="bg-slate-50 p-8 rounded-3xl border border-slate-100">
-                      <h4 className="text-sm font-black text-slate-900 mb-6">Page Views (Last 7 Days)</h4>
-                      <div className="h-64">
-                        <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
-                          <LineChart data={[
-                            { name: 'Mon', views: 120 }, { name: 'Tue', views: 200 },
-                            { name: 'Wed', views: 150 }, { name: 'Thu', views: 300 },
-                            { name: 'Fri', views: 250 }, { name: 'Sat', views: 400 },
-                            { name: 'Sun', views: 350 }
-                          ]}>
-                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
-                            <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#64748b' }} />
-                            <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#64748b' }} />
-                            <Tooltip contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }} />
-                            <Line type="monotone" dataKey="views" stroke="#2563eb" strokeWidth={3} dot={{ r: 4, fill: '#2563eb', strokeWidth: 2, stroke: '#fff' }} activeDot={{ r: 6 }} />
-                          </LineChart>
-                        </ResponsiveContainer>
-                      </div>
-                    </div>
-
-                    <div className="bg-slate-50 p-8 rounded-3xl border border-slate-100">
-                      <h4 className="text-sm font-black text-slate-900 mb-6">Visitor Locations</h4>
-                      <div className="h-64">
-                        <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
-                          <BarChart data={[
-                            { name: 'Hhohho', visitors: 450 }, { name: 'Manzini', visitors: 320 },
-                            { name: 'Lubombo', visitors: 150 }, { name: 'Shiselweni', visitors: 80 }
-                          ]} layout="vertical" margin={{ left: 20 }}>
-                            <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#e2e8f0" />
-                            <XAxis type="number" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#64748b' }} />
-                            <YAxis dataKey="name" type="category" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#64748b', fontWeight: 'bold' }} />
-                            <Tooltip cursor={{ fill: '#f1f5f9' }} contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }} />
-                            <Bar dataKey="visitors" fill="#3b82f6" radius={[0, 8, 8, 0]} barSize={24} />
-                          </BarChart>
-                        </ResponsiveContainer>
-                      </div>
-                    </div>
-                  </div>
+                  <AnalyticsDashboard mode="institution" institution={inst} />
                 </section>
               </div>
             )}

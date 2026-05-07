@@ -12,6 +12,7 @@ import {
   Navigation,
   Info
 } from 'lucide-react';
+import { Facebook, Twitter, Linkedin, Instagram, Youtube } from './icons/SocialIcons';
 import { Institution } from '../../types';
 import { InquiryForm } from '../../components/EngagementFeatures';
 
@@ -129,28 +130,28 @@ const ContactSection: React.FC<ContactSectionProps> = ({ institution, primaryCol
             <h4 className="text-[11px] font-black text-slate-400 uppercase tracking-[0.3em]">{labels.social}</h4>
             <div className="flex flex-wrap gap-6">
               {contact.facebook && (
-                <a href={contact.facebook} target="_blank" rel="noreferrer" className="w-16 h-16 bg-white border border-slate-100 rounded-2xl flex items-center justify-center text-slate-600 hover:bg-blue-600 hover:text-white transition-all shadow-sm">
-                  <Globe className="w-6 h-6" />
+                <a href={contact.facebook.startsWith('http') ? contact.facebook : `https://${contact.facebook}`} target="_blank" rel="noreferrer" className="w-16 h-16 bg-white border border-slate-100 rounded-2xl flex items-center justify-center text-slate-600 hover:bg-blue-600 hover:text-white transition-all shadow-sm hover:scale-110 active:scale-95 group">
+                  <Facebook className="w-6 h-6 group-hover:animate-pulse" />
                 </a>
               )}
               {contact.twitter && (
-                <a href={contact.twitter} target="_blank" rel="noreferrer" className="w-16 h-16 bg-white border border-slate-100 rounded-2xl flex items-center justify-center text-slate-600 hover:bg-sky-500 hover:text-white transition-all shadow-sm">
-                  <Globe className="w-6 h-6" />
+                <a href={contact.twitter.startsWith('http') ? contact.twitter : `https://${contact.twitter}`} target="_blank" rel="noreferrer" className="w-16 h-16 bg-white border border-slate-100 rounded-2xl flex items-center justify-center text-slate-600 hover:bg-sky-500 hover:text-white transition-all shadow-sm hover:scale-110 active:scale-95 group">
+                  <Twitter className="w-6 h-6 group-hover:animate-pulse" />
                 </a>
               )}
               {contact.linkedin && (
-                <a href={contact.linkedin} target="_blank" rel="noreferrer" className="w-16 h-16 bg-white border border-slate-100 rounded-2xl flex items-center justify-center text-slate-600 hover:bg-blue-700 hover:text-white transition-all shadow-sm">
-                  <Globe className="w-6 h-6" />
+                <a href={contact.linkedin.startsWith('http') ? contact.linkedin : `https://${contact.linkedin}`} target="_blank" rel="noreferrer" className="w-16 h-16 bg-white border border-slate-100 rounded-2xl flex items-center justify-center text-slate-600 hover:bg-blue-700 hover:text-white transition-all shadow-sm hover:scale-110 active:scale-95 group">
+                  <Linkedin className="w-6 h-6 group-hover:animate-pulse" />
                 </a>
               )}
               {contact.instagram && (
-                <a href={contact.instagram} target="_blank" rel="noreferrer" className="w-16 h-16 bg-white border border-slate-100 rounded-2xl flex items-center justify-center text-slate-600 hover:bg-pink-600 hover:text-white transition-all shadow-sm">
-                  <Globe className="w-6 h-6" />
+                <a href={contact.instagram.startsWith('http') ? contact.instagram : `https://${contact.instagram}`} target="_blank" rel="noreferrer" className="w-16 h-16 bg-white border border-slate-100 rounded-2xl flex items-center justify-center text-slate-600 hover:bg-pink-600 hover:text-white transition-all shadow-sm hover:scale-110 active:scale-95 group">
+                  <Instagram className="w-6 h-6 group-hover:animate-pulse" />
                 </a>
               )}
               {contact.youtube && (
-                <a href={contact.youtube} target="_blank" rel="noreferrer" className="w-16 h-16 bg-white border border-slate-100 rounded-2xl flex items-center justify-center text-slate-600 hover:bg-red-600 hover:text-white transition-all shadow-sm">
-                  <Globe className="w-6 h-6" />
+                <a href={contact.youtube.startsWith('http') ? contact.youtube : `https://${contact.youtube}`} target="_blank" rel="noreferrer" className="w-16 h-16 bg-white border border-slate-100 rounded-2xl flex items-center justify-center text-slate-600 hover:bg-red-600 hover:text-white transition-all shadow-sm hover:scale-110 active:scale-95 group">
+                  <Youtube className="w-6 h-6 group-hover:animate-pulse" />
                 </a>
               )}
             </div>

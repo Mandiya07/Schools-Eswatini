@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { Institution } from '../../../../types';
-import { Users, Settings, Plus, Trash2, Link as LinkIcon, Mail, Phone, User as UserIcon, Sparkles } from 'lucide-react';
+import { Users, Settings, Plus, Trash2, Link as LinkIcon, Mail, Phone, User as UserIcon, Sparkles, Wallet, Globe, Clock } from 'lucide-react';
 
 interface AdmissionsEditorProps {
   institution: Institution;
@@ -10,7 +10,7 @@ interface AdmissionsEditorProps {
 
 const AdmissionsEditor: React.FC<AdmissionsEditorProps> = ({ institution, onUpdate }) => {
   const { admissions } = institution.sections;
-  const [activeSubTab, setActiveSubTab] = useState<'settings' | 'profiles'>('settings');
+  const [activeSubTab, setActiveSubTab] = useState<'settings' | 'profiles' | 'fees'>('settings');
 
   const updateAdmissionsField = (field: string, value: any) => {
     onUpdate({
@@ -46,6 +46,12 @@ const AdmissionsEditor: React.FC<AdmissionsEditorProps> = ({ institution, onUpda
           <Settings className="w-4 h-4" /> Admissions Settings
         </button>
         <button 
+          onClick={() => setActiveSubTab('fees')}
+          className={`px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center gap-2 transition-all ${activeSubTab === 'fees' ? 'bg-amber-500 text-white shadow-lg' : 'text-slate-400 hover:bg-slate-50'}`}
+        >
+          <Wallet className="w-4 h-4" /> Fee Structure
+        </button>
+        <button 
           onClick={() => setActiveSubTab('profiles')}
           className={`px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center gap-2 transition-all ${activeSubTab === 'profiles' ? 'bg-indigo-600 text-white shadow-lg' : 'text-slate-400 hover:bg-slate-50'}`}
         >
@@ -62,13 +68,24 @@ const AdmissionsEditor: React.FC<AdmissionsEditorProps> = ({ institution, onUpda
             </header>
 
             <div className="space-y-8">
-              <div className="group">
-                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 group-focus-within:text-blue-600 transition-colors">Admissions Headline</label>
-                <input 
-                  className="w-full bg-slate-50 border-2 border-transparent focus:border-blue-500 focus:bg-white rounded-2xl px-6 py-4 font-bold transition-all outline-none" 
-                  value={admissions.headline} 
-                  onChange={e => updateAdmissionsField('headline', e.target.value)} 
-                />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div className="group">
+                  <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 group-focus-within:text-blue-600 transition-colors">Admissions Headline</label>
+                  <input 
+                    className="w-full bg-slate-50 border-2 border-transparent focus:border-blue-500 focus:bg-white rounded-2xl px-6 py-4 font-bold transition-all outline-none" 
+                    value={admissions.headline} 
+                    onChange={e => updateAdmissionsField('headline', e.target.value)} 
+                  />
+                </div>
+                <div className="group">
+                  <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 group-focus-within:text-blue-600 transition-colors">Processing Time</label>
+                  <input 
+                    className="w-full bg-slate-50 border-2 border-transparent focus:border-blue-500 focus:bg-white rounded-2xl px-6 py-4 font-bold transition-all outline-none" 
+                    placeholder="e.g. 2-3 Weeks"
+                    value={admissions.processingTime || ''} 
+                    onChange={e => updateAdmissionsField('processingTime', e.target.value)} 
+                  />
+                </div>
               </div>
 
               <div className="group">
@@ -81,38 +98,57 @@ const AdmissionsEditor: React.FC<AdmissionsEditorProps> = ({ institution, onUpda
                 />
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="group">
-                  <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 group-focus-within:text-blue-600 transition-colors">Online Application URL</label>
-                  <input 
-                    className="w-full bg-slate-50 border-2 border-transparent focus:border-blue-500 focus:bg-white rounded-2xl px-6 py-4 font-bold transition-all outline-none" 
-                    placeholder="https://..."
-                    value={admissions.onlineApplicationUrl || ''} 
-                    onChange={e => updateAdmissionsField('onlineApplicationUrl', e.target.value)} 
-                  />
-                </div>
-                <div className="group">
-                  <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 group-focus-within:text-blue-600 transition-colors">Scholarship Link</label>
-                  <input 
-                    className="w-full bg-slate-50 border-2 border-transparent focus:border-blue-500 focus:bg-white rounded-2xl px-6 py-4 font-bold transition-all outline-none" 
-                    placeholder="https://..."
-                    value={admissions.scholarshipApplicationLink || ''} 
-                    onChange={e => updateAdmissionsField('scholarshipApplicationLink', e.target.value)} 
-                  />
-                </div>
-              </div>
+              {/* Refactored Link Section */}
+              <div className="p-8 bg-blue-50/50 rounded-[40px] border border-blue-100/50 space-y-8">
+                <header className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-xl bg-blue-100 flex items-center justify-center">
+                    <Globe className="w-4 h-4 text-blue-600" />
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-black text-blue-900 uppercase tracking-tight">External Portal Links</h4>
+                    <p className="text-[10px] text-blue-700/60 font-bold uppercase tracking-widest">Connect to your existing application systems</p>
+                  </div>
+                </header>
 
-              <div className="flex items-center gap-4 bg-blue-50 p-6 rounded-3xl border border-blue-100">
-                <div className="flex-1">
-                  <h4 className="text-sm font-black text-blue-900 mb-1">Enable Online Portal Redirection</h4>
-                  <p className="text-xs text-blue-700 font-medium font-sans">Checking this will show the 'Apply Online Now' button on your profile using the URL provided above.</p>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="group">
+                    <label className="block text-[10px] font-black text-blue-700/60 uppercase tracking-widest mb-3 group-focus-within:text-blue-600 transition-colors">Online Application Form URL</label>
+                    <div className="relative">
+                      <LinkIcon className="absolute left-6 top-1/2 -translate-y-1/2 w-4 h-4 text-blue-400" />
+                      <input 
+                        className="w-full bg-white border-2 border-transparent focus:border-blue-500 rounded-2xl pl-14 pr-6 py-4 font-bold transition-all outline-none shadow-sm" 
+                        placeholder="https://forms.school.ac.sz/apply"
+                        value={admissions.onlineApplicationUrl || ''} 
+                        onChange={e => updateAdmissionsField('onlineApplicationUrl', e.target.value)} 
+                      />
+                    </div>
+                  </div>
+                  <div className="group">
+                    <label className="block text-[10px] font-black text-blue-700/60 uppercase tracking-widest mb-3 group-focus-within:text-blue-600 transition-colors">Scholarship Application Link</label>
+                    <div className="relative">
+                      <LinkIcon className="absolute left-6 top-1/2 -translate-y-1/2 w-4 h-4 text-amber-400" />
+                      <input 
+                        className="w-full bg-white border-2 border-transparent focus:border-blue-500 rounded-2xl pl-14 pr-6 py-4 font-bold transition-all outline-none shadow-sm" 
+                        placeholder="https://scholarships.school.ac.sz"
+                        value={admissions.scholarshipApplicationLink || ''} 
+                        onChange={e => updateAdmissionsField('scholarshipApplicationLink', e.target.value)} 
+                      />
+                    </div>
+                  </div>
                 </div>
-                <button 
-                  onClick={() => updateAdmissionsField('allowOnlineApplications', !admissions.allowOnlineApplications)}
-                  className={`w-14 h-8 rounded-full transition-all relative ${admissions.allowOnlineApplications ? 'bg-blue-600' : 'bg-slate-300'}`}
-                >
-                  <div className={`absolute top-1 w-6 h-6 bg-white rounded-full transition-all ${admissions.allowOnlineApplications ? 'right-1' : 'left-1 shadow-sm'}`} />
-                </button>
+
+                <div className="flex items-center gap-4 bg-white/60 p-6 rounded-3xl border border-blue-100">
+                  <div className="flex-1">
+                    <h4 className="text-sm font-black text-blue-900 mb-1">Enable Digital Portal Button</h4>
+                    <p className="text-xs text-blue-700 font-medium font-sans">Toggle to show the prominent 'Apply Online' button on your public institution profile.</p>
+                  </div>
+                  <button 
+                    onClick={() => updateAdmissionsField('allowOnlineApplications', !admissions.allowOnlineApplications)}
+                    className={`w-14 h-8 rounded-full transition-all relative ${admissions.allowOnlineApplications ? 'bg-blue-600' : 'bg-slate-300'}`}
+                  >
+                    <div className={`absolute top-1 w-6 h-6 bg-white rounded-full transition-all ${admissions.allowOnlineApplications ? 'right-1' : 'left-1 shadow-sm'}`} />
+                  </button>
+                </div>
               </div>
 
               <div className="p-8 bg-slate-50 rounded-[40px] border border-slate-100 space-y-6">
@@ -188,6 +224,146 @@ const AdmissionsEditor: React.FC<AdmissionsEditorProps> = ({ institution, onUpda
                     </button>
                   )}
                 </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      ) : activeSubTab === 'fees' ? (
+        <div className="space-y-8 animate-in slide-in-from-left-4">
+          <header>
+            <h3 className="text-xl font-black text-slate-900 uppercase tracking-tight">Fee Structure Editor</h3>
+            <p className="text-sm text-slate-500 font-medium">Configure tuition fees, registration fees, and other miscellaneous costs for prospective students.</p>
+          </header>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+            <div className="space-y-8">
+              <div className="group">
+                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 group-focus-within:text-blue-600 transition-colors">Tuition Fee (Per Term)</label>
+                <div className="flex bg-slate-50 border-2 border-transparent focus-within:border-blue-500 focus-within:bg-white rounded-2xl transition-all">
+                  <span className="pl-6 py-4 font-bold text-slate-400 select-none">SZL</span>
+                  <input 
+                    className="w-full bg-transparent border-none px-3 py-4 font-bold outline-none focus:ring-0" 
+                    placeholder="e.g. 5000"
+                    type="number"
+                    value={admissions.tuitionFees?.perTerm?.replace(/[^0-9.]/g, '') || ''} 
+                    onChange={e => updateAdmissionsField('tuitionFees', { ...admissions.tuitionFees, perTerm: `SZL ${e.target.value}` })} 
+                  />
+                </div>
+              </div>
+
+              <div className="group">
+                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 group-focus-within:text-blue-600 transition-colors">Tuition Fee (Per Year)</label>
+                <div className="flex bg-slate-50 border-2 border-transparent focus-within:border-blue-500 focus-within:bg-white rounded-2xl transition-all">
+                  <span className="pl-6 py-4 font-bold text-slate-400 select-none">SZL</span>
+                  <input 
+                    className="w-full bg-transparent border-none px-3 py-4 font-bold outline-none focus:ring-0" 
+                    placeholder="e.g. 15000"
+                    type="number"
+                    value={admissions.tuitionFees?.perYear?.replace(/[^0-9.]/g, '') || ''} 
+                    onChange={e => updateAdmissionsField('tuitionFees', { ...admissions.tuitionFees, perYear: `SZL ${e.target.value}` })} 
+                  />
+                </div>
+              </div>
+
+              <div className="p-8 bg-slate-50 rounded-[40px] border border-slate-100 space-y-6">
+                <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Additional Fees & Costs</h4>
+                <div className="space-y-4">
+                  {(admissions.tuitionFees?.additional || []).map((fee, idx) => (
+                    <div key={idx} className="flex flex-col md:flex-row gap-3 bg-white p-4 rounded-2xl border border-slate-100">
+                      <div className="flex-1">
+                        <label className="text-[8px] font-bold text-slate-400 uppercase block mb-1">Fee Label</label>
+                        <input 
+                          className="w-full border-none font-bold text-slate-700 focus:ring-0 p-0 text-sm" 
+                          placeholder="e.g. Boarding Fee"
+                          value={fee.label} 
+                          onChange={e => {
+                            const newFees = [...(admissions.tuitionFees?.additional || [])];
+                            newFees[idx] = { ...newFees[idx], label: e.target.value };
+                            updateAdmissionsField('tuitionFees', { ...admissions.tuitionFees, additional: newFees });
+                          }} 
+                        />
+                      </div>
+                      <div className="w-full md:w-32">
+                        <label className="text-[8px] font-bold text-slate-400 uppercase block mb-1">Billing Cycle</label>
+                        <select 
+                          className="w-full border-none font-bold text-slate-600 focus:ring-0 p-0 text-sm bg-transparent" 
+                          value={fee.cycle || 'Once-off'} 
+                          onChange={e => {
+                            const newFees = [...(admissions.tuitionFees?.additional || [])];
+                            newFees[idx] = { ...newFees[idx], cycle: e.target.value as any };
+                            updateAdmissionsField('tuitionFees', { ...admissions.tuitionFees, additional: newFees });
+                          }} 
+                        >
+                          <option value="Once-off">Once-off</option>
+                          <option value="Term">Per Term</option>
+                          <option value="Year">Per Year</option>
+                        </select>
+                      </div>
+                      <div className="w-full md:w-32">
+                        <label className="text-[8px] font-bold text-slate-400 uppercase block mb-1">Amount (SZL)</label>
+                        <input 
+                          className="w-full border-none font-bold text-emerald-600 focus:ring-0 p-0 text-sm" 
+                          placeholder="Amount"
+                          type="number"
+                          value={fee.amount.replace(/[^0-9.]/g, '')} 
+                          onChange={e => {
+                            const newFees = [...(admissions.tuitionFees?.additional || [])];
+                            newFees[idx] = { ...newFees[idx], amount: `SZL ${e.target.value}` };
+                            updateAdmissionsField('tuitionFees', { ...admissions.tuitionFees, additional: newFees });
+                          }} 
+                        />
+                      </div>
+                      <button 
+                        onClick={() => {
+                          const newFees = (admissions.tuitionFees?.additional || []).filter((_, i) => i !== idx);
+                          updateAdmissionsField('tuitionFees', { ...admissions.tuitionFees, additional: newFees });
+                        }}
+                        className="text-rose-500 hover:text-rose-700 transition-colors p-2 self-start md:self-end mt-2 md:mt-0"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  ))}
+                  <button 
+                    onClick={() => {
+                       const currentFees = admissions.tuitionFees?.additional || [];
+                       updateAdmissionsField('tuitionFees', { ...admissions.tuitionFees, additional: [...currentFees, { label: 'New Fee', amount: 'SZL 0', cycle: 'Once-off' }] });
+                    }}
+                    className="w-full py-4 border-2 border-dashed border-slate-200 rounded-xl text-[10px] font-black text-slate-400 uppercase tracking-widest hover:bg-slate-100 transition-all flex items-center justify-center gap-2"
+                  >
+                    <Plus className="w-4 h-4" /> Add Fee Item
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-8">
+              <header>
+                <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Fee Structure Preview</h3>
+              </header>
+              <div className="bg-white p-10 rounded-[40px] border border-slate-100 shadow-sm space-y-8 sticky top-8">
+                <div className="space-y-6">
+                  <div>
+                    <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">Tuition per Term</p>
+                    <p className="text-3xl font-black text-slate-900">{admissions.tuitionFees?.perTerm || 'SZL 0'}</p>
+                  </div>
+                  <div>
+                    <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">Tuition per Year</p>
+                    <p className="text-2xl font-black text-slate-600">{admissions.tuitionFees?.perYear || 'SZL 0'}</p>
+                  </div>
+                </div>
+                
+                {admissions.tuitionFees?.additional && admissions.tuitionFees.additional.length > 0 && (
+                  <div className="pt-6 border-t border-slate-100 space-y-4">
+                    <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Miscellaneous Costs</p>
+                    {admissions.tuitionFees.additional.map((fee, i) => (
+                      <div key={i} className="flex justify-between items-center py-2 border-b border-slate-50 last:border-0">
+                        <span className="text-sm font-bold text-slate-700">{fee.label} {fee.cycle && fee.cycle !== 'Once-off' && <span className="text-xs text-slate-400 font-medium ml-1">({fee.cycle === 'Term' ? 'Per Term' : 'Per Year'})</span>}</span>
+                        <span className="text-sm font-black text-emerald-600">{fee.amount}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
           </div>

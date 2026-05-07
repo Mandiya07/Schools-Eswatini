@@ -31,36 +31,69 @@ const AdmissionsSection: React.FC<AdmissionsSectionProps> = ({ admissions, prima
     <div className="space-y-24 pb-20">
       {/* Overview */}
       <section className="relative">
-        <div className="max-w-3xl">
-          <h2 className="text-5xl font-black text-slate-900 tracking-tight mb-8 leading-tight">
-            {admissions.headline}
-          </h2>
-          <p className="text-xl text-slate-600 leading-relaxed font-medium">
-            {admissions.introduction}
-          </p>
-          <div className="flex flex-wrap gap-4 mt-10">
-            {admissions.allowOnlineApplications && admissions.onlineApplicationUrl && (
-              <a 
-                href={admissions.onlineApplicationUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-3 px-8 py-4 bg-slate-900 text-white rounded-2xl font-black uppercase tracking-widest text-xs shadow-2xl hover:bg-blue-600 transition-all hover:scale-105 active:scale-95"
-              >
-                Apply Online Now
-                <Globe className="w-5 h-5" />
-              </a>
+        <div className="grid grid-cols-1 lg:grid-cols-5 gap-16 items-start">
+          <div className="lg:col-span-3">
+            <h2 className="text-6xl font-black text-slate-900 tracking-tighter mb-8 leading-[0.9]">
+              {admissions.headline}
+            </h2>
+            <p className="text-xl text-slate-600 leading-relaxed font-medium">
+              {admissions.introduction}
+            </p>
+            
+            {admissions.processingTime && (
+              <div className="flex items-center gap-2 mt-8 text-blue-600">
+                <Clock className="w-4 h-4" />
+                <span className="text-xs font-black uppercase tracking-widest">Average Processing: {admissions.processingTime}</span>
+              </div>
             )}
-            {admissions.scholarshipApplicationLink && (
-              <a 
-                href={admissions.scholarshipApplicationLink}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-3 px-8 py-4 bg-white border-2 border-slate-900 text-slate-900 rounded-2xl font-black uppercase tracking-widest text-xs hover:bg-slate-50 transition-all hover:scale-105 active:scale-95"
-              >
-                Scholarship Portal
-                <Trophy className="w-5 h-5" />
-              </a>
-            )}
+          </div>
+
+          <div className="lg:col-span-2 space-y-4 pt-4">
+            <div className="p-8 bg-slate-50 rounded-[40px] border border-slate-100 shadow-sm space-y-6">
+              <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Digital Admissions Portal</h3>
+              
+              {admissions.allowOnlineApplications && admissions.onlineApplicationUrl ? (
+                <div className="space-y-3">
+                  <a 
+                    href={admissions.onlineApplicationUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center justify-between w-full p-6 bg-slate-900 text-white rounded-3xl font-black uppercase tracking-widest text-[10px] shadow-2xl hover:bg-blue-600 transition-all group"
+                  >
+                    <span>Apply Online Now</span>
+                    <Globe className="w-5 h-5 group-hover:rotate-12 transition-transform" />
+                  </a>
+                  
+                  {admissions.scholarshipApplicationLink && (
+                    <a 
+                      href={admissions.scholarshipApplicationLink}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center justify-between w-full p-6 bg-white border-2 border-slate-900 text-slate-900 rounded-3xl font-black uppercase tracking-widest text-[10px] hover:bg-slate-50 transition-all group"
+                    >
+                      <span>Scholarship Application Link</span>
+                      <Trophy className="w-5 h-5 group-hover:scale-110 transition-transform" />
+                    </a>
+                  )}
+                </div>
+              ) : (
+                <div className="p-6 bg-white rounded-3xl border border-dashed border-slate-200 text-center">
+                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Traditional Application Only</p>
+                  <p className="text-xs text-slate-500 font-medium mt-2">Please contact the admissions office for physical forms.</p>
+                </div>
+              )}
+            </div>
+            
+            <div className="flex items-center gap-4 px-8">
+               <div className="flex -space-x-3">
+                 {[1,2,3].map(i => (
+                   <div key={i} className="w-8 h-8 rounded-full border-2 border-white overflow-hidden bg-slate-200">
+                     <img src={`https://i.pravatar.cc/100?u=${i + 20}`} className="w-full h-full object-cover" />
+                   </div>
+                 ))}
+               </div>
+               <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Join 500+ Applicants this year</p>
+            </div>
           </div>
         </div>
       </section>

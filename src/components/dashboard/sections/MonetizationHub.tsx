@@ -30,6 +30,41 @@ const MonetizationHub: React.FC<MonetizationHubProps> = ({ institution, onUpdate
     { id: 'inv-102', date: '2026-03-01', amount: 450, description: 'Pro Suite Subscription', status: 'Paid', method: 'MoMo' }
   ];
 
+  const [processingPlan, setProcessingPlan] = React.useState<string | null>(null);
+
+  const upgradePlan = async (p: any) => {
+    if (plan === p.id) return;
+    setProcessingPlan(p.id);
+    try {
+      const amount = parseFloat(p.price.replace(/[^0-9.]/g, '')) || 0;
+      if (amount === 0) {
+         onPlanUpdate(p.id as any);
+         setProcessingPlan(null);
+         return;
+      }
+      
+      const response = await fetch('/api/payments/initialize', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          amount: amount,
+          reference: `UPGRADE_${Date.now()}`,
+          description: `Upgrade to ${p.name}`,
+          customerEmail: 'admin@school.com'
+        })
+      });
+      const data = await response.json();
+      if (data.paymentUrl) {
+         window.location.href = data.paymentUrl;
+      } else {
+         alert('Failed to initialize payment.');
+      }
+    } catch(err) {
+      alert('Payment processing error');
+    }
+    setProcessingPlan(null);
+  };
+
   return (
     <div className="space-y-12 animate-in fade-in slide-in-from-right-4">
       <header>
@@ -46,8 +81,8 @@ const MonetizationHub: React.FC<MonetizationHubProps> = ({ institution, onUpdate
               {plans.map(p => (
                 <div 
                   key={p.id} 
-                  onClick={() => onPlanUpdate(p.id as any)}
-                  className={`p-6 rounded-[32px] border-2 cursor-pointer transition-all ${plan === p.id ? 'border-blue-600 bg-blue-50 shadow-xl' : 'border-slate-100 bg-white hover:border-slate-200'}`}
+                  onClick={() => upgradePlan(p)}
+                  className={`p-6 rounded-[32px] border-2 cursor-pointer transition-all ${plan === p.id ? 'border-blue-600 bg-blue-50 shadow-xl' : 'border-slate-100 bg-white hover:border-slate-200'} ${processingPlan === p.id ? 'opacity-50 pointer-events-none' : ''}`}
                 >
                   <div className="flex justify-between items-start mb-4">
                     <div className={`p-2 rounded-xl ${plan === p.id ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-400'}`}>

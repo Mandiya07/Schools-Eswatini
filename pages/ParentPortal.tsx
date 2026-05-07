@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { User, UserRole, StudentProgress } from '../types';
 import { db, collection, query, where, getDocs, setDoc, doc, getDoc, OperationType, handleFirestoreError } from '../src/lib/firebase';
-import { BookOpen, Activity, Users, Save, Edit2, CheckCircle, AlertCircle, Bot, Sparkles, Loader2, Wallet, CreditCard, Receipt, GraduationCap, Building, ChevronRight, FileText, Download, ShieldCheck, BusFront, MapPin, Vote, FileSignature, Clock, ClipboardCheck, ThumbsUp, XCircle } from 'lucide-react';
+import { BookOpen, Activity, Users, Save, Edit2, CheckCircle, AlertCircle, Bot, Sparkles, Loader2, Wallet, CreditCard, Receipt, GraduationCap, Building, ChevronRight, FileText, Download, ShieldCheck, BusFront, MapPin, Vote, FileSignature, Clock, ClipboardCheck, ThumbsUp, XCircle, Upload } from 'lucide-react';
 import { GoogleGenAI } from "@google/genai";
 
 interface ParentPortalProps {
@@ -665,6 +665,36 @@ const ParentPortal: React.FC<ParentPortalProps> = ({ user }) => {
                       </section>
                     )}
 
+                    {/* Transcripts / Report Cards */}
+                    <section className="md:col-span-2">
+                       <div className="flex items-center justify-between mb-6">
+                          <div className="flex items-center gap-4">
+                            <div className="w-12 h-12 bg-indigo-50 rounded-2xl flex items-center justify-center">
+                              <FileText className="w-6 h-6 text-indigo-600" />
+                            </div>
+                            <h3 className="text-2xl font-black text-slate-900 tracking-tight">Academic Results & Past Transcripts</h3>
+                          </div>
+                       </div>
+                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                         {MOCK_TRANSCRIPTS.map((t, i) => (
+                           <div key={i} className="flex flex-col sm:flex-row justify-between items-start sm:items-center p-6 bg-slate-50 border border-slate-100 rounded-3xl gap-4 hover:border-blue-200 transition-colors">
+                            <div className="flex items-center gap-4">
+                              <div className="w-12 h-12 bg-blue-100 text-blue-600 rounded-2xl flex items-center justify-center font-black">
+                                {t.gpa}
+                              </div>
+                              <div>
+                                <h4 className="font-bold text-slate-900">{t.semester}</h4>
+                                <p className="text-xs font-bold text-slate-400 capitalize">{t.status}</p>
+                              </div>
+                            </div>
+                            <button className="flex items-center gap-2 px-6 py-3 bg-white border border-slate-200 text-slate-700 font-black text-[10px] uppercase tracking-widest rounded-xl hover:bg-slate-900 hover:text-white transition-all w-full sm:w-auto justify-center">
+                              <Download className="w-4 h-4" /> Download PDF
+                            </button>
+                          </div>
+                         ))}
+                       </div>
+                    </section>
+
                     {/* Participation Section */}
                     <section>
                       <div className="flex items-center gap-4 mb-6">
@@ -819,7 +849,7 @@ const ParentPortal: React.FC<ParentPortalProps> = ({ user }) => {
                    <h2 className="text-3xl font-black tracking-tight">Financial Ledger</h2>
                  </div>
                  <p className="text-emerald-200 font-medium leading-relaxed mb-8">
-                   Manage your child's school fees instantly. Pay using MTN Mobile Money or eMali directly from your phone.
+                   Manage your child's school fees instantly. Pay securely using a local payment processor directly from your phone.
                  </p>
                  
                  <div className="flex flex-col gap-4">
@@ -827,15 +857,96 @@ const ParentPortal: React.FC<ParentPortalProps> = ({ user }) => {
                        <label className="block text-[10px] font-black uppercase tracking-widest text-emerald-400 mb-2">Custom Amount (SZL)</label>
                        <div className="flex gap-2">
                           <input 
+                            id="custom-fee-amount"
                             type="number" 
-                            className="flex-1 bg-white/10 border-none rounded-xl px-4 py-3 font-black text-white focus:ring-2 focus:ring-yellow-400" 
-                            placeholder="e.g. 100"
+                            className="flex-1 bg-white/10 border-none rounded-xl px-4 py-3 font-black text-white focus:ring-2 focus:ring-yellow-400 outline-none placeholder:text-emerald-300/50" 
+                            placeholder="e.g. 1500"
+                            min="10"
                           />
-                          <button className="px-8 py-4 bg-yellow-400 hover:bg-yellow-300 text-emerald-900 rounded-xl font-black uppercase tracking-widest text-[10px] shadow-xl shadow-yellow-400/20 transition-all flex items-center gap-3">
-                            Pay via MoMo
+                          <button 
+                            onClick={async () => {
+                              const amountInput = document.getElementById('custom-fee-amount') as HTMLInputElement;
+                              const amount = parseFloat(amountInput?.value);
+                              if (!amount || amount < 10) return alert('Please enter a valid amount.');
+                              
+                              try {
+                                const response = await fetch('/api/payments/initialize', {
+                                  method: 'POST',
+                                  headers: { 'Content-Type': 'application/json' },
+                                  body: JSON.stringify({
+                                    amount: amount,
+                                    reference: `FEE_${Date.now()}`,
+                                    description: 'School Fees Payment - Mobile Money',
+                                    customerEmail: user?.email || ''
+                                  })
+                                });
+                                const data = await response.json();
+                                if (data.paymentUrl) {
+                                  window.location.href = data.paymentUrl; // Redirect to our simulated payment gateway
+                                } else {
+                                  alert('Could not initialize payment. ' + (data.error || ''));
+                                }
+                              } catch (err) {
+                                alert('Payment initialization failed. Server might be unreachable.');
+                              }
+                            }}
+                            className="px-8 py-4 bg-yellow-400 hover:bg-yellow-300 text-emerald-900 rounded-xl font-black uppercase tracking-widest text-[10px] shadow-xl shadow-yellow-400/20 transition-all flex items-center gap-3">
+                            Mobile Money
+                          </button>
+                          
+                          <button 
+                            onClick={async () => {
+                              const amountInput = document.getElementById('custom-fee-amount') as HTMLInputElement;
+                              const amount = parseFloat(amountInput?.value);
+                              if (!amount || amount < 10) return alert('Please enter a valid amount.');
+                              
+                              try {
+                                const response = await fetch('/api/payments/initialize', {
+                                  method: 'POST',
+                                  headers: { 'Content-Type': 'application/json' },
+                                  body: JSON.stringify({
+                                    amount: amount,
+                                    reference: `FEE_${Date.now()}`,
+                                    description: 'School Fees Payment - Instant EFT',
+                                    customerEmail: user?.email || '',
+                                    method: 'EFT'
+                                  })
+                                });
+                                const data = await response.json();
+                                if (data.paymentUrl) {
+                                  window.location.href = data.paymentUrl; // Redirect to our simulated payment gateway
+                                } else {
+                                  alert('Could not initialize payment. ' + (data.error || ''));
+                                }
+                              } catch (err) {
+                                alert('Payment initialization failed. Server might be unreachable.');
+                              }
+                            }}
+                            className="px-8 py-4 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl font-black uppercase tracking-widest text-[10px] shadow-xl shadow-emerald-600/20 transition-all flex items-center gap-3">
+                            Instant EFT
                           </button>
                        </div>
-                       <p className="text-[10px] text-emerald-400 mt-3 font-bold">+ SZL 5.00 Convenience Fee (Saves you a trip to the bank!)</p>
+                       <p className="text-[10px] text-emerald-400 mt-3 font-bold">+ Eswatini Local Gateway simulation for secure real-world testing. Supports MTN MoMo, eMali, and Instant EFT (FNB, Standard Bank, Nedbank, SwaziBank).</p>
+                       
+                       <div className="mt-6 pt-6 border-t border-emerald-700/50">
+                         <label className="block text-[10px] font-black uppercase tracking-widest text-emerald-400 mb-2">Manual Bank Transfer (Branch Deposit)</label>
+                         <div className="flex flex-col sm:flex-row gap-4 items-center">
+                           <div className="flex-1 bg-white/5 p-4 rounded-xl text-xs text-emerald-200">
+                             <strong>Bank Details:</strong><br/>
+                             Standard Bank Eswatini<br/>
+                             Acc: 1234567890 (Mbabane Branch)
+                           </div>
+                           <label className="cursor-pointer px-6 py-4 bg-white/10 hover:bg-white/20 text-white rounded-xl font-black uppercase tracking-widest text-[10px] transition-all flex items-center gap-2 border border-emerald-500/30">
+                             <Upload className="w-4 h-4" />
+                             Upload Proof of Payment
+                             <input type="file" className="hidden" accept="image/*,.pdf" onChange={(e) => {
+                               if (e.target.files && e.target.files.length > 0) {
+                                 alert(`Uploaded ${e.target.files[0].name}. Waiting for school admin verification.`);
+                               }
+                             }} />
+                           </label>
+                         </div>
+                       </div>
                     </div>
                  </div>
                </div>

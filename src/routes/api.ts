@@ -1,5 +1,6 @@
 import express from 'express';
 import { sendAdminNotification, sendReplyNotification } from '../services/emailService.js';
+import { paymentGateway } from '../services/paymentService.js';
 
 const router = express.Router();
 
@@ -22,34 +23,79 @@ router.get('/stats', (req, res) => {
   });
 });
 
-// Notification for new inquiry
+// Notifications
 router.post('/notify/new-inquiry', async (req, res) => {
   const { schoolEmail, schoolName, previewText } = req.body;
-  
-  if (!schoolEmail || !schoolName) {
-    return res.status(400).json({ error: 'Missing required fields' });
-  }
-
+  if (!schoolEmail || !schoolName) return res.status(400).json({ error: 'Missing required fields' });
   const success = await sendAdminNotification(schoolEmail, schoolName, previewText);
   res.json({ success });
 });
 
-// Notification for admin reply
 router.post('/notify/reply', async (req, res) => {
   const { recipientEmail, schoolName, replyBody } = req.body;
-
-  if (!recipientEmail || !schoolName || !replyBody) {
-    return res.status(400).json({ error: 'Missing required fields' });
-  }
-
+  if (!recipientEmail || !schoolName || !replyBody) return res.status(400).json({ error: 'Missing required fields' });
   const success = await sendReplyNotification(recipientEmail, schoolName, replyBody);
   res.json({ success });
+});
+
+// Payment Gateway Routes
+router.post('/payments/initialize', async (req, res) => {
+  try {
+    const { amount, reference, description, customerEmail, customerPhone } = req.body;
+    
+    // In a real scenario, validate that the user is authenticated (e.g. check standard session/auth tokens)
+    if (!amount || !reference) {
+      return res.status(400).json({ error: 'Amount and reference are required' });
+    }
+
+    const paymentResponse = await paymentGateway.initializePayment({
+      amount,
+      currency: 'SZL', // Swazi Lilangeni
+      reference,
+      description,
+      customerEmail,
+      customerPhone,
+      redirectUrl: `${req.protocol}://${req.get('host')}/payment/success`
+    });
+
+    // In a real app, you might save `paymentResponse.transactionId` to your database
+    // to map against `reference` for webhook reconciliation.
+
+    res.json(paymentResponse);
+  } catch (error) {
+    console.error('[PAYMENT_INIT_ERROR]', error);
+    res.status(500).json({ error: 'Failed to initialize payment' });
+  }
+});
+
+// Payment Webhook (Where the provider sends server-to-server confirmation)
+router.post('/payments/webhook', express.raw({ type: 'application/json' }), async (req, res) => {
+  try {
+    const signature = req.headers['x-payment-signature'] as string;
+    const rawBody = req.body.toString('utf8');
+
+    // Secure verification
+    if (!paymentGateway.verifyWebhookSignature(rawBody, signature)) {
+      return res.status(401).json({ error: 'Invalid webhook signature' });
+    }
+
+    const payload = JSON.parse(rawBody);
+    
+    console.log(`[WEBHOOK] Payment ${payload.status} for Ref: ${payload.reference}`);
+
+    // Update database here with Admin SDK
+    // Eg. await firestoreAdmin.collection('transactions').doc(payload.reference).update({ status: payload.status });
+
+    res.json({ received: true });
+  } catch (error) {
+    console.error('[WEBHOOK_ERROR]', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
 });
 
 // Audit Log endpoint (Server-side only)
 router.post('/audit', (req, res) => {
   const { action, resource, details } = req.body;
-  // In a real app, we would write to Firestore here using Admin SDK or proxy
   console.log(`[AUDIT] ${action} on ${resource}`, details);
   res.status(201).json({ success: true });
 });

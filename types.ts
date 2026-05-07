@@ -691,7 +691,7 @@ export interface Institution {
       tuitionFees: {
         perTerm: string;
         perYear: string;
-        additional: { label: string; amount: string }[];
+        additional: { label: string; amount: string; cycle?: 'Term' | 'Year' | 'Once-off' }[];
       };
       scholarships: {
         types: string[];

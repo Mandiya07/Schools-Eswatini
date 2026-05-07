@@ -4,6 +4,7 @@ import { Institution, User, Region, SubscriptionPlan, InstitutionType, GenderTyp
 import InstitutionAdminDashboard from './InstitutionAdminDashboard';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, BarChart, Bar, XAxis, YAxis, CartesianGrid, LineChart, Line, AreaChart, Area, Legend } from 'recharts';
 import SecurityDashboard from '../components/SecurityDashboard';
+import { AnalyticsDashboard } from '../src/components/dashboard/sections/AnalyticsDashboard';
 import { Plus, X, ArrowLeft, Layout } from 'lucide-react';
 import { MOCK_INSTITUTIONS } from '../mockData';
 
@@ -365,66 +366,18 @@ const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({ institutions,
           </div>
         </div>
       ) : activeTab === 'analytics' ? (
-        <div className="space-y-10">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
-            <div className="bg-white p-10 rounded-[48px] border border-slate-100 shadow-sm">
-              <h3 className="text-sm font-black text-slate-900 uppercase tracking-widest mb-10">Regional Growth Trends</h3>
-              <div className="h-64">
-                <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
-                  <BarChart data={[
-                    { name: 'Hhohho', schools: institutions.filter(i => i.region === Region.HHOHHO).length },
-                    { name: 'Manzini', schools: institutions.filter(i => i.region === Region.MANZINI).length },
-                    { name: 'Lubombo', schools: institutions.filter(i => i.region === Region.LUBOMBO).length },
-                    { name: 'Shiselweni', schools: institutions.filter(i => i.region === Region.SHISELWENI).length },
-                  ]}>
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                    <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#94a3b8', fontWeight: 800 }} />
-                    <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#94a3b8', fontWeight: 800 }} />
-                    <Tooltip cursor={{ fill: '#f8fafc' }} contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }} />
-                    <Bar dataKey="schools" fill="#3b82f6" radius={[4, 4, 0, 0]} />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-            </div>
-            <div className="bg-white p-10 rounded-[48px] border border-slate-100 shadow-sm">
-              <h3 className="text-sm font-black text-slate-900 uppercase tracking-widest mb-10">Application Volume (Last 6 Months)</h3>
-              <div className="h-64">
-                <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
-                  <LineChart data={[
-                    { name: 'Oct', applications: 120 }, { name: 'Nov', applications: 250 },
-                    { name: 'Dec', applications: 400 }, { name: 'Jan', applications: 850 },
-                    { name: 'Feb', applications: 600 }, { name: 'Mar', applications: 350 }
-                  ]}>
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                    <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#94a3b8', fontWeight: 800 }} />
-                    <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#94a3b8', fontWeight: 800 }} />
-                    <Tooltip contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }} />
-                    <Line type="monotone" dataKey="applications" stroke="#10b981" strokeWidth={3} dot={{ r: 4, fill: '#10b981', strokeWidth: 2, stroke: '#fff' }} activeDot={{ r: 6 }} />
-                  </LineChart>
-                </ResponsiveContainer>
-              </div>
+        <div className="space-y-12">
+          <div className="flex items-center justify-between">
+            <h3 className="text-2xl font-black text-slate-900 tracking-tight">Platform Analytics</h3>
+            <div className="flex items-center gap-4">
+               <button className="bg-white border px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest text-slate-500 hover:bg-slate-50 transition-all">Download Report</button>
+               <div className="flex items-center gap-2 bg-emerald-100 px-4 py-2 rounded-2xl">
+                 <span className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse" />
+                 <span className="text-[10px] font-black uppercase text-emerald-600 tracking-widest">Global Live</span>
+               </div>
             </div>
           </div>
-          <div className="bg-white p-10 rounded-[48px] border border-slate-100 shadow-sm">
-            <h3 className="text-sm font-black text-slate-900 uppercase tracking-widest mb-10">Most Searched Institutions</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {institutions.sort((a, b) => b.stats.views - a.stats.views).slice(0, 6).map((inst, idx) => (
-                <div key={inst.id} className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl">
-                  <div className="flex items-center gap-4">
-                    <span className="text-lg font-black text-slate-300">#{idx + 1}</span>
-                    <div>
-                      <p className="text-sm font-black text-slate-900">{inst.name}</p>
-                      <p className="text-[10px] text-slate-500 uppercase tracking-widest">{inst.region}</p>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-sm font-black text-blue-600">{inst.stats.views.toLocaleString()}</p>
-                    <p className="text-[10px] text-slate-400 uppercase tracking-widest">Views</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
+          <AnalyticsDashboard mode="global" institutions={institutions} />
         </div>
       ) : activeTab === 'security' ? (
         <SecurityDashboard />

@@ -7,6 +7,8 @@ import {
   where, 
   onSnapshot, 
   addDoc, 
+  doc,
+  setDoc,
   serverTimestamp, 
   orderBy,
   limit
@@ -712,7 +714,9 @@ export const InquiryForm: React.FC<EngagementFeaturesProps> = ({ institution, la
     setError(null);
 
     try {
+      const newDocRef = doc(collection(db, 'messages'));
       const messageData = {
+        id: newDocRef.id,
         institutionId: institution.id,
         senderId: auth.currentUser?.uid || null,
         senderName: formData.name,
@@ -725,7 +729,7 @@ export const InquiryForm: React.FC<EngagementFeaturesProps> = ({ institution, la
         createdAt: new Date().toISOString()
       };
 
-      await addDoc(collection(db, 'messages'), messageData);
+      await setDoc(newDocRef, messageData);
 
       // Send Email Notification to School Admin
       try {

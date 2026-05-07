@@ -58,7 +58,7 @@ const SectionManager: React.FC<SectionManagerProps> = ({ institution, onUpdate }
       case 'studentLife': return <StudentLifeEditor institution={institution} onUpdate={updateSection} />;
       case 'programs': return <ProgramsEditor institution={institution} onUpdate={updateSection} />;
       case 'portal': return <PortalEditor institution={institution} onUpdate={updateSection} />;
-      case 'contactUs': return <ContactUsEditor institution={institution} onUpdate={updateSection} />;
+      case 'contactUs': return <ContactUsEditor institution={institution} onUpdate={onUpdate} />;
       default: return null;
     }
   };
