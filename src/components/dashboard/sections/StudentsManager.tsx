@@ -1,20 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { collection, query, where, getDocs, doc, setDoc, deleteDoc, updateDoc } from 'firebase/firestore';
-import { db, handleFirestoreError, OperationType } from '../../../lib/firebase';
-import { Institution } from '../../../../types';
+import { db, handleFirestoreError, OperationType, getDocsWithRetry } from '../../../lib/firebase';
+import { Institution, Student } from '../../../../types';
 import { Loader2, Plus, Trash2, Edit2, Save, X, Mail, Download as DownloadIcon } from 'lucide-react';
-
-interface Student {
-  id: string;
-  institutionId: string;
-  name: string;
-  grade: string;
-  className: string;
-  studentId: string;
-  dob: string;
-  parentEmails: string[];
-  createdAt: string;
-}
 
 interface StudentsManagerProps {
   institution: Institution;
@@ -38,19 +26,22 @@ export const StudentsManager: React.FC<StudentsManagerProps> = ({ institution, i
     const pathForGetDocs = 'students';
     try {
       const q = query(collection(db, pathForGetDocs), where('institutionId', '==', institution.id));
-      const snapshot = await getDocs(q);
+      const snapshot = await getDocsWithRetry(q);
       const data = snapshot.docs.map(doc => doc.data() as Student);
       setStudents(data);
     } catch (error) {
-      handleFirestoreError(error, OperationType.GET, pathForGetDocs);
-      console.error(error);
+      if (error instanceof Error && !error.message.includes('offline')) {
+        handleFirestoreError(error, OperationType.GET, pathForGetDocs);
+      } else {
+        console.warn("Offline: Using fallback/cache for students registry.");
+      }
     } finally {
       setLoading(false);
     }
   };
 
   const handleAdd = async () => {
-    if (!editForm.name || !editForm.studentId || !editForm.grade || !editForm.className || !editForm.dob) {
+    if (!editForm.name || !editForm.studentId || !editForm.grade || !editForm.class || !editForm.dob) {
       alert("Please fill all required fields.");
       return;
     }
@@ -62,7 +53,7 @@ export const StudentsManager: React.FC<StudentsManagerProps> = ({ institution, i
         institutionId: institution.id,
         name: editForm.name || '',
         grade: editForm.grade || '',
-        className: editForm.className || '',
+        class: editForm.class || '',
         studentId: editForm.studentId || '',
         dob: editForm.dob || '',
         parentEmails: editForm.parentEmails || [],
@@ -86,13 +77,13 @@ export const StudentsManager: React.FC<StudentsManagerProps> = ({ institution, i
       const updateData = {
         name: editForm.name,
         grade: editForm.grade,
-        className: editForm.className,
+        class: editForm.class,
         studentId: editForm.studentId,
         dob: editForm.dob,
         parentEmails: editForm.parentEmails
       };
       await updateDoc(doc(db, pathForWrite, id), updateData);
-      setStudents(students.map(s => s.id === id ? { ...s, ...updateData } : s));
+      setStudents(students.map(s => s.id === id ? { ...s, ...updateData } : s as Student));
       setEditingId(null);
       setEditForm({});
     } catch (error) {
@@ -129,7 +120,7 @@ export const StudentsManager: React.FC<StudentsManagerProps> = ({ institution, i
         `"${s.studentId.replace(/"/g, '""')}"`,
         `"${s.dob}"`,
         `"${s.grade.replace(/"/g, '""')}"`,
-        `"${s.className.replace(/"/g, '""')}"`,
+        `"${s.class.replace(/"/g, '""')}"`,
         `"${s.parentEmails.join('; ').replace(/"/g, '""')}"`,
         `"${s.createdAt}"`
       ].join(','))
@@ -222,7 +213,7 @@ export const StudentsManager: React.FC<StudentsManagerProps> = ({ institution, i
                 </td>
                 <td className="py-4 px-2 space-y-2">
                   <input className="w-full bg-white border-none rounded-lg px-3 py-2 text-xs font-bold" placeholder="Grade/Year" value={editForm.grade || ''} onChange={e => setEditForm({...editForm, grade: e.target.value})} />
-                  <input className="w-full bg-white border-none rounded-lg px-3 py-2 text-xs font-bold" placeholder="Class/Stream" value={editForm.className || ''} onChange={e => setEditForm({...editForm, className: e.target.value})} />
+                  <input className="w-full bg-white border-none rounded-lg px-3 py-2 text-xs font-bold" placeholder="Class/Stream" value={editForm.class || ''} onChange={e => setEditForm({...editForm, class: e.target.value})} />
                 </td>
                 <td className="py-4 px-2">
                   <textarea className="w-full bg-white border-none rounded-lg px-3 py-2 text-xs" rows={2} placeholder="Emails (comma separated)" value={(editForm.parentEmails || []).join(', ')} onChange={e => setEditForm({...editForm, parentEmails: e.target.value.split(',').map(email => email.trim()).filter(Boolean)})} />
@@ -246,7 +237,7 @@ export const StudentsManager: React.FC<StudentsManagerProps> = ({ institution, i
                   </td>
                   <td className="py-4 px-2 space-y-2">
                     <input className="w-full bg-white border-none rounded-lg px-3 py-2 text-xs font-bold" placeholder="Grade" value={editForm.grade || ''} onChange={e => setEditForm({...editForm, grade: e.target.value})} />
-                    <input className="w-full bg-white border-none rounded-lg px-3 py-2 text-xs font-bold" placeholder="Class" value={editForm.className || ''} onChange={e => setEditForm({...editForm, className: e.target.value})} />
+                    <input className="w-full bg-white border-none rounded-lg px-3 py-2 text-xs font-bold" placeholder="Class" value={editForm.class || ''} onChange={e => setEditForm({...editForm, class: e.target.value})} />
                   </td>
                   <td className="py-4 px-2">
                     <textarea className="w-full bg-white border-none rounded-lg px-3 py-2 text-xs" rows={2} value={(editForm.parentEmails || []).join(', ')} onChange={e => setEditForm({...editForm, parentEmails: e.target.value.split(',').map(email => email.trim()).filter(Boolean)})} />
@@ -267,7 +258,7 @@ export const StudentsManager: React.FC<StudentsManagerProps> = ({ institution, i
                   </td>
                   <td className="py-4 px-2">
                     <div className="text-xs font-bold text-indigo-600 bg-indigo-50 inline-block px-2 py-1 rounded-md mb-1">{student.grade}</div>
-                    <div className="text-xs text-slate-500">{student.className}</div>
+                    <div className="text-xs text-slate-500">{student.class}</div>
                   </td>
                   <td className="py-4 px-2">
                     {student.parentEmails && student.parentEmails.length > 0 ? (

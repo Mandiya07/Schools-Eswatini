@@ -17,7 +17,7 @@ interface SuperAdminDashboardProps {
 }
 
 const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({ institutions, onUpdate, onDelete, onSeed, onAdd }) => {
-  const [activeTab, setActiveTab] = useState<'overview' | 'institutions' | 'verification' | 'analytics' | 'security' | 'performance' | 'users' | 'moderation' | 'forecasting'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'institutions' | 'verification' | 'analytics' | 'security' | 'monetization' | 'users' | 'moderation' | 'forecasting'>('overview');
   const [adminProxy, setAdminProxy] = useState<User | null>(null);
   const [perfStats, setPerfStats] = useState<any>(null);
   
@@ -80,15 +80,20 @@ const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({ institutions,
 
   const planData = [
     { name: 'Free', value: institutions.filter(i => i.plan === SubscriptionPlan.FREE).length, color: '#94a3b8' },
-    { name: 'Premium', value: institutions.filter(i => i.plan === SubscriptionPlan.PREMIUM).length, color: '#3b82f6' },
-    { name: 'Enterprise', value: institutions.filter(i => i.plan === SubscriptionPlan.ENTERPRISE).length, color: '#6366f1' },
+    { name: 'Standard', value: institutions.filter(i => i.plan === SubscriptionPlan.STANDARD_B2B).length, color: '#3b82f6' },
+    { name: 'Premium', value: institutions.filter(i => i.plan === SubscriptionPlan.PREMIUM_B2B).length, color: '#6366f1' },
+    { name: 'Enterprise', value: institutions.filter(i => i.plan === SubscriptionPlan.ENTERPRISE_B2B).length, color: '#10b981' },
   ];
 
   const mrr = institutions.reduce((acc, inst) => {
-    if (inst.plan === SubscriptionPlan.PREMIUM) return acc + 2500;
-    if (inst.plan === SubscriptionPlan.ENTERPRISE) return acc + 7500;
+    if (inst.plan === SubscriptionPlan.STANDARD_B2B) return acc + 350;
+    if (inst.plan === SubscriptionPlan.PREMIUM_B2B) return acc + 500;
+    if (inst.plan === SubscriptionPlan.ENTERPRISE_B2B) return acc + 800;
     return acc;
   }, 0);
+
+  const adRevenue = 15000; // Mock current monthly ad revenue
+  const b2cSubscriptionRevenue = 25000; // Mock current monthly AI + Tutor subs
 
   const securityLogs = [
     { id: '1', action: '2FA Enrollment', user: 'principal@waterford.sz', ip: '196.24.12.5', timestamp: '2023-11-23 10:12' },
@@ -157,10 +162,10 @@ const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({ institutions,
           Security
         </button>
         <button 
-          onClick={() => setActiveTab('performance')}
-          className={`pb-4 text-[10px] font-black uppercase tracking-widest transition-all border-b-2 whitespace-nowrap ${activeTab === 'performance' ? 'border-blue-600 text-blue-600' : 'border-transparent text-slate-400'}`}
+          onClick={() => setActiveTab('monetization')}
+          className={`pb-4 text-[10px] font-black uppercase tracking-widest transition-all border-b-2 whitespace-nowrap ${activeTab === 'monetization' ? 'border-emerald-500 text-emerald-500' : 'border-transparent text-slate-400'}`}
         >
-          Performance
+          Revenue & Ads
         </button>
         <button 
           onClick={() => setActiveTab('users')}
@@ -381,50 +386,53 @@ const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({ institutions,
         </div>
       ) : activeTab === 'security' ? (
         <SecurityDashboard />
-      ) : activeTab === 'performance' ? (
-        <div className="space-y-10">
+      ) : activeTab === 'monetization' ? (
+        <div className="space-y-12">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             <div className="bg-white p-8 rounded-[40px] border border-slate-100 shadow-sm">
-              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Avg. Response Time</p>
-              <p className="text-3xl font-black text-slate-900">{perfStats?.avgResponseTime || '45ms'}</p>
+                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">B2B SaaS (MRR)</p>
+                <p className="text-3xl font-black text-slate-900">E{mrr.toLocaleString()}</p>
+                <p className="text-[10px] font-bold text-emerald-500 mt-2">↑ 12% vs last month</p>
             </div>
             <div className="bg-white p-8 rounded-[40px] border border-slate-100 shadow-sm">
-              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">System Uptime</p>
-              <p className="text-3xl font-black text-emerald-600">{perfStats?.uptime || '99.99%'}</p>
+                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">B2C Subscriptions</p>
+                <p className="text-3xl font-black text-blue-600">E{b2cSubscriptionRevenue.toLocaleString()}</p>
+                <p className="text-[10px] font-bold text-slate-400 mt-2">AI + Tutor Premium Fees</p>
             </div>
             <div className="bg-white p-8 rounded-[40px] border border-slate-100 shadow-sm">
-              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">CDN Cache Hit Rate</p>
-              <p className="text-3xl font-black text-blue-600">94.2%</p>
+                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Ad Revenue</p>
+                <p className="text-3xl font-black text-amber-600">E{adRevenue.toLocaleString()}</p>
+                <p className="text-[10px] font-bold text-slate-400 mt-2">Banner & Sponsored</p>
             </div>
-            <div className="bg-white p-8 rounded-[40px] border border-slate-100 shadow-sm">
-              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Image Compression</p>
-              <p className="text-3xl font-black text-indigo-600">65% Saved</p>
+            <div className="bg-white p-8 rounded-[40px] border border-slate-100 shadow-sm text-white bg-slate-900">
+                <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Total Yield</p>
+                <p className="text-3xl font-black">E{(mrr + b2cSubscriptionRevenue + adRevenue).toLocaleString()}</p>
+                <p className="text-[10px] font-bold text-emerald-400 mt-2">Direct Monetization Pivot</p>
             </div>
           </div>
 
           <div className="bg-white p-10 rounded-[48px] border border-slate-100 shadow-sm">
-            <h3 className="text-sm font-black text-slate-900 uppercase tracking-widest mb-10">Infrastructure Nodes</h3>
+            <div className="flex justify-between items-center mb-10">
+              <h3 className="text-sm font-black text-slate-900 uppercase tracking-widest">Active Ad Campaigns</h3>
+              <button className="bg-amber-500 text-white px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest">New Insertion Order</button>
+            </div>
             <div className="space-y-4">
               {[
-                { name: 'API Gateway (JHB-1)', status: 'Healthy', load: '12%', latency: '15ms' },
-                { name: 'Database Cluster (Primary)', status: 'Healthy', load: '24%', latency: '8ms' },
-                { name: 'CDN Edge (CPT-1)', status: 'Healthy', load: '8%', latency: '12ms' },
-                { name: 'Asset Storage (S3-Compatible)', status: 'Healthy', load: '45%', latency: '22ms' },
-              ].map(node => (
-                <div key={node.name} className="flex items-center justify-between p-6 bg-slate-50 rounded-3xl">
-                  <div className="flex items-center gap-4">
-                    <div className="w-3 h-3 bg-emerald-500 rounded-full animate-pulse" />
-                    <p className="text-sm font-bold text-slate-900">{node.name}</p>
+                { name: 'Standard Bank Eswatini', type: 'Hero Banner', range: 'E2,500/mo', status: 'Active', impressions: '145k' },
+                { name: 'MTN FinTech', type: 'Sidebar Widget', range: 'E1,200/mo', status: 'Active', impressions: '82k' },
+                { name: 'UNESWA Admissions', type: 'Search Featured', range: 'E1,000/mo', status: 'Processing', impressions: '0' },
+              ].map((ad, idx) => (
+                <div key={idx} className="flex items-center justify-between p-6 bg-slate-50 rounded-3xl border border-slate-100">
+                  <div className="flex items-center gap-6">
+                    <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center text-xl shadow-sm">📢</div>
+                    <div>
+                      <h4 className="font-black text-slate-900">{ad.name}</h4>
+                      <p className="text-[10px] text-slate-500 font-bold uppercase">{ad.type} • {ad.range}</p>
+                    </div>
                   </div>
-                  <div className="flex gap-8 text-right">
-                    <div>
-                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Load</p>
-                      <p className="text-xs font-bold text-slate-900">{node.load}</p>
-                    </div>
-                    <div>
-                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Latency</p>
-                      <p className="text-xs font-bold text-slate-900">{node.latency}</p>
-                    </div>
+                  <div className="text-right">
+                    <p className="text-xs font-black text-slate-900">{ad.impressions} Views</p>
+                    <span className={`px-2 py-1 rounded-full text-[8px] font-black uppercase tracking-widest ${ad.status === 'Active' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}`}>{ad.status}</span>
                   </div>
                 </div>
               ))}

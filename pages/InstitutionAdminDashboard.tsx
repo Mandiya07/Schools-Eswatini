@@ -4,7 +4,7 @@ import { Institution, User, Region, SubscriptionPlan, AcademicDepartment, Academ
 import { GoogleGenAI } from "@google/genai";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, LineChart, Line, CartesianGrid } from 'recharts';
 import SubscriptionPlans from '../src/components/SubscriptionPlans';
-import { Search, Globe, Share2, Award, Zap, Shield, Star, Layout, CreditCard, Lock, CheckCircle, AlertCircle, Sparkles, TrendingUp, Image as ImageIcon, Eye, Users, FileText, ClipboardList, Package, QrCode, Trash2, Plus, Calendar, Stethoscope, GraduationCap, Send, Bus, BarChart2, Megaphone, Newspaper, MapPin, Tag, Image as GalleryIcon, DollarSign, Download, ExternalLink, Mail } from 'lucide-react';
+import { Search, Globe, Share2, Award, Zap, Shield, ShieldAlert, Star, Layout, CreditCard, Lock, CheckCircle, AlertCircle, Sparkles, TrendingUp, Image as ImageIcon, Eye, Users, FileText, ClipboardList, Package, QrCode, Trash2, Plus, Calendar, Stethoscope, GraduationCap, Send, Bus, BarChart2, Megaphone, Newspaper, MapPin, Tag, Image as GalleryIcon, DollarSign, Download, ExternalLink, Mail, Leaf } from 'lucide-react';
 import AIContentAssistant from '../src/components/AIContentAssistant';
 import MonetizationHub from '../src/components/dashboard/sections/MonetizationHub';
 import SectionManager from '../src/components/dashboard/sections/SectionManager';
@@ -13,6 +13,7 @@ import MediaManager from '../src/components/MediaManager';
 import { useWorkflow } from '../src/context/WorkflowContext';
 
 import InboxManager from '../src/components/dashboard/sections/InboxManager';
+import PaperlessHubEditor from '../src/components/dashboard/sections/PaperlessHubEditor';
 import { StudentsManager } from '../src/components/dashboard/sections/StudentsManager';
 import { AnalyticsDashboard } from '../src/components/dashboard/sections/AnalyticsDashboard';
 
@@ -26,7 +27,7 @@ interface InstitutionAdminDashboardProps {
 const InstitutionAdminDashboard: React.FC<InstitutionAdminDashboardProps> = ({ user, institutions, onUpdate, onAdd }) => {
   const inst = institutions.find(i => i.id === (user.institutionId || institutions.find(i => i.adminId === user.id)?.id));
   const { tasks, notifications, markNotificationAsRead } = useWorkflow();
-  const [activeTab, setActiveTab] = useState<'basics' | 'identity' | 'theme' | 'sections' | 'media' | 'seo' | 'plan' | 'security' | 'analytics' | 'compliance' | 'academic' | 'academicsContent' | 'finance' | 'ai' | 'workflows' | 'staff' | 'inventory' | 'timetabling' | 'health' | 'alumni' | 'logistics' | 'benchmarking' | 'marketing' | 'news' | 'monetization' | 'applications' | 'inbox' | 'downloads'>('basics');
+  const [activeTab, setActiveTab] = useState<'basics' | 'identity' | 'theme' | 'sections' | 'media' | 'seo' | 'plan' | 'security' | 'analytics' | 'compliance' | 'academic' | 'academicsContent' | 'finance' | 'ai' | 'workflows' | 'staff' | 'inventory' | 'timetabling' | 'health' | 'alumni' | 'logistics' | 'benchmarking' | 'marketing' | 'news' | 'monetization' | 'applications' | 'inbox' | 'downloads' | 'paperless'>('basics');
   const [showPreview, setShowPreview] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
 
@@ -101,7 +102,9 @@ const InstitutionAdminDashboard: React.FC<InstitutionAdminDashboardProps> = ({ u
   const tabs = [
     { id: 'basics', label: 'Basic Details', icon: '📋' },
     { id: 'identity', label: 'Identity', icon: '🆔' },
+    { id: 'compliance', label: 'MoET Compliance', icon: <ShieldAlert className="w-5 h-5 text-blue-500" /> },
     { id: 'theme', label: 'Appearance', icon: '✨' },
+    { id: 'paperless', label: 'Paperless Hub', icon: <Leaf className="w-5 h-5 text-emerald-500" /> },
     { id: 'sections', label: 'Site Modules', icon: '🎨' },
     { id: 'downloads', label: 'Downloads', icon: <Download className="w-5 h-5" /> },
     { id: 'media', label: 'Media Manager', icon: <ImageIcon className="w-5 h-5" /> },
@@ -122,7 +125,6 @@ const InstitutionAdminDashboard: React.FC<InstitutionAdminDashboardProps> = ({ u
     { id: 'ai', label: 'AI Assistant', icon: <Sparkles className="w-5 h-5" /> },
     { id: 'analytics', label: 'Analytics', icon: <BarChart className="w-5 h-5" /> },
     { id: 'workflows', label: 'Workflows', icon: <TrendingUp className="w-5 h-5" /> },
-    { id: 'compliance', label: 'MoET Compliance', icon: <ClipboardList className="w-5 h-5" /> },
     { id: 'monetization', label: 'Revenue & Billing', icon: <DollarSign className="w-5 h-5 text-emerald-500" /> },
     { id: 'inbox', label: 'Portal Inbox', icon: <Mail className="w-5 h-5 text-blue-600" /> },
     { id: 'applications', label: 'Applications', icon: <FileText className="w-5 h-5" /> },
@@ -187,6 +189,15 @@ const InstitutionAdminDashboard: React.FC<InstitutionAdminDashboardProps> = ({ u
          </aside>
 
          <div className="lg:col-span-3">
+            {activeTab === 'paperless' && (
+               <div className="bg-white p-10 rounded-[40px] border border-slate-100 shadow-sm animate-in fade-in">
+                 <PaperlessHubEditor 
+                   institution={inst} 
+                   onUpdate={(updatedDetails) => handleUpdate({ ...inst, administrativeDetails: updatedDetails })} 
+                 />
+               </div>
+            )}
+
             {activeTab === 'basics' && (
               <div className="bg-white p-10 rounded-[40px] border border-slate-100 shadow-sm space-y-12 animate-in fade-in">
                 <section>
@@ -301,6 +312,91 @@ const InstitutionAdminDashboard: React.FC<InstitutionAdminDashboardProps> = ({ u
                       <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 px-1">LinkedIn URL</label>
                       <input className="w-full bg-slate-50 border-none rounded-xl px-4 py-3 font-bold" value={inst.contact.linkedin || ''} onChange={e => handleUpdate({ ...inst, contact: { ...inst.contact, linkedin: e.target.value } })} />
                     </div>
+                  </div>
+                </section>
+              </div>
+            )}
+
+            {activeTab === 'compliance' && (
+              <div className="bg-white p-10 rounded-[40px] border border-slate-100 shadow-sm space-y-12 animate-in fade-in">
+                <section>
+                  <h3 className="text-xl font-black text-slate-900 mb-8 flex items-center gap-3"><ShieldAlert className="w-5 h-5 text-blue-500" /> MoET Compliance</h3>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+                    <div>
+                      <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">MoET Registration Number</label>
+                      <input 
+                        className="w-full bg-slate-50 border-none rounded-xl px-4 py-3 font-bold text-slate-900 focus:ring-2 focus:ring-blue-500 outline-none" 
+                        value={inst.moetRegistration || ''} 
+                        onChange={e => handleUpdate({ ...inst, moetRegistration: e.target.value })} 
+                        placeholder="e.g. MOET-2023-1234"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Verification Status</label>
+                      <div className="w-full bg-slate-50 border-none rounded-xl px-4 py-3 font-bold text-slate-900 flex items-center gap-2">
+                         {inst.verificationStatus === 'verified' && <CheckCircle className="w-4 h-4 text-emerald-500" />}
+                         {inst.verificationStatus === 'pending' && <AlertCircle className="w-4 h-4 text-amber-500" />}
+                         {inst.verificationStatus !== 'verified' && inst.verificationStatus !== 'pending' && <AlertCircle className="w-4 h-4 text-rose-500" />}
+                         <span className="capitalize">{inst.verificationStatus || 'Unverified'}</span>
+                      </div>
+                      <p className="text-xs text-slate-400 mt-2">Only administrators can change verified status.</p>
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Last Inspection Date</label>
+                      <input 
+                        type="date"
+                        className="w-full bg-slate-50 border-none rounded-xl px-4 py-3 font-bold text-slate-900 focus:ring-2 focus:ring-blue-500 outline-none" 
+                        value={inst.lastInspectionDate || ''} 
+                        onChange={e => handleUpdate({ ...inst, lastInspectionDate: e.target.value })} 
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Next Inspection Date</label>
+                      <input 
+                        type="date"
+                        className="w-full bg-slate-50 border-none rounded-xl px-4 py-3 font-bold text-slate-900 focus:ring-2 focus:ring-blue-500 outline-none" 
+                        value={inst.nextInspectionDate || ''} 
+                        onChange={e => handleUpdate({ ...inst, nextInspectionDate: e.target.value })} 
+                      />
+                    </div>
+                  </div>
+
+                  <div className="bg-blue-50 p-6 rounded-2xl border border-blue-100">
+                    <h4 className="font-bold text-slate-900 flex items-center gap-2 mb-2"><FileText className="w-4 h-4 text-blue-600" /> Accreditation Documents</h4>
+                    <p className="text-sm text-slate-500 mb-6">Upload PDF copies of your MoET registration, inspection certificates, or other accreditation documents.</p>
+                    
+                    <div className="flex items-center gap-4 mb-4">
+                      <label className="cursor-pointer bg-white border border-slate-200 px-6 py-3 rounded-xl font-black uppercase tracking-widest text-[10px] shadow-sm hover:bg-slate-50 flex items-center gap-2">
+                        <Plus className="w-4 h-4" /> Upload PDF
+                        <input type="file" accept="application/pdf" className="hidden" onChange={handleDocumentUpload} />
+                      </label>
+                    </div>
+
+                    {inst.verificationDocuments && inst.verificationDocuments.length > 0 && (
+                      <ul className="space-y-3">
+                        {inst.verificationDocuments.map((doc, idx) => (
+                           <li key={idx} className="flex items-center justify-between bg-white p-3 rounded-xl border border-slate-100 shadow-sm">
+                              <div className="flex items-center gap-3">
+                                 <div className="w-8 h-8 rounded-lg bg-red-50 text-red-500 flex items-center justify-center">
+                                    <FileText className="w-4 h-4" />
+                                 </div>
+                                 <span className="font-bold text-sm text-slate-700">Document_{idx + 1}.pdf</span>
+                              </div>
+                              <button 
+                                onClick={() => {
+                                  const docs = [...inst.verificationDocuments!];
+                                  docs.splice(idx, 1);
+                                  handleUpdate({ ...inst, verificationDocuments: docs });
+                                }}
+                                className="text-slate-400 hover:text-red-500 transition-colors"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                           </li>
+                        ))}
+                      </ul>
+                    )}
                   </div>
                 </section>
               </div>

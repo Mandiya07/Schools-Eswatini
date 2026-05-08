@@ -53,7 +53,7 @@ const AIStudyAssistant: React.FC<AIStudyAssistantProps> = ({ user }) => {
       setShowAuthGate(false);
       // Give Premium/Super Admins full access automatically, or if marked as AiPro
       const isPremiumUser = user.role === UserRole.INSTITUTION_ADMIN || user.role === UserRole.SUPER_ADMIN || user.role === UserRole.MOET_OFFICIAL;
-      const isAiProUser = user.isAiPro || isPremiumUser;
+      const isAiProUser = user.isAiSubscriptionActive || isPremiumUser;
       
       setIsPro(isAiProUser);
       if (!isAiProUser) {
@@ -146,7 +146,7 @@ const AIStudyAssistant: React.FC<AIStudyAssistantProps> = ({ user }) => {
         if (user) {
           try {
             await updateDoc(doc(db, 'users', user.id), {
-              isAiPro: true
+              isAiSubscriptionActive: true
             });
           } catch(e) {
             console.error('Failed to upgrade user in DB');

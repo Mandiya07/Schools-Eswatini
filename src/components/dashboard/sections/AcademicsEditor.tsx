@@ -11,13 +11,13 @@ interface AcademicsEditorProps {
 
 const AcademicsEditor: React.FC<AcademicsEditorProps> = ({ institution, onUpdate }) => {
   const { academics } = institution.sections;
-  const [activeSubTab, setActiveSubTab] = useState<'overview' | 'departments' | 'programs' | 'calendar' | 'performance'>('overview');
+  const [activeSubTab, setActiveSubTab] = useState<'overview' | 'departments' | 'programs' | 'calendar' | 'performance' | 'elearning' | 'portal' | 'faculty' | 'guidance'>('overview');
 
   const isTertiary = institution.type.includes(InstitutionType.TERTIARY);
   const isPrimary = institution.type.includes(InstitutionType.PRIMARY);
   const isHighSchool = institution.type.includes(InstitutionType.HIGH_SCHOOL);
 
-  const subTabs = ['overview', 'departments', 'programs', 'calendar', 'performance', 'faculty'] as const;
+  const subTabs = ['overview', 'departments', 'programs', 'calendar', 'performance', 'elearning', 'portal', 'faculty'] as const;
   const currentSubTabs = isHighSchool ? [...subTabs, 'guidance'] : subTabs;
 
   const getTabLabel = (tab: string) => {
@@ -25,8 +25,9 @@ const AcademicsEditor: React.FC<AcademicsEditorProps> = ({ institution, onUpdate
       case 'departments': return isTertiary ? 'Faculties & Departments' : isPrimary ? 'Grades / Phases' : 'Departments';
       case 'programs': return isTertiary ? 'Degree Programs' : isPrimary ? 'Extracurriculars' : 'Programs';
       case 'performance': return 'Performance';
-      case 'guidance': return 'Career & University Help';
-      case 'faculty': return 'Faculty';
+      case 'elearning': return 'E-learning';
+      case 'portal': return 'Student Portal';
+      case 'guidance': return 'Career Guidance';
       default: return tab.charAt(0).toUpperCase() + tab.slice(1); // overview, calendar
     }
   };
@@ -69,22 +70,80 @@ const AcademicsEditor: React.FC<AcademicsEditorProps> = ({ institution, onUpdate
         <div className="space-y-8">
           {activeSubTab === 'overview' && (
             <div className="space-y-8 animate-in slide-in-from-left-4">
-              <div className="group">
-                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Academic Headline</label>
-                <input 
-                  className="w-full bg-slate-50 border-2 border-transparent focus:border-blue-500 focus:bg-white rounded-2xl px-6 py-4 font-bold transition-all outline-none" 
-                  value={academics.overview.headline} 
-                  onChange={e => updateField('overview', { ...academics.overview, headline: e.target.value })} 
-                />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div className="group">
+                  <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Academic Headline</label>
+                  <input 
+                    className="w-full bg-slate-50 border-2 border-transparent focus:border-blue-500 focus:bg-white rounded-2xl px-6 py-4 font-bold transition-all outline-none" 
+                    value={academics.overview.headline} 
+                    onChange={e => updateField('overview', { ...academics.overview, headline: e.target.value })} 
+                  />
+                </div>
+                <div className="group">
+                  <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Principal / Dean Name</label>
+                  <input 
+                    className="w-full bg-slate-50 border-2 border-transparent focus:border-blue-500 focus:bg-white rounded-2xl px-6 py-4 font-bold transition-all outline-none" 
+                    value={academics.staff.head.name || ''} 
+                    onChange={e => updateField('staff', { ...academics.staff, head: { ...academics.staff.head, name: e.target.value } })} 
+                  />
+                </div>
               </div>
+
               <div className="group">
                 <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Academic Introduction</label>
                 <textarea 
-                  rows={8} 
+                  rows={4} 
                   className="w-full bg-slate-50 border-2 border-transparent focus:border-blue-500 focus:bg-white rounded-2xl px-6 py-4 font-medium transition-all outline-none resize-none" 
                   value={academics.overview.introduction} 
                   onChange={e => updateField('overview', { ...academics.overview, introduction: e.target.value })}
                 />
+              </div>
+
+              <div className="pt-8 border-t border-slate-100">
+                <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-6">Principal's Leadership Profile</h4>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                  <div className="group">
+                    <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Qualifications</label>
+                    <input 
+                      className="w-full bg-slate-50 border-2 border-transparent focus:border-blue-500 focus:bg-white rounded-2xl px-6 py-4 font-bold transition-all outline-none" 
+                      placeholder="e.g., PhD in Education, M.Ed"
+                      value={academics.staff.head.qualifications || ''} 
+                      onChange={e => updateField('staff', { ...academics.staff, head: { ...academics.staff.head, qualifications: e.target.value } })} 
+                    />
+                  </div>
+                  <div className="group">
+                    <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Years of Experience</label>
+                    <input 
+                      className="w-full bg-slate-50 border-2 border-transparent focus:border-blue-500 focus:bg-white rounded-2xl px-6 py-4 font-bold transition-all outline-none" 
+                      placeholder="e.g., 25 Years"
+                      value={academics.staff.head.experience || ''} 
+                      onChange={e => updateField('staff', { ...academics.staff, head: { ...academics.staff.head, experience: e.target.value } })} 
+                    />
+                  </div>
+                </div>
+
+                <div className="mt-8 group">
+                  <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Professional Background</label>
+                  <textarea 
+                    rows={4} 
+                    className="w-full bg-slate-50 border-2 border-transparent focus:border-blue-500 focus:bg-white rounded-2xl px-6 py-4 font-medium transition-all outline-none resize-none" 
+                    placeholder="Briefly describe the professional journey and expertise..."
+                    value={academics.staff.head.professionalBackground || ''} 
+                    onChange={e => updateField('staff', { ...academics.staff, head: { ...academics.staff.head, professionalBackground: e.target.value } })}
+                  />
+                </div>
+
+                <div className="mt-8 group">
+                  <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Message from the Principal</label>
+                  <textarea 
+                    rows={6} 
+                    className="w-full bg-slate-50 border-2 border-transparent focus:border-blue-500 focus:bg-white rounded-2xl px-6 py-4 font-medium transition-all outline-none resize-none" 
+                    placeholder="A personal message from the principal to students and parents..."
+                    value={academics.staff.head.messageFromPrincipal || ''} 
+                    onChange={e => updateField('staff', { ...academics.staff, head: { ...academics.staff.head, messageFromPrincipal: e.target.value } })}
+                  />
+                </div>
               </div>
             </div>
           )}
@@ -373,6 +432,162 @@ const AcademicsEditor: React.FC<AcademicsEditorProps> = ({ institution, onUpdate
             </div>
           )}
 
+          {activeSubTab === 'elearning' && (
+            <div className="space-y-8 animate-in slide-in-from-left-4">
+              <div className="bg-emerald-50 p-8 rounded-[32px] border border-emerald-100 mb-8">
+                <div className="flex items-center justify-between gap-4">
+                  <div className="flex items-center gap-4">
+                    <div className="p-3 bg-white rounded-2xl shadow-sm">
+                      <Rocket className="w-6 h-6 text-emerald-600" />
+                    </div>
+                    <div>
+                      <h4 className="text-xl font-black text-slate-900 tracking-tight italic">E-learning System</h4>
+                      <p className="text-xs text-slate-500 font-medium">Enable digital education features for students and teachers.</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3 bg-white px-4 py-2 rounded-2xl shadow-sm border border-emerald-100">
+                    <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Status:</span>
+                    <button 
+                      onClick={() => updateField('elearning', { ...(academics.elearning || { platform: '', onlineClassOptions: '', digitalAssignments: '', recordedLectures: '' }), enabled: !academics.elearning?.enabled })}
+                      className={`px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all ${academics.elearning?.enabled ? 'bg-emerald-500 text-white' : 'bg-slate-200 text-slate-500'}`}
+                    >
+                      {academics.elearning?.enabled ? 'Enabled' : 'Disabled'}
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              {academics.elearning?.enabled && (
+                <div className="space-y-8 animate-in fade-in">
+                  <div className="group">
+                    <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Learning Platform Used</label>
+                    <input 
+                      className="w-full bg-slate-50 border-2 border-transparent focus:border-emerald-500 focus:bg-white rounded-2xl px-6 py-4 font-bold transition-all outline-none" 
+                      placeholder="e.g. Google Classroom, Moodle, Microsoft Teams"
+                      value={academics.elearning.platform || ''} 
+                      onChange={e => updateField('elearning', { ...academics.elearning, platform: e.target.value })} 
+                    />
+                  </div>
+                  
+                  <div className="group">
+                    <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Online Class Options</label>
+                    <textarea 
+                      rows={4}
+                      className="w-full bg-slate-50 border-2 border-transparent focus:border-emerald-500 focus:bg-white rounded-2xl px-6 py-4 font-medium transition-all outline-none resize-none" 
+                      placeholder="Describe how classes are conducted online..."
+                      value={academics.elearning.onlineClassOptions || ''} 
+                      onChange={e => updateField('elearning', { ...academics.elearning, onlineClassOptions: e.target.value })} 
+                    />
+                  </div>
+
+                  <div className="group">
+                    <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Digital Assignments & Submission</label>
+                    <textarea 
+                      rows={4}
+                      className="w-full bg-slate-50 border-2 border-transparent focus:border-emerald-500 focus:bg-white rounded-2xl px-6 py-4 font-medium transition-all outline-none resize-none" 
+                      placeholder="Explain how students submit assignments digitally..."
+                      value={academics.elearning.digitalAssignments || ''} 
+                      onChange={e => updateField('elearning', { ...academics.elearning, digitalAssignments: e.target.value })} 
+                    />
+                  </div>
+
+                  <div className="group">
+                    <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Recorded Lectures & Resources</label>
+                    <textarea 
+                      rows={4}
+                      className="w-full bg-slate-50 border-2 border-transparent focus:border-emerald-500 focus:bg-white rounded-2xl px-6 py-4 font-medium transition-all outline-none resize-none" 
+                      placeholder="Detail availability of recorded content..."
+                      value={academics.elearning.recordedLectures || ''} 
+                      onChange={e => updateField('elearning', { ...academics.elearning, recordedLectures: e.target.value })} 
+                    />
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {activeSubTab === 'portal' && (
+            <div className="space-y-8 animate-in slide-in-from-left-4">
+              <div className="bg-blue-50 p-8 rounded-[32px] border border-blue-100 mb-8">
+                <div className="flex items-center justify-between gap-4">
+                  <div className="flex items-center gap-4">
+                    <div className="p-3 bg-white rounded-2xl shadow-sm">
+                      <Rocket className="w-6 h-6 text-blue-600" />
+                    </div>
+                    <div>
+                      <h4 className="text-xl font-black text-slate-900 tracking-tight italic">Unified Student Portal</h4>
+                      <p className="text-xs text-slate-500 font-medium">Link your students to their digital campus environment.</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3 bg-white px-4 py-2 rounded-2xl shadow-sm border border-blue-100">
+                    <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Status:</span>
+                    <button 
+                      onClick={() => updateField('studentPortal', { 
+                        ...(academics.studentPortal || { url: '', features: { learningMaterials: false, assignmentSubmission: false, resultsDisplay: false } }), 
+                        enabled: !academics.studentPortal?.enabled 
+                      })}
+                      className={`px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all ${academics.studentPortal?.enabled ? 'bg-blue-600 text-white' : 'bg-slate-200 text-slate-500'}`}
+                    >
+                      {academics.studentPortal?.enabled ? 'Enabled' : 'Disabled'}
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              {academics.studentPortal?.enabled && (
+                <div className="space-y-8 animate-in fade-in">
+                  <div className="group">
+                    <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Portal Redirection URL</label>
+                    <input 
+                      className="w-full bg-slate-50 border-2 border-transparent focus:border-blue-500 focus:bg-white rounded-2xl px-6 py-4 font-bold transition-all outline-none" 
+                      placeholder="https://portal.yourinstitution.ac.sz"
+                      value={academics.studentPortal.url || ''} 
+                      onChange={e => updateField('studentPortal', { ...academics.studentPortal, url: e.target.value })} 
+                    />
+                  </div>
+
+                  <div className="space-y-4">
+                    <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Portal Feature Set</label>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                       <button 
+                        onClick={() => updateField('studentPortal', { 
+                          ...academics.studentPortal, 
+                          features: { ...academics.studentPortal?.features, learningMaterials: !academics.studentPortal?.features.learningMaterials } 
+                        })}
+                        className={`p-6 rounded-3xl border-2 flex flex-col items-center gap-3 transition-all ${academics.studentPortal.features.learningMaterials ? 'bg-blue-50 border-blue-500 text-blue-900' : 'bg-white border-slate-100 text-slate-400'}`}
+                       >
+                          <Download className={`w-8 h-8 ${academics.studentPortal.features.learningMaterials ? 'text-blue-600' : 'text-slate-300'}`} />
+                          <span className="text-[10px] font-black uppercase tracking-widest">Learning Materials</span>
+                       </button>
+
+                       <button 
+                        onClick={() => updateField('studentPortal', { 
+                          ...academics.studentPortal, 
+                          features: { ...academics.studentPortal?.features, assignmentSubmission: !academics.studentPortal?.features.assignmentSubmission } 
+                        })}
+                        className={`p-6 rounded-3xl border-2 flex flex-col items-center gap-3 transition-all ${academics.studentPortal.features.assignmentSubmission ? 'bg-blue-50 border-blue-500 text-blue-900' : 'bg-white border-slate-100 text-slate-400'}`}
+                       >
+                          <Rocket className={`w-8 h-8 ${academics.studentPortal.features.assignmentSubmission ? 'text-blue-600' : 'text-slate-300'}`} />
+                          <span className="text-[10px] font-black uppercase tracking-widest">Assignments</span>
+                       </button>
+
+                       <button 
+                        onClick={() => updateField('studentPortal', { 
+                          ...academics.studentPortal, 
+                          features: { ...academics.studentPortal?.features, resultsDisplay: !academics.studentPortal?.features.resultsDisplay } 
+                        })}
+                        className={`p-6 rounded-3xl border-2 flex flex-col items-center gap-3 transition-all ${academics.studentPortal.features.resultsDisplay ? 'bg-blue-50 border-blue-500 text-blue-900' : 'bg-white border-slate-100 text-slate-400'}`}
+                       >
+                          <Rocket className={`w-8 h-8 ${academics.studentPortal.features.resultsDisplay ? 'text-blue-600' : 'text-slate-300'}`} />
+                          <span className="text-[10px] font-black uppercase tracking-widest">Results Display</span>
+                       </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
           {activeSubTab === 'programs' && (
             <ProgramsEditor 
               institution={institution}
@@ -494,6 +709,48 @@ const AcademicsEditor: React.FC<AcademicsEditorProps> = ({ institution, onUpdate
               <div className="space-y-4">
                 <h4 className="text-2xl font-black text-slate-900 tracking-tight">{academics.overview.headline}</h4>
                 <p className="text-slate-500 font-medium text-sm leading-relaxed">{academics.overview.introduction}</p>
+                
+                {academics.staff.head.name && (
+                  <div className="pt-6 border-t border-slate-100 space-y-4">
+                    <div className="flex items-start gap-4">
+                      <div className="w-12 h-12 rounded-2xl bg-blue-600 flex items-center justify-center text-white shrink-0 shadow-lg shadow-blue-200">
+                        <span className="text-lg font-black">{academics.staff.head.name.charAt(0)}</span>
+                      </div>
+                      <div>
+                        <h5 className="font-black text-slate-900 leading-tight">{academics.staff.head.name}</h5>
+                        <p className="text-[10px] text-blue-600 font-bold uppercase tracking-widest mt-1">Principal / Dean</p>
+                      </div>
+                    </div>
+                    
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100">
+                        <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Qualifications</p>
+                        <p className="text-[11px] font-bold text-slate-700 leading-tight">{academics.staff.head.qualifications || 'TBD'}</p>
+                      </div>
+                      <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100">
+                        <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Experience</p>
+                        <p className="text-[11px] font-bold text-slate-700 leading-tight">{academics.staff.head.experience || 'TBD'}</p>
+                      </div>
+                    </div>
+
+                    {academics.staff.head.professionalBackground && (
+                      <div className="space-y-1">
+                        <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Background</p>
+                        <p className="text-[11px] text-slate-600 font-medium leading-relaxed italic line-clamp-3">{academics.staff.head.professionalBackground}</p>
+                      </div>
+                    )}
+
+                    {academics.staff.head.messageFromPrincipal && (
+                      <div className="bg-blue-600 rounded-[32px] p-6 text-white shadow-xl shadow-blue-100 relative overflow-hidden group">
+                        <div className="relative z-10">
+                          <p className="text-[9px] font-black uppercase tracking-widest text-blue-200 mb-2">Message</p>
+                          <p className="text-xs font-medium leading-relaxed line-clamp-4 italic">"{academics.staff.head.messageFromPrincipal}"</p>
+                        </div>
+                        <div className="absolute -bottom-4 -right-4 w-24 h-24 bg-white/10 rounded-full blur-2xl group-hover:bg-white/20 transition-all"></div>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
 
               {activeSubTab === 'performance' && (
@@ -548,6 +805,52 @@ const AcademicsEditor: React.FC<AcademicsEditorProps> = ({ institution, onUpdate
                         </div>
                       </div>
                     ))}
+                  </div>
+                </div>
+              )}
+
+              {activeSubTab === 'elearning' && academics.elearning?.enabled && (
+                <div className="space-y-6 animate-in fade-in">
+                  <div className="flex items-center justify-between">
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">E-Learning Portal</p>
+                    <span className="px-3 py-1 bg-emerald-50 text-emerald-600 rounded-full text-[9px] font-black uppercase tracking-widest">
+                      Platform: {academics.elearning.platform || 'General'}
+                    </span>
+                  </div>
+                  <div className="space-y-4">
+                    <div className="bg-slate-50 p-6 rounded-3xl border border-slate-100 italic text-xs text-slate-600 leading-relaxed">
+                      <p className="font-black text-slate-900 not-italic uppercase text-[10px] tracking-widest mb-2">Online Classes</p>
+                      {academics.elearning.onlineClassOptions}
+                    </div>
+                    <div className="bg-slate-50 p-6 rounded-3xl border border-slate-100 italic text-xs text-slate-600 leading-relaxed">
+                      <p className="font-black text-slate-900 not-italic uppercase text-[10px] tracking-widest mb-2">Digital Assignments</p>
+                      {academics.elearning.digitalAssignments}
+                    </div>
+                    <div className="bg-slate-50 p-6 rounded-3xl border border-slate-100 italic text-xs text-slate-600 leading-relaxed">
+                      <p className="font-black text-slate-900 not-italic uppercase text-[10px] tracking-widest mb-2">Recorded Content</p>
+                      {academics.elearning.recordedLectures}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {activeSubTab === 'portal' && academics.studentPortal?.enabled && (
+                <div className="space-y-6 animate-in fade-in">
+                  <div className="p-8 bg-slate-900 rounded-[32px] text-white">
+                    <h4 className="text-xl font-black mb-2 flex items-center gap-3">
+                      <Rocket className="w-6 h-6 text-blue-400" /> Institution Portal
+                    </h4>
+                    <p className="text-slate-400 text-xs font-medium mb-6">Ready to redirect students to: {academics.studentPortal.url || 'Not set'}</p>
+                    <div className="space-y-3">
+                       {Object.entries(academics.studentPortal.features).map(([key, enabled]) => (
+                         <div key={key} className="flex items-center justify-between p-3 bg-white/5 rounded-xl border border-white/10">
+                            <span className="text-[10px] font-black uppercase tracking-widest text-slate-300">{key.replace(/([A-Z])/g, ' $1')}</span>
+                            <span className={`text-[8px] font-black px-2 py-0.5 rounded ${enabled ? 'bg-blue-500 text-white' : 'bg-white/10 text-slate-500'}`}>
+                              {enabled ? 'ON' : 'OFF'}
+                            </span>
+                         </div>
+                       ))}
+                    </div>
                   </div>
                 </div>
               )}

@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { User, UserRole } from '../types';
-import { auth, googleProvider, signInWithPopup, db, doc, getDoc, setDoc } from '../src/lib/firebase';
+import { auth, googleProvider, signInWithPopup, db, doc, getDoc, setDoc, getDocWithRetry } from '../src/lib/firebase';
 
 const AuthPage: React.FC = () => {
   const [searchParams] = useSearchParams();
@@ -25,8 +25,8 @@ const AuthPage: React.FC = () => {
       const firebaseUser = result.user;
       
       // Check if user exists in Firestore
-      const userDoc = await getDoc(doc(db, 'users', firebaseUser.uid));
-      if (!userDoc.exists()) {
+      const userDoc = await getDocWithRetry(doc(db, 'users', firebaseUser.uid));
+      if (!userDoc || !userDoc.exists()) {
         // Create new user profile if it doesn't exist
         const newUser: User = {
           id: firebaseUser.uid,
@@ -114,17 +114,29 @@ const AuthPage: React.FC = () => {
             </div>
           </div>
 
-          <div className="pt-4 border-t border-slate-100 mt-6">
-            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest text-center mb-4">Development Access</p>
+          <div className="pt-4 border-t border-slate-100 mt-6 grid grid-cols-2 gap-3">
+            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest text-center mb-4 col-span-2">Development Access</p>
             <button
               onClick={() => {
                 setLoading(true);
                 localStorage.setItem('se_dev_admin', 'true');
+                localStorage.removeItem('se_dev_teacher');
                 window.location.href = '/dashboard';
               }}
-              className="w-full py-3 px-4 bg-slate-50 text-slate-500 text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-slate-900 hover:text-white transition-all"
+              className="w-full py-3 px-4 bg-slate-50 text-slate-500 text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-slate-900 hover:text-white transition-all text-center"
             >
-              Access Portal (Super Admin Bypass)
+              Super Admin
+            </button>
+            <button
+              onClick={() => {
+                setLoading(true);
+                localStorage.setItem('se_dev_teacher', 'true');
+                localStorage.removeItem('se_dev_admin');
+                window.location.href = '/teacher/dashboard';
+              }}
+              className="w-full py-3 px-4 bg-slate-50 text-slate-500 text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-blue-600 hover:text-white transition-all text-center"
+            >
+              Teacher (St. Mark's)
             </button>
           </div>
 

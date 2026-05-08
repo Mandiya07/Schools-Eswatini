@@ -94,6 +94,23 @@ const TutoringMarketplace: React.FC = () => {
            </button>
         </div>
 
+        {/* Professional Pivot / Tutor Monetization Promo */}
+        <div className="bg-slate-900 rounded-[48px] p-10 md:p-16 text-white relative overflow-hidden group">
+           <div className="relative z-10 max-w-2xl">
+             <span className="px-3 py-1 bg-white/10 text-emerald-400 rounded-full text-[10px] font-black uppercase tracking-widest mb-6 inline-block">Educator Opportunity</span>
+             <h2 className="text-3xl md:text-5xl font-black mb-6 tracking-tight">Are you a professional educator?</h2>
+             <p className="text-slate-400 text-lg font-medium mb-8">
+               Join our verified tutor network. For just <strong className="text-white">E50.00/month</strong>, you can list your services and reach thousands of students. We only take a <strong className="text-white">10-15% commission</strong> on your bookings.
+             </p>
+             <div className="flex flex-wrap gap-4">
+                <button className="px-8 py-4 bg-emerald-500 text-slate-900 rounded-2xl text-xs font-black uppercase tracking-widest hover:bg-white transition-all shadow-xl">Start Tutoring</button>
+                <button className="px-8 py-4 bg-white/10 text-white rounded-2xl text-xs font-black uppercase tracking-widest hover:bg-white/20 transition-all border border-white/10">Learn More</button>
+             </div>
+           </div>
+           <div className="absolute right-0 top-0 w-1/3 h-full bg-gradient-to-l from-emerald-500/20 to-transparent pointer-events-none" />
+           <Award className="absolute -bottom-10 -right-10 w-64 h-64 text-white/5 rotate-12" />
+        </div>
+
         {/* Tutor Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
            {mockTutors.map((tutor) => (

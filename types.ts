@@ -23,12 +23,10 @@ export enum InstitutionType {
 }
 
 export enum SubscriptionPlan {
-  FREE = 'Free',
-  PREMIUM = 'Premium',
-  PRO = 'Pro Suite',
-  ANALYTICS = 'Advanced Analytics',
-  BRANDING = 'Custom Branding',
-  ENTERPRISE = 'Enterprise'
+  FREE = 'Free Listing',
+  STANDARD_B2B = 'Standard Portal',
+  PREMIUM_B2B = 'Premium Suite',
+  ENTERPRISE_B2B = 'Enterprise'
 }
 
 export interface BillingRecord {
@@ -277,6 +275,16 @@ export interface AcademicProgram {
   description: string;
   pathways?: string;
   syllabusUrl?: string;
+  courseOutlineUrl?: string;
+}
+
+export interface DigitalDocument {
+  id: string;
+  name: string;
+  category: 'Form' | 'Policy' | 'Newsletter' | 'Handbook';
+  url: string;
+  uploadedAt: string;
+  size: string;
 }
 
 export interface BlogPost {
@@ -352,6 +360,8 @@ export interface Institution {
   verificationDocuments?: string[];
   isAccredited: boolean;
   moetRegistration: string;
+  lastInspectionDate?: string;
+  nextInspectionDate?: string;
   isFeatured: boolean;
   isSpotlight: boolean;
   trustScore: number;
@@ -524,6 +534,12 @@ export interface Institution {
         schoolAverage: number;
         regionalAverage: number;
       }[];
+    };
+    paperlessHub?: {
+      enabled: boolean;
+      documents: DigitalDocument[];
+      paperSavedEstimate: number;
+      digitalTransformationScore: number;
     };
   };
   metadata: {
@@ -742,6 +758,22 @@ export interface Institution {
         holidays: string;
         url?: string;
       };
+      elearning?: {
+        enabled: boolean;
+        platform: string;
+        onlineClassOptions: string;
+        digitalAssignments: string;
+        recordedLectures: string;
+      };
+      studentPortal?: {
+        enabled: boolean;
+        url: string;
+        features: {
+          learningMaterials: boolean;
+          assignmentSubmission: boolean;
+          resultsDisplay: boolean;
+        };
+      };
       assessment: {
         approach: string;
         gradingSystem: string;
@@ -756,7 +788,13 @@ export interface Institution {
         description: string;
       };
       staff: {
-        head: { name: string; qualifications: string; experience: string };
+        head: { 
+          name: string; 
+          qualifications: string; 
+          experience: string;
+          professionalBackground?: string;
+          messageFromPrincipal?: string;
+        };
         totalCount: number;
         avgExperience: string;
         certifications: string[];
@@ -784,10 +822,6 @@ export interface Institution {
       facilities: {
         description: string;
         list: string[];
-      };
-      digital: {
-        platform: string;
-        features: string[];
       };
       partnerships: {
         internships: string;
@@ -928,7 +962,8 @@ export interface User {
   isVerified: boolean;
   twoFactorEnabled: boolean;
   aiCredits?: number; // Free tier credits
-  isAiPro?: boolean; // Premium unlocked status
+  isAiSubscriptionActive?: boolean; // B2C E50.00/month status
+  isTutorSubscriptionActive?: boolean; // B2C E50.00/month status
   tutorProfile?: {
     isEnabled: boolean;
     subjects: string[];
@@ -989,6 +1024,33 @@ export interface Student {
   createdAt: string;
 }
 
+export interface BehaviorLog {
+  id: string;
+  studentId: string;
+  studentName: string;
+  teacherId: string;
+  teacherName: string;
+  type: 'merit' | 'demerit' | 'participation' | 'warning';
+  points: number;
+  description: string;
+  createdAt: string;
+}
+
+export interface HomeworkTask {
+  id: string;
+  teacherId: string;
+  teacherName: string;
+  institutionId: string;
+  subject: string;
+  title: string;
+  description: string;
+  dueDate: string;
+  status: 'active' | 'closed' | 'archived';
+  createdAt: string;
+  assignedToClass?: string;
+  assignedToGrade?: string;
+}
+
 export interface StudentProgress {
   id: string;
   studentId: string;
@@ -1012,6 +1074,8 @@ export interface StudentProgress {
     activities: string[];
     comments: string;
   };
+  grade?: string;
+  class?: string;
   lastUpdated: string;
 }
 

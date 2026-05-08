@@ -1,6 +1,6 @@
 import { initializeApp } from 'firebase/app';
 import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from 'firebase/auth';
-import { getFirestore, enableMultiTabIndexedDbPersistence, doc, getDoc, setDoc, updateDoc, deleteDoc, collection, query, where, onSnapshot, getDocs, orderBy, limit, addDoc, serverTimestamp, getDocFromServer } from 'firebase/firestore';
+import { getFirestore, enableMultiTabIndexedDbPersistence, doc, getDoc, setDoc, updateDoc, deleteDoc, collection, query, where, onSnapshot, getDocs, orderBy, limit, addDoc, serverTimestamp, getDocFromServer, getDocFromCache, getDocsFromCache } from 'firebase/firestore';
 import firebaseConfig from '../../firebase-applet-config.json';
 
 // Initialize Firebase
@@ -41,6 +41,62 @@ export async function testConnection(retries = 3) {
       await new Promise(resolve => setTimeout(resolve, 2000));
     }
   }
+}
+
+export async function getDocWithRetry(docRef: any, maxRetries = 3, delay = 1500) {
+  for (let i = 0; i < maxRetries; i++) {
+    try {
+      return await getDoc(docRef);
+    } catch (error: any) {
+      const isOffline = error instanceof Error && (error.message.includes('offline') || error.code === 'unavailable');
+      if (isOffline) {
+        if (i < maxRetries - 1) {
+          console.warn(`Fetch failed (offline/unavailable), retrying in ${delay}ms... (Attempt ${i + 1}/${maxRetries})`);
+          await new Promise(resolve => setTimeout(resolve, delay));
+          continue;
+        } else {
+          // Try cache as a last resort
+          console.warn("All retries failed, attempting to read from cache...");
+          try {
+            return await getDocFromCache(docRef);
+          } catch (cacheError) {
+            console.error("Cache read also failed:", cacheError);
+            throw error; // Throw original offline error if cache also fails
+          }
+        }
+      }
+      throw error;
+    }
+  }
+  return await getDoc(docRef);
+}
+
+export async function getDocsWithRetry(q: any, maxRetries = 3, delay = 1500) {
+  for (let i = 0; i < maxRetries; i++) {
+    try {
+      return await getDocs(q);
+    } catch (error: any) {
+      const isOffline = error instanceof Error && (error.message.includes('offline') || error.code === 'unavailable');
+      if (isOffline) {
+        if (i < maxRetries - 1) {
+          console.warn(`Fetch docs failed (offline/unavailable), retrying in ${delay}ms... (Attempt ${i + 1}/${maxRetries})`);
+          await new Promise(resolve => setTimeout(resolve, delay));
+          continue;
+        } else {
+          // Try cache as a last resort
+          console.warn("All retries failed, attempting to read docs from cache...");
+          try {
+            return await getDocsFromCache(q);
+          } catch (cacheError) {
+            console.error("Cache docs read also failed:", cacheError);
+            throw error;
+          }
+        }
+      }
+      throw error;
+    }
+  }
+  return await getDocs(q);
 }
 
 // Only run testConnection in the browser
@@ -117,5 +173,7 @@ export {
   orderBy,
   limit,
   addDoc,
-  serverTimestamp
+  serverTimestamp,
+  getDocFromCache,
+  getDocsFromCache
 };

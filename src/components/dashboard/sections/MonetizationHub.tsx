@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Institution, BillingRecord } from '../../../../types';
+import { Institution, BillingRecord, SubscriptionPlan } from '../../../../types';
 import { CreditCard, Zap, Shield, Star, DollarSign, Wallet, ArrowUpRight, CheckCircle, Smartphone, BarChart2, TrendingUp } from 'lucide-react';
 
 interface MonetizationHubProps {
@@ -20,9 +20,9 @@ const MonetizationHub: React.FC<MonetizationHubProps> = ({ institution, onUpdate
   };
 
   const plans = [
-    { name: 'Free', price: 'E0', features: ['Directory Listing', 'Basic Info', 'Public Reviews'], id: 'Free' },
-    { name: 'Pro Suite', price: 'E450/mo', features: ['AI Timetabling', 'MoET Census Automation', 'Staff Management'], id: 'Pro Suite' },
-    { name: 'Enterprise', price: 'E1,200/mo', features: ['QR Inventory Tracker', 'Custom Subdomain', 'Advanced Analytics'], id: 'Enterprise' }
+    { name: 'Standard Portal', price: 'E350/mo', features: ['Verified Presence', 'Portal Management', 'Document Uploads'], id: SubscriptionPlan.STANDARD_B2B },
+    { name: 'Premium Suite', price: 'E500/mo', features: ['AI Timetabling', 'Admissions Tracking', 'Featured Listing'], id: SubscriptionPlan.PREMIUM_B2B },
+    { name: 'Enterprise', price: 'E800/mo', features: ['Finance Hub', 'QR Inventory', 'White-label Portal'], id: SubscriptionPlan.ENTERPRISE_B2B }
   ];
 
   const recentTransactions: BillingRecord[] = subscription?.billingHistory || [

@@ -12,7 +12,7 @@ import {
   Star
 } from 'lucide-react';
 import { User, UserRole, InstitutionType, WellnessArticle } from '../types';
-import { db, doc, getDoc } from '../src/lib/firebase';
+import { db, doc, getDoc, getDocWithRetry } from '../src/lib/firebase';
 import { AcademicsView } from '../src/components/dashboard/StudentPortals/AcademicsView';
 import { WellnessView } from '../src/components/dashboard/StudentPortals/WellnessView';
 import { CareerView } from '../src/components/dashboard/StudentPortals/CareerView';
@@ -43,15 +43,20 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ user }) => {
     const fetchInstitutionDetails = async () => {
       if (user?.institutionId) {
         try {
-          const instDoc = await getDoc(doc(db, 'institutions', user.institutionId));
-          if (instDoc.exists()) {
-            const data = instDoc.data();
+          const instDoc = await getDocWithRetry(doc(db, 'institutions', user.institutionId));
+          if (instDoc && instDoc.exists()) {
+            const data = instDoc.data() as any;
             if (data.type && data.type.length > 0) {
               setInstitutionType(data.type[0] as InstitutionType);
             }
           }
         } catch (error) {
-          console.error("Error fetching institution details:", error);
+          // Only log if it's not a standard offline issue that we've already tried to handle
+          if (error instanceof Error && !error.message.includes('offline')) {
+            console.error("Error fetching institution details:", error);
+          } else {
+            console.warn("Institution details fetch failed (likely offline). Using defaults.");
+          }
         }
       }
     };

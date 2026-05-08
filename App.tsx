@@ -3,7 +3,7 @@ import React, { useState, useEffect, ErrorInfo, ReactNode } from 'react';
 import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import { User, Institution, Region, UserRole } from './types';
 import { MOCK_INSTITUTIONS } from './mockData';
-import { auth, db, onAuthStateChanged, onSnapshot, collection, doc, getDoc, setDoc, deleteDoc, getDocs, query, OperationType, handleFirestoreError } from './src/lib/firebase';
+import { auth, db, onAuthStateChanged, onSnapshot, collection, doc, getDoc, setDoc, deleteDoc, getDocs, query, OperationType, handleFirestoreError, getDocWithRetry, getDocsWithRetry } from './src/lib/firebase';
 import { logActivity, ActivityType } from './src/services/securityService';
 import { requestNotificationPermission } from './src/lib/pwa';
 
@@ -40,7 +40,10 @@ import TutoringMarketplace from './pages/TutoringMarketplace';
 import MinistryCorner from './pages/MinistryCorner';
 import AIStudyAssistant from './pages/AIStudyAssistant';
 import EducatorMarketplace from './pages/EducatorMarketplace';
+import Advertising from './pages/Advertising';
 import PaymentCheckoutPage from './pages/PaymentCheckoutPage';
+import TermsOfService from './pages/TermsOfService';
+import PrivacyPolicy from './pages/PrivacyPolicy';
 
 // Components
 import Navbar from './components/Navbar';
@@ -107,14 +110,32 @@ const App: React.FC = () => {
   useEffect(() => {
     // Development bypass check
     const isDevAdmin = localStorage.getItem('se_dev_admin') === 'true';
+    const isDevTeacher = localStorage.getItem('se_dev_teacher') === 'true';
+    
     if (isDevAdmin) {
       setUser({
         id: 'dev-admin',
         email: 'siphom.yati@gmail.com',
-        name: 'Dev Super Admin',
+        name: 'Sipho Mati (Govt. Official)',
         role: UserRole.SUPER_ADMIN,
+        institutionId: 'inst_1',
         isVerified: true,
         twoFactorEnabled: true
+      });
+      setIsAuthReady(true);
+      setLoading(false);
+      return;
+    }
+
+    if (isDevTeacher) {
+      setUser({
+        id: 'dev-teacher',
+        email: 'teacher@stmarks.sz',
+        name: 'Mr. Simelane (Teacher)',
+        role: UserRole.TEACHER,
+        institutionId: 'inst-3', // St. Marks High School
+        isVerified: true,
+        twoFactorEnabled: false
       });
       setIsAuthReady(true);
       setLoading(false);
@@ -124,10 +145,10 @@ const App: React.FC = () => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       if (firebaseUser) {
         try {
-          const userDoc = await getDoc(doc(db, 'users', firebaseUser.uid));
+          const userDoc = await getDocWithRetry(doc(db, 'users', firebaseUser.uid));
           let currentUser: User;
 
-          if (userDoc.exists()) {
+          if (userDoc && userDoc.exists()) {
             currentUser = userDoc.data() as User;
             logActivity(ActivityType.LOGIN, `User logged in: ${firebaseUser.email}`);
           } else {
@@ -148,13 +169,14 @@ const App: React.FC = () => {
           // Role assignment and verification logic
           if (firebaseUser.email?.toLowerCase() === 'siphom.yati@gmail.com') {
             updatedRole = UserRole.SUPER_ADMIN;
+            currentUser.institutionId = 'inst_1'; // St. Marks High School (Optional for Admin)
           } else if (firebaseUser.email?.toLowerCase().endsWith('@moet.gov.sz')) {
             updatedRole = UserRole.MOET_OFFICIAL;
           } else {
             // Institutional Check: Only overwrite if they don't have a high-privilege role 
             // or if we find a specific matching institutional record.
             const instQuery = query(collection(db, 'institutions'));
-            const instSnapshot = await getDocs(instQuery);
+            const instSnapshot = await getDocsWithRetry(instQuery);
             
             let foundInstitutionalRole = false;
             const userEmail = firebaseUser.email?.toLowerCase();
@@ -198,8 +220,20 @@ const App: React.FC = () => {
           }
 
           setUser(currentUser);
-        } catch (error) {
-          handleFirestoreError(error, OperationType.GET, `users/${firebaseUser.uid}`);
+        } catch (error: any) {
+          if (error instanceof Error && !error.message.includes('offline')) {
+            handleFirestoreError(error, OperationType.GET, `users/${firebaseUser.uid}`);
+          } else {
+            console.warn("Auth initialization fetch failed (offline). Using default profile.");
+            setUser({
+              id: firebaseUser.uid,
+              email: firebaseUser.email || '',
+              name: firebaseUser.displayName || 'User (Offline)',
+              role: UserRole.VISITOR,
+              isVerified: firebaseUser.emailVerified,
+              twoFactorEnabled: false
+            });
+          }
         }
       } else {
         setUser(null);
@@ -387,7 +421,9 @@ const App: React.FC = () => {
             <Route 
               path="/portal" 
               element={
-                !user ? <Navigate to="/auth" /> : <ParentPortal user={user} />
+                !user ? <Navigate to="/auth" /> : 
+                user.role === UserRole.TEACHER ? <Navigate to="/teacher/dashboard" /> :
+                <ParentPortal user={user} />
               } 
             />
             <Route path="/auth" element={user ? <Navigate to="/dashboard" /> : <AuthPage />} />
@@ -420,15 +456,18 @@ const App: React.FC = () => {
             <Route 
               path="/teacher/dashboard" 
               element={
-                !user || user.role !== UserRole.TEACHER ? 
+                !user || (user.role !== UserRole.TEACHER && user.role !== UserRole.SUPER_ADMIN && user.role !== UserRole.INSTITUTION_ADMIN) ? 
                   <Navigate to="/auth" /> : 
                   <TeacherDashboard user={user} />
               } 
             />
 
             <Route path="/marketplace" element={<EducatorMarketplace />} />
+            <Route path="/advertising" element={<Advertising />} />
             <Route path="/tutors" element={<TutoringMarketplace />} />
             <Route path="/payment-checkout" element={<PaymentCheckoutPage />} />
+            <Route path="/terms" element={<TermsOfService />} />
+            <Route path="/privacy" element={<PrivacyPolicy />} />
 
             <Route 
               path="/ministry" 

@@ -77,7 +77,7 @@ export const MOCK_INSTITUTIONS: Institution[] = [
       { year: 2023, nationalRanking: 1, regionalRanking: 1, valueAddedScore: 8.5, studentGrowth: 12 },
       { year: 2022, nationalRanking: 2, regionalRanking: 1, valueAddedScore: 8.2, studentGrowth: 10 }
     ],
-    plan: SubscriptionPlan.ENTERPRISE,
+    plan: SubscriptionPlan.ENTERPRISE_B2B,
     status: 'published',
     adminId: 'user-2',
     createdAt: '2023-01-01T00:00:00Z',
@@ -233,6 +233,16 @@ export const MOCK_INSTITUTIONS: Institution[] = [
           { subject: 'English', schoolAverage: 88, regionalAverage: 72 },
           { subject: 'Siswaati', schoolAverage: 75, regionalAverage: 70 }
         ]
+      },
+      paperlessHub: {
+        enabled: true,
+        documents: [
+          { id: 'p-doc-1', name: 'Student Code of Conduct 2024', category: 'Policy', url: '/docs/conduct.pdf', uploadedAt: '2024-01-10T09:00:00Z', size: '1.2 MB' },
+          { id: 'p-doc-2', name: 'March Newsletter', category: 'Newsletter', url: '/docs/newsletter-mar.pdf', uploadedAt: '2024-03-01T14:30:00Z', size: '2.5 MB' },
+          { id: 'p-doc-3', name: 'Sports Day Permission Slip', category: 'Form', url: '/docs/sports-slip.pdf', uploadedAt: '2024-03-15T11:00:00Z', size: '450 KB' }
+        ],
+        paperSavedEstimate: 12450,
+        digitalTransformationScore: 88
       }
     },
     metadata: {
@@ -595,8 +605,8 @@ export const MOCK_INSTITUTIONS: Institution[] = [
           { name: 'Mathematics', head: 'Ms. Sarah Dlamini', subjects: ['Standard Maths', 'Higher Maths', 'Further Maths'], overview: 'Focused on logical reasoning and problem-solving excellence.' }
         ],
         programs: [
-          { id: 'prog-1', name: 'IB Diploma Programme', qualification: 'IB Diploma', duration: '2 Years', subjects: ['Mathematics', 'Physics', 'History', 'English', 'Biology'], requirements: 'Pass in IGCSE with minimum 5 Cs', description: 'Advanced pre-university curriculum recognized by top universities globally.', syllabusUrl: '#' },
-          { id: 'prog-2', name: 'IGCSE', qualification: 'IGCSE Certificate', duration: '2 Years', subjects: ['Mathematics', 'Science', 'English', 'Geography', 'ICT'], requirements: 'Completion of Form 2', description: 'Cambridge secondary education providing foundation for senior studies.', syllabusUrl: '#' }
+          { id: 'prog-1', name: 'IB Diploma Programme', qualification: 'IB Diploma', duration: '2 Years', subjects: ['Mathematics', 'Physics', 'History', 'English', 'Biology'], requirements: 'Pass in IGCSE with minimum 5 Cs', description: 'Advanced pre-university curriculum recognized by top universities globally.', syllabusUrl: '#', courseOutlineUrl: '#' },
+          { id: 'prog-2', name: 'IGCSE', qualification: 'IGCSE Certificate', duration: '2 Years', subjects: ['Mathematics', 'Science', 'English', 'Geography', 'ICT'], requirements: 'Completion of Form 2', description: 'Cambridge secondary education providing foundation for senior studies.', syllabusUrl: '#', courseOutlineUrl: '#' }
         ],
         calendar: {
           startDate: 'January 20, 2024',
@@ -618,7 +628,13 @@ export const MOCK_INSTITUTIONS: Institution[] = [
           description: 'We offer intensive academic support through our dedicated learning support center.'
         },
         staff: {
-          head: { name: 'Stephen Lowry', qualifications: 'PhD in Education', experience: '30 Years' },
+          head: { 
+            name: 'Stephen Lowry', 
+            qualifications: 'PhD in Education, M.Ed', 
+            experience: '30 Years',
+            professionalBackground: 'Stephen Lowry has a distinguished career in international education, spanning over three decades. He has led several UWC colleges and is a recognized voice in global citizenship education. His background includes curriculum development for the IB and leadership in diverse educational settings.',
+            messageFromPrincipal: 'Welcome to Waterford Kamhlaba. Our mission is to provide a world-class education that inspires students to become responsible global citizens. We believe in the power of education to transform lives and communities, and we are committed to fostering an environment where every student can thrive academically and personally.'
+          },
           totalCount: 85,
           avgExperience: '12 Years',
           certifications: ['IB Certification', 'PGCE', 'Cambridge Certified Examiner'],
@@ -680,9 +696,12 @@ export const MOCK_INSTITUTIONS: Institution[] = [
           description: 'High-standard science labs and a multi-media resource library.',
           list: ['6 Science Labs', 'Computer Lab', '24/7 Library', 'E-learning Portal']
         },
-        digital: {
-          platform: 'ManageBac',
-          features: ['Online classes', 'Digital assignments', 'Virtual library access']
+        elearning: {
+          enabled: true,
+          platform: 'ManageBac, Google Workspace & Microsoft Teams',
+          onlineClassOptions: 'Hybrid learning environment with live Zoom and Teams sessions for remote students.',
+          digitalAssignments: 'All assignments submitted via Google Classroom and ManageBac Canvas.',
+          recordedLectures: 'Select advanced courses are recorded and archived for student review on the internal portal.'
         },
         partnerships: {
           internships: 'Available for IB students during winter break with local NGOs.',
@@ -1074,7 +1093,10 @@ export const MOCK_INSTITUTIONS: Institution[] = [
           { name: 'Languages', head: 'Mrs. Gamedze', subjects: ['English', 'Siswati'], overview: 'Developing strong communication skills from an early age.' },
           { name: 'STEM', head: 'Mr. Shongwe', subjects: ['Mathematics', 'Science', 'ICT'], overview: 'Encouraging curiosity and logical thinking.' }
         ], 
-        programs: [], 
+        programs: [
+          { id: 'prog-sif-1', name: 'Primary Foundation Phase', qualification: 'Primary Certificate', duration: '3 Years (Grade 1-3)', subjects: ['English', 'Mathematics', 'Science', 'Siswati'], requirements: 'Age 6+ and placement assessment.', description: 'Focuses on building core literacy and numeracy skills in a supportive environment.', syllabusUrl: '#' },
+          { id: 'prog-sif-2', name: 'Intermediate Phase', qualification: 'Primary Certificate', duration: '4 Years (Grade 4-7)', subjects: ['English', 'Social Studies', 'Integrated Science', 'ICT'], requirements: 'Successful completion of Foundation Phase.', description: 'Prepares students for the EPC examinations with a broad, balanced curriculum.', syllabusUrl: '#' }
+        ], 
         calendar: { 
           startDate: 'January 23, 2024', 
           terms: [
@@ -1094,7 +1116,13 @@ export const MOCK_INSTITUTIONS: Institution[] = [
           description: 'We provide extra help for students who need a bit more time to master core concepts.' 
         }, 
         staff: { 
-          head: { name: 'Mrs. N. Dlamini', qualifications: 'B.Ed Primary', experience: '20 Years' }, 
+          head: { 
+          name: 'Mrs. N. Dlamini', 
+          qualifications: 'B.Ed Primary, Advanced Cert in School Management', 
+          experience: '20 Years',
+          professionalBackground: 'Mrs. Dlamini has dedicated two decades to primary education in Eswatini. She has served as a senior teacher and administrator in various public and private schools, consistently advocating for child-centered learning and teacher professional development.',
+          messageFromPrincipal: 'At Sifundzani Primary, we believe in nurturing the whole child. Our goal is to provide a safe, engaging, and challenging environment where students can discover their strengths and develop a love for learning. We work closely with parents to ensure every child reaches their full potential.'
+        }, 
           totalCount: 30, 
           avgExperience: '10 Years', 
           certifications: ['SACE Registered', 'First Aid Certified'] 
@@ -1104,7 +1132,7 @@ export const MOCK_INSTITUTIONS: Institution[] = [
           description: 'Child-friendly classrooms and specialized learning areas.', 
           list: ['Library', 'Computer Lab', 'Art Room', 'Music Room'] 
         }, 
-        digital: { platform: 'Google Classroom', features: ['Homework assignments', 'Parent communication'] }, 
+        elearning: { enabled: true, platform: 'Google Classroom', onlineClassOptions: 'Online homework support and remote classes when required.', digitalAssignments: 'Daily homework and term projects assigned via Google Classroom.', recordedLectures: 'Not available for primary grades.' }, 
         partnerships: { internships: '', collaborations: '' } 
       },
       news: { 
@@ -1377,7 +1405,10 @@ export const MOCK_INSTITUTIONS: Institution[] = [
           { name: 'Sciences', head: 'Mr. Mamba', subjects: ['Physics', 'Chemistry', 'Biology', 'Maths'], overview: 'Strong focus on practical laboratory work.' },
           { name: 'Humanities', head: 'Mrs. Simelane', subjects: ['History', 'Geography', 'Religious Education'], overview: 'Developing critical analysis and social awareness.' }
         ], 
-        programs: [], 
+        programs: [
+          { id: 'prog-naz-1', name: 'SGCSE Science Stream', qualification: 'SGCSE Certificate', duration: '2 Years (Form 4-5)', subjects: ['Physics', 'Chemistry', 'Biology', 'Add Maths'], requirements: 'Merit pass in JC Sciences and Mathematics.', description: 'A rigorous program for students aiming for careers in engineering, medicine, and technology.', syllabusUrl: '#' },
+          { id: 'prog-naz-2', name: 'Junior Secondary Program', qualification: 'Junior Certificate', duration: '3 Years (Form 1-3)', subjects: ['English', 'Maths', 'Integrated Science', 'Geography'], requirements: 'Pass in EPC (Grade 7) examinations.', description: 'Foundation secondary education covering a wide range of academic and practical subjects.', syllabusUrl: '#' }
+        ], 
         calendar: { 
           startDate: 'January 24, 2024', 
           terms: [
@@ -1407,7 +1438,7 @@ export const MOCK_INSTITUTIONS: Institution[] = [
           description: 'Well-equipped labs and classrooms.', 
           list: ['Science Labs', 'Computer Center', 'Library', 'Workshop'] 
         }, 
-        digital: { platform: 'School Management System', features: ['Report cards', 'Attendance tracking'] }, 
+        elearning: { enabled: true, platform: 'School Management System', onlineClassOptions: 'Virtual teacher-parent consultations available.', digitalAssignments: 'Digital report cards and assignments.', recordedLectures: 'N/A' }, 
         partnerships: { internships: '', collaborations: 'UNESWA Science Outreach' } 
       },
       news: { 
@@ -1502,7 +1533,7 @@ export const MOCK_INSTITUTIONS: Institution[] = [
     isSpotlight: true,
     seoScore: 90,
     trustScore: 95,
-    plan: SubscriptionPlan.ENTERPRISE,
+    plan: SubscriptionPlan.ENTERPRISE_B2B,
     status: 'published',
     adminId: 'user-1',
     createdAt: '2023-04-01T00:00:00Z',
@@ -1683,7 +1714,10 @@ export const MOCK_INSTITUTIONS: Institution[] = [
           { name: 'Faculty of Commerce', head: 'Dr. Dlamini', subjects: ['Accounting', 'Business Administration', 'Economics'], overview: 'Preparing leaders for the business world.' },
           { name: 'Faculty of Science & Engineering', head: 'Prof. Enshayan', subjects: ['Computer Science', 'Physics', 'Mathematics', 'Electrical Engineering'], overview: 'Driving innovation and technological advancement.' }
         ], 
-        programs: [], 
+        programs: [
+          { id: 'prog-uneswa-1', name: 'BSc in Computer Science', qualification: 'Degree', duration: '4 Years', subjects: ['Programming', 'Data Structures', 'Database Systems', 'AI'], requirements: 'C or better in SGCSE Mathematics and English.', description: 'Comprehensive training in software development and computing theory.', syllabusUrl: '#' },
+          { id: 'prog-uneswa-2', name: 'Bachelor of Commerce', qualification: 'Degree', duration: '4 Years', subjects: ['Accounting', 'Business Management', 'Economics', 'Finance'], requirements: 'Credits in SGCSE English and Mathematics.', description: 'Prepares students for leadership roles in the global business environment.', syllabusUrl: '#' }
+        ], 
         calendar: { 
           startDate: 'August 19, 2024', 
           terms: [
@@ -1712,7 +1746,7 @@ export const MOCK_INSTITUTIONS: Institution[] = [
           description: 'State-of-the-art laboratories, libraries, and lecture halls.', 
           list: ['Main Library', 'Computer Labs', 'Science Labs', 'Research Farm'] 
         }, 
-        digital: { platform: 'Moodle LMS', features: ['Online lectures', 'Course materials', 'Discussion forums'] }, 
+        elearning: { enabled: true, platform: 'Moodle LMS', onlineClassOptions: 'Full virtual campus for distance learning students.', digitalAssignments: 'Automated grading and submission for all tertiary courses.', recordedLectures: 'All lectures for core modules are recorded and available for 12 months.' }, 
         partnerships: { internships: 'Mandatory for most programs', collaborations: 'University of Johannesburg, SADC Research Network' } 
       },
       news: { 
@@ -1985,7 +2019,10 @@ export const MOCK_INSTITUTIONS: Institution[] = [
           { name: 'Practical Subjects', head: 'Mrs. Mdluli', subjects: ['Agriculture', 'Home Economics', 'Technical Drawing'], overview: 'Focusing on hands-on skills and vocational training.' },
           { name: 'Languages', head: 'Mr. Khumalo', subjects: ['English', 'Siswati', 'French'], overview: 'Promoting multilingualism and cultural understanding.' }
         ], 
-        programs: [], 
+        programs: [
+          { id: 'prog-eb-1', name: 'SGCSE General Stream', qualification: 'SGCSE', duration: '2 Years', subjects: ['English', 'Siswati', 'Maths', 'History', 'Geography'], requirements: 'Pass in Junior Certificate (JC).', description: 'A broad-based secondary education program preparing students for tertiary institutions.', syllabusUrl: '#' },
+          { id: 'prog-eb-2', name: 'Practical Arts Program', qualification: 'SGCSE', duration: '2 Years', subjects: ['Agriculture', 'Home Economics', 'Fashion & Fabrics'], requirements: 'Interest in vocational and practical skills.', description: 'Focuses on hands-on skills for self-reliance and vocational career paths.', syllabusUrl: '#' }
+        ], 
         calendar: { 
           startDate: 'January 22, 2024', 
           terms: [
@@ -2015,7 +2052,7 @@ export const MOCK_INSTITUTIONS: Institution[] = [
           description: 'Well-maintained classrooms and specialized subject rooms.', 
           list: ['Science Lab', 'Agriculture Plot', 'Home Economics Room', 'Library'] 
         }, 
-        digital: { platform: 'SMS', features: ['Attendance', 'Grades'] }, 
+        elearning: { enabled: false, platform: 'SMS', onlineClassOptions: 'N/A', digitalAssignments: 'SMS based notifications.', recordedLectures: '' }, 
         partnerships: { internships: '', collaborations: 'Local Farmers Association' } 
       },
       news: { 
@@ -2148,7 +2185,23 @@ export const MOCK_INSTITUTIONS: Institution[] = [
         testimonials: []
       },
       admissions: { headline: 'Join St. Mark\'s', introduction: 'We admit students based on academic merit.', programs: [], requirements: { academic: [], documents: [], additional: [] }, processSteps: [], applicationFee: { amount: 'SZL 150', methods: [] }, processingTime: '', importantDates: [], tuitionFees: { perTerm: '', perYear: '', additional: [] }, scholarships: { types: [], eligibility: '', howToApply: '' }, faqs: [], contact: { name: '', phone: '', email: '', hours: '' }, allowOnlineApplications: false },
-      academics: { overview: { headline: '', introduction: '' }, curriculum: { structure: '', examinationBody: '', description: '' }, departments: [], programs: [], calendar: { startDate: '', terms: [], examPeriods: '', holidays: '' }, assessment: { approach: '', gradingSystem: '' }, support: { services: [], description: '' }, staff: { head: { name: '', qualifications: '', experience: '' }, totalCount: 0, avgExperience: '', certifications: [] }, performance: { passRate: '98%', ranking: '', distinctions: '', awards: [] }, facilities: { description: '', list: [] }, digital: { platform: '', features: [] }, partnerships: { internships: '', collaborations: '' } },
+      academics: { 
+        overview: { headline: '', introduction: '' }, 
+        curriculum: { structure: '', examinationBody: '', description: '' }, 
+        departments: [], 
+        calendar: { startDate: '', terms: [], examPeriods: '', holidays: '' }, 
+        assessment: { approach: '', gradingSystem: '' }, 
+        support: { services: [], description: '' }, 
+        staff: { head: { name: '', qualifications: '', experience: '' }, totalCount: 0, avgExperience: '', certifications: [] },
+        performance: { passRate: '98%', ranking: '', distinctions: '', awards: [] },
+        programs: [
+          { id: 'prog-sm-1', name: 'SGCSE Pure Sciences', qualification: 'SGCSE Certificate', duration: '2 Years', subjects: ['Physics', 'Chemistry', 'Biology', 'Add Maths'], requirements: 'Merit in JC Science.', description: 'For students pursuing STEM careers.', syllabusUrl: 'https://www.stmarks.ac.sz/downloads/pure-sciences-syllabus.pdf' }
+        ],
+        facilities: { description: '', list: [] },
+        elearning: { enabled: false, platform: '', onlineClassOptions: '', digitalAssignments: '', recordedLectures: '' },
+        studentPortal: { enabled: true, url: 'https://portal.stmarks.ac.sz', features: { learningMaterials: true, assignmentSubmission: true, resultsDisplay: true } },
+        partnerships: { internships: '', collaborations: '' }
+      },
       news: { overview: { title: '', description: '' }, posts: [], events: [], gallery: [], newsletterCta: '' },
       studentLife: { overview: { headline: '', introduction: '' }, sports: { list: [], facilities: [], description: '' }, clubs: [], arts: { activities: [], description: '' }, leadership: { opportunities: [], roles: '' }, facilities: [], support: { services: [], description: '' }, activities: { list: [], description: '' }, community: { programs: [], description: '' } },
       portal: { 
@@ -2230,7 +2283,23 @@ export const MOCK_INSTITUTIONS: Institution[] = [
         testimonials: []
       },
       admissions: { headline: 'Join Salesian', introduction: 'Admissions open for Form 1 and Form 4.', programs: [], requirements: { academic: [], documents: [], additional: [] }, processSteps: [], applicationFee: { amount: 'SZL 200', methods: [] }, processingTime: '', importantDates: [], tuitionFees: { perTerm: '', perYear: '', additional: [] }, scholarships: { types: [], eligibility: '', howToApply: '' }, faqs: [], contact: { name: '', phone: '', email: '', hours: '' }, allowOnlineApplications: false },
-      academics: { overview: { headline: '', introduction: '' }, curriculum: { structure: '', examinationBody: '', description: '' }, departments: [], programs: [], calendar: { startDate: '', terms: [], examPeriods: '', holidays: '' }, assessment: { approach: '', gradingSystem: '' }, support: { services: [], description: '' }, staff: { head: { name: '', qualifications: '', experience: '' }, totalCount: 0, avgExperience: '', certifications: [] }, performance: { passRate: '96%', ranking: '', distinctions: '', awards: [] }, facilities: { description: '', list: [] }, digital: { platform: '', features: [] }, partnerships: { internships: '', collaborations: '' } },
+      academics: { 
+        overview: { headline: '', introduction: '' }, 
+        curriculum: { structure: '', examinationBody: '', description: '' }, 
+        departments: [], 
+        calendar: { startDate: '', terms: [], examPeriods: '', holidays: '' }, 
+        assessment: { approach: '', gradingSystem: '' }, 
+        support: { services: [], description: '' }, 
+        staff: { head: { name: '', qualifications: '', experience: '' }, totalCount: 0, avgExperience: '', certifications: [] },
+        performance: { passRate: '96%', ranking: '', distinctions: '', awards: [] },
+        programs: [
+          { id: 'prog-sal-1', name: 'Commercial Stream', qualification: 'SGCSE', duration: '2 Years', subjects: ['Accounting', 'Economics', 'Business Studies'], requirements: 'Credit in JC Maths.', description: 'Focused on business and financial sciences.', syllabusUrl: 'https://www.salesian.ac.sz/academics/commercial-stream-syllabus.pdf' }
+        ],
+        facilities: { description: '', list: [] },
+        elearning: { enabled: false, platform: '', onlineClassOptions: '', digitalAssignments: '', recordedLectures: '' },
+        studentPortal: { enabled: false, url: '', features: { learningMaterials: false, assignmentSubmission: false, resultsDisplay: false } },
+        partnerships: { internships: '', collaborations: '' }
+      },
       news: { overview: { title: '', description: '' }, posts: [], events: [], gallery: [], newsletterCta: '' },
       studentLife: { overview: { headline: '', introduction: '' }, sports: { list: [], facilities: [], description: '' }, clubs: [], arts: { activities: [], description: '' }, leadership: { opportunities: [], roles: '' }, facilities: [], support: { services: [], description: '' }, activities: { list: [], description: '' }, community: { programs: [], description: '' } },
       portal: { 
@@ -2312,7 +2381,23 @@ export const MOCK_INSTITUTIONS: Institution[] = [
         testimonials: []
       },
       admissions: { headline: 'Apply to VOCTIM', introduction: 'Applications open for January intake.', programs: [], requirements: { academic: [], documents: [], additional: [] }, processSteps: [], applicationFee: { amount: 'SZL 100', methods: [] }, processingTime: '', importantDates: [], tuitionFees: { perTerm: '', perYear: '', additional: [] }, scholarships: { types: [], eligibility: '', howToApply: '' }, faqs: [], contact: { name: '', phone: '', email: '', hours: '' }, allowOnlineApplications: false },
-      academics: { overview: { headline: '', introduction: '' }, curriculum: { structure: '', examinationBody: '', description: '' }, departments: [], programs: [], calendar: { startDate: '', terms: [], examPeriods: '', holidays: '' }, assessment: { approach: '', gradingSystem: '' }, support: { services: [], description: '' }, staff: { head: { name: '', qualifications: '', experience: '' }, totalCount: 0, avgExperience: '', certifications: [] }, performance: { passRate: '85%', ranking: '', distinctions: '', awards: [] }, facilities: { description: '', list: [] }, digital: { platform: '', features: [] }, partnerships: { internships: '', collaborations: '' } },
+      academics: { 
+        overview: { headline: '', introduction: '' }, 
+        curriculum: { structure: '', examinationBody: '', description: '' }, 
+        departments: [], 
+        calendar: { startDate: '', terms: [], examPeriods: '', holidays: '' }, 
+        assessment: { approach: '', gradingSystem: '' }, 
+        support: { services: [], description: '' }, 
+        staff: { head: { name: '', qualifications: '', experience: '' }, totalCount: 0, avgExperience: '', certifications: [] },
+        performance: { passRate: '85%', ranking: '', distinctions: '', awards: [] },
+        programs: [
+          { id: 'prog-voctim-1', name: 'Electrical Engineering', qualification: 'Diploma', duration: '3 Years', subjects: ['Electrical Theory', 'Practical Wiring', 'Industrial Electronics'], requirements: 'Credit in SGCSE Science.', description: 'Technical training for electrical trades.', syllabusUrl: 'https://www.voctim.ac.sz/courses/electrical-engineering-syllabus.pdf' }
+        ],
+        facilities: { description: '', list: [] },
+        elearning: { enabled: false, platform: '', onlineClassOptions: '', digitalAssignments: '', recordedLectures: '' },
+        studentPortal: { enabled: false, url: '', features: { learningMaterials: false, assignmentSubmission: false, resultsDisplay: false } },
+        partnerships: { internships: '', collaborations: '' }
+      },
       news: { overview: { title: '', description: '' }, posts: [], events: [], gallery: [], newsletterCta: '' },
       studentLife: { overview: { headline: '', introduction: '' }, sports: { list: [], facilities: [], description: '' }, clubs: [], arts: { activities: [], description: '' }, leadership: { opportunities: [], roles: '' }, facilities: [], support: { services: [], description: '' }, activities: { list: [], description: '' }, community: { programs: [], description: '' } },
       portal: { 
@@ -2394,7 +2479,22 @@ export const MOCK_INSTITUTIONS: Institution[] = [
         testimonials: []
       },
       admissions: { headline: 'Join Good Shepherd', introduction: 'Admissions open for all forms.', programs: [], requirements: { academic: [], documents: [], additional: [] }, processSteps: [], applicationFee: { amount: 'SZL 100', methods: [] }, processingTime: '', importantDates: [], tuitionFees: { perTerm: '', perYear: '', additional: [] }, scholarships: { types: [], eligibility: '', howToApply: '' }, faqs: [], contact: { name: '', phone: '', email: '', hours: '' }, allowOnlineApplications: false },
-      academics: { overview: { headline: '', introduction: '' }, curriculum: { structure: '', examinationBody: '', description: '' }, departments: [], programs: [], calendar: { startDate: '', terms: [], examPeriods: '', holidays: '' }, assessment: { approach: '', gradingSystem: '' }, support: { services: [], description: '' }, staff: { head: { name: '', qualifications: '', experience: '' }, totalCount: 0, avgExperience: '', certifications: [] }, performance: { passRate: '92%', ranking: '', distinctions: '', awards: [] }, facilities: { description: '', list: [] }, digital: { platform: '', features: [] }, partnerships: { internships: '', collaborations: '' } },
+      academics: { 
+        overview: { headline: '', introduction: '' }, 
+        curriculum: { structure: '', examinationBody: '', description: '' }, 
+        departments: [], 
+        calendar: { startDate: '', terms: [], examPeriods: '', holidays: '' }, 
+        assessment: { approach: '', gradingSystem: '' }, 
+        support: { services: [], description: '' }, 
+        staff: { head: { name: '', qualifications: '', experience: '' }, totalCount: 0, avgExperience: '', certifications: [] },
+        performance: { passRate: '92%', ranking: '', distinctions: '', awards: [] },
+        programs: [
+          { id: 'prog-gs-1', name: 'Agric & Biology Stream', qualification: 'SGCSE', duration: '2 Years', subjects: ['Agriculture', 'Biology', 'English', 'Maths'], requirements: 'Pass in JC Science.', description: 'Integrating agriculture with core sciences.', syllabusUrl: '#' }
+        ],
+        facilities: { description: '', list: [] },
+        elearning: { enabled: false, platform: '', onlineClassOptions: '', digitalAssignments: '', recordedLectures: '' },
+        partnerships: { internships: '', collaborations: '' }
+      },
       news: { overview: { title: '', description: '' }, posts: [], events: [], gallery: [], newsletterCta: '' },
       studentLife: { overview: { headline: '', introduction: '' }, sports: { list: [], facilities: [], description: '' }, clubs: [], arts: { activities: [], description: '' }, leadership: { opportunities: [], roles: '' }, facilities: [], support: { services: [], description: '' }, activities: { list: [], description: '' }, community: { programs: [], description: '' } },
       portal: { 
@@ -2476,7 +2576,22 @@ export const MOCK_INSTITUTIONS: Institution[] = [
         testimonials: []
       },
       admissions: { headline: 'Apply to Ngwane', introduction: 'Applications open for the Diploma in Primary Education.', programs: [], requirements: { academic: [], documents: [], additional: [] }, processSteps: [], applicationFee: { amount: 'SZL 250', methods: [] }, processingTime: '', importantDates: [], tuitionFees: { perTerm: '', perYear: '', additional: [] }, scholarships: { types: [], eligibility: '', howToApply: '' }, faqs: [], contact: { name: '', phone: '', email: '', hours: '' }, allowOnlineApplications: false },
-      academics: { overview: { headline: '', introduction: '' }, curriculum: { structure: '', examinationBody: '', description: '' }, departments: [], programs: [], calendar: { startDate: '', terms: [], examPeriods: '', holidays: '' }, assessment: { approach: '', gradingSystem: '' }, support: { services: [], description: '' }, staff: { head: { name: '', qualifications: '', experience: '' }, totalCount: 0, avgExperience: '', certifications: [] }, performance: { passRate: '95%', ranking: '', distinctions: '', awards: [] }, facilities: { description: '', list: [] }, digital: { platform: '', features: [] }, partnerships: { internships: '', collaborations: '' } },
+      academics: { 
+        overview: { headline: '', introduction: '' }, 
+        curriculum: { structure: '', examinationBody: '', description: '' }, 
+        departments: [], 
+        calendar: { startDate: '', terms: [], examPeriods: '', holidays: '' }, 
+        assessment: { approach: '', gradingSystem: '' }, 
+        support: { services: [], description: '' }, 
+        staff: { head: { name: '', qualifications: '', experience: '' }, totalCount: 0, avgExperience: '', certifications: [] },
+        performance: { passRate: '95%', ranking: '', distinctions: '', awards: [] },
+        programs: [
+          { id: 'prog-nt-1', name: 'Diploma in Primary Education', qualification: 'Diploma', duration: '3 Years', subjects: ['Professional Studies', 'Subject Content', 'Teaching Practice'], requirements: 'Credits in SGCSE English.', description: 'Comprehensive teacher development.', syllabusUrl: '#' }
+        ],
+        facilities: { description: '', list: [] },
+        elearning: { enabled: false, platform: '', onlineClassOptions: '', digitalAssignments: '', recordedLectures: '' },
+        partnerships: { internships: '', collaborations: '' }
+      },
       news: { overview: { title: '', description: '' }, posts: [], events: [], gallery: [], newsletterCta: '' },
       studentLife: { overview: { headline: '', introduction: '' }, sports: { list: [], facilities: [], description: '' }, clubs: [], arts: { activities: [], description: '' }, leadership: { opportunities: [], roles: '' }, facilities: [], support: { services: [], description: '' }, activities: { list: [], description: '' }, community: { programs: [], description: '' } },
       portal: { 
@@ -2521,7 +2636,7 @@ export const MOCK_INSTITUTIONS: Institution[] = [
     isSpotlight: true,
     trustScore: 98,
     seoScore: 90,
-    plan: SubscriptionPlan.PRO,
+    plan: SubscriptionPlan.PREMIUM_B2B,
     status: 'published',
     adminId: 'user-moet',
     createdAt: '2024-04-22T00:00:00Z',
@@ -2616,7 +2731,7 @@ export const MOCK_INSTITUTIONS: Institution[] = [
         staff: { head: { name: 'Secretary General', qualifications: '', experience: '' }, totalCount: 20, avgExperience: '10+ years', certifications: [] },
         performance: { passRate: '', ranking: '', distinctions: '', awards: [] },
         facilities: { description: '', list: [] },
-        digital: { platform: '', features: [] },
+        elearning: { enabled: false, platform: '', onlineClassOptions: '', digitalAssignments: '', recordedLectures: '' },
         partnerships: { internships: '', collaborations: '' }
       },
       news: { 

@@ -84,12 +84,12 @@ service cloud.firestore {
     }
 
     function isValidStudent(data) {
-      return data.keys().hasAll(['id', 'institutionId', 'name', 'grade', 'className', 'studentId', 'dob', 'parentEmails', 'createdAt']) &&
+      return data.keys().hasAll(['id', 'institutionId', 'name', 'grade', 'class', 'studentId', 'dob', 'parentEmails', 'createdAt']) &&
              data.id is string && data.id.size() > 0 && data.id.size() <= 128 &&
              data.institutionId is string && data.institutionId.size() <= 128 &&
              data.name is string && data.name.size() <= 150 &&
              data.grade is string && data.grade.size() <= 50 &&
-             data.className is string && data.className.size() <= 50 &&
+             data.class is string && data.class.size() <= 50 &&
              data.studentId is string && data.studentId.size() <= 50 &&
              data.dob is string && data.dob.size() <= 20 &&
              data.parentEmails is list && (data.parentEmails.size() == 0 || (data.parentEmails.size() <= 10 && data.parentEmails[0] is string)) &&
@@ -212,7 +212,7 @@ service cloud.firestore {
                        isSignedIn() && 
                        isValidStudent(incoming()) && 
                        (isInstitutionAdmin(existing().institutionId) || isAdmin()) &&
-                       incoming().diff(existing()).affectedKeys().hasOnly(['name', 'grade', 'className', 'studentId', 'dob', 'parentEmails']);
+                       incoming().diff(existing()).affectedKeys().hasOnly(['name', 'grade', 'class', 'studentId', 'dob', 'parentEmails']);
                        
       allow delete: if isValidId(studentDocId) && (isInstitutionAdmin(existing().institutionId) || isAdmin());
     }

@@ -3,6 +3,7 @@ import { useOutletContext } from 'react-router-dom';
 import { Institution, InstitutionType } from '../../types';
 import { getOptimizedImageUrl } from '../../src/services/performanceService';
 import { InquiryForm } from '../../components/EngagementFeatures';
+import PaperlessInitiative from '../../src/components/PaperlessInitiative';
 
 export const InstitutionHome: React.FC = () => {
   const { inst, lang } = useOutletContext<{ inst: Institution, lang: 'en' | 'ss' }>();
@@ -110,6 +111,9 @@ export const InstitutionHome: React.FC = () => {
             </button>
         </div>
       </section>
+
+      {/* 3.5 Paperless Initiative */}
+      <PaperlessInitiative institution={inst} />
 
       {/* 4. News Carousel Teaser */}
       {sections.news?.enabled !== false && (

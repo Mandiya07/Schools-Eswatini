@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { SubscriptionPlan } from '../../types';
-import { Check, Star, Zap, Shield, Layout } from 'lucide-react';
+import { Check, Star, Zap, Shield, Layout, CheckCircle } from 'lucide-react';
 
 interface Plan {
   id: SubscriptionPlan;
@@ -19,7 +19,7 @@ const plans: Plan[] = [
     id: SubscriptionPlan.FREE,
     name: 'Free Listing',
     price: 'SZL 0',
-    description: 'Basic visibility for your institution.',
+    description: 'Basic visibility for your institution on the national directory.',
     features: [
       'Basic profile listing',
       'Contact information',
@@ -30,47 +30,47 @@ const plans: Plan[] = [
     color: 'bg-slate-100 text-slate-600'
   },
   {
-    id: SubscriptionPlan.PREMIUM,
-    name: 'Premium Listing',
-    price: 'SZL 2,500/yr',
-    description: 'Stand out from the crowd with featured placement.',
+    id: SubscriptionPlan.STANDARD_B2B,
+    name: 'Standard Portal',
+    price: 'E350/mo',
+    description: 'Verified digital presence with full management tools.',
     features: [
-      'Featured placement in search',
-      'Verified badge',
-      'Unlimited photos & videos',
-      'Priority support',
-      'Homepage spotlight rotation'
+      'Verified digital presence',
+      'Portal management dashboard',
+      'Unlimited document uploads',
+      'Basic student analytics',
+      'E3,500/year (15% discount)'
     ],
-    icon: <Star className="w-6 h-6" />,
+    icon: <CheckCircle className="w-6 h-6" />,
     color: 'bg-blue-100 text-blue-600',
     popular: true
   },
   {
-    id: SubscriptionPlan.ANALYTICS,
-    name: 'Advanced Analytics',
-    price: 'SZL 4,500/yr',
-    description: 'Data-driven insights to grow your enrollment.',
+    id: SubscriptionPlan.PREMIUM_B2B,
+    name: 'Premium Suite',
+    price: 'E500/mo',
+    description: 'Advanced modules for growing institutions.',
     features: [
-      'Everything in Premium',
-      'Detailed visitor demographics',
-      'Competitor benchmarking',
-      'Conversion tracking',
-      'Monthly performance reports'
+      'Everything in Standard',
+      'AI Timetable Engine',
+      'Integrated Admissions tracking',
+      'Featured search placement',
+      'Priority MoET compliance alerts'
     ],
     icon: <Zap className="w-6 h-6" />,
     color: 'bg-indigo-100 text-indigo-600'
   },
   {
-    id: SubscriptionPlan.BRANDING,
-    name: 'Custom Branding',
-    price: 'SZL 7,500/yr',
-    description: 'A fully branded experience for your school.',
+    id: SubscriptionPlan.ENTERPRISE_B2B,
+    name: 'Enterprise',
+    price: 'E800/mo',
+    description: 'Full-scale digital transformation for large campuses.',
     features: [
-      'Everything in Analytics',
-      'Custom subdomain (school.schools.sz)',
-      'Custom colors & fonts',
-      'White-label profile',
-      'Ad-free experience'
+      'Everything in Premium',
+      'Integrated Finance & Fee tracking',
+      'QR Inventory & Asset management',
+      'White-label institution portal',
+      'Dedicated account manager'
     ],
     icon: <Shield className="w-6 h-6" />,
     color: 'bg-emerald-100 text-emerald-600'

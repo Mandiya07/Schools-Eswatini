@@ -1,9 +1,9 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { User, UserRole, StudentProgress, AcademicResource, InstitutionType } from '../types';
-import { db, collection, query, where, getDocs, setDoc, doc, getDoc, OperationType, handleFirestoreError } from '../src/lib/firebase';
-import { BookOpen, Activity, Users, Save, Edit2, CheckCircle, GraduationCap, ClipboardList, TrendingUp, Search, Plus, X, FolderOpen, FileText, Download, UploadCloud, FileArchive, Lightbulb, Star, Bot, Sparkles, Loader2, CalendarCheck, BellRing, UserCheck, UserX, Award, ShieldAlert, MessageSquare, Briefcase, ChevronRight } from 'lucide-react';
+import { User, UserRole, StudentProgress, AcademicResource, InstitutionType, BehaviorLog, HomeworkTask } from '../types';
+import { db, collection, query, where, getDocs, setDoc, doc, getDoc, OperationType, handleFirestoreError, getDocWithRetry, getDocsWithRetry } from '../src/lib/firebase';
+import { BookOpen, Activity, Users, Save, Edit2, CheckCircle, GraduationCap, ClipboardList, TrendingUp, Search, Plus, X, FolderOpen, FileText, Download, UploadCloud, FileArchive, Lightbulb, Star, Bot, Sparkles, Loader2, CalendarCheck, BellRing, UserCheck, UserX, Award, ShieldAlert, MessageSquare, Briefcase, ChevronRight, History, ClipboardCheck, Info, ArrowUpDown } from 'lucide-react';
 import { GoogleGenAI } from "@google/genai";
 
 interface TeacherDashboardProps {
@@ -20,11 +20,16 @@ const MOCK_RESOURCES: any[] = [
 ];
 
 const MOCK_STUDENTS = [
-  { id: 's1', name: 'Sipho Dlamini', status: 'present', merits: 12, demerits: 0 },
-  { id: 's2', name: 'Thando Lukhele', status: 'absent', merits: 5, demerits: 2 },
-  { id: 's3', name: 'Nomsa Mamba', status: 'present', merits: 24, demerits: 0 },
-  { id: 's4', name: 'Lwandle Ndlovu', status: 'late', merits: 8, demerits: 1 },
-  { id: 's5', name: 'Ncamiso Zwane', status: 'present', merits: 3, demerits: 0 },
+  { id: 's1', name: 'Sipho Dlamini', status: 'present', merits: 12, demerits: 0, grade: 'Form 4', class: 'Pure' },
+  { id: 's2', name: 'Thando Lukhele', status: 'absent', merits: 5, demerits: 2, grade: 'Form 4', class: 'Arts' },
+  { id: 's3', name: 'Nomsa Mamba', status: 'present', merits: 24, demerits: 0, grade: 'Form 5', class: 'Science' },
+  { id: 's4', name: 'Lwandle Ndlovu', status: 'late', merits: 8, demerits: 1, grade: 'Form 4', class: 'Pure' },
+  { id: 's5', name: 'Ncamiso Zwane', status: 'present', merits: 3, demerits: 0, grade: 'Form 5', class: 'Science' },
+  { id: 's6', name: 'Banele Shongwe', status: 'present', merits: 15, demerits: 0, grade: 'Form 4', class: 'Arts' },
+  { id: 's7', name: 'Zanele Gamedze', status: 'present', merits: 9, demerits: 0, grade: 'Form 5', class: 'Commercial' },
+  { id: 's8', name: 'Milo Simelane', status: 'absent', merits: 4, demerits: 3, grade: 'Form 4', class: 'Pure' },
+  { id: 's9', name: 'Nonhle Masuku', status: 'present', merits: 18, demerits: 0, grade: 'Form 5', class: 'Science' },
+  { id: 's10', name: 'Sihle Khumalo', status: 'late', merits: 7, demerits: 0, grade: 'Form 5', class: 'Commercial' },
 ];
 
 const MOCK_FORUMS = [
@@ -61,6 +66,10 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({ user }) => {
   const [editForm, setEditForm] = useState<Partial<StudentProgress>>({});
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'success' | 'error'>('idle');
   const [searchTerm, setSearchTerm] = useState('');
+  const [mgmtSearchTerm, setMgmtSearchTerm] = useState('');
+  const [selectedGrade, setSelectedGrade] = useState<string>('All Grades');
+  const [selectedClass, setSelectedClass] = useState<string>('All Classes');
+  const [sortOption, setSortOption] = useState<string>('name_asc');
   const [isCreating, setIsCreating] = useState(false);
 
   // Resource Upload States
@@ -93,6 +102,21 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({ user }) => {
     contactPhone: '',
     contactEmail: user.email,
     bio: ''
+  });
+
+  // Behavior & Homework States
+  const [behaviorLogs, setBehaviorLogs] = useState<BehaviorLog[]>([]);
+  const [homeworkTasks, setHomeworkTasks] = useState<HomeworkTask[]>([]);
+  const [managementSubTab, setManagementSubTab] = useState<'attendance' | 'behavior' | 'homework'>('attendance');
+  const [selectedStudentForLog, setSelectedStudentForLog] = useState<string>('');
+  const [logDescription, setLogDescription] = useState('');
+  const [isCreatingHomework, setIsCreatingHomework] = useState(false);
+  const [newHomework, setNewHomework] = useState<Partial<HomeworkTask>>({
+    title: '',
+    description: '',
+    subject: '',
+    dueDate: new Date(Date.now() + 86400000 * 2).toISOString().split('T')[0],
+    status: 'active'
   });
 
   const handleUpdateTeacherProfile = async () => {
@@ -153,22 +177,26 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({ user }) => {
       try {
         if (user.institutionId) {
           try {
-            const instDoc = await getDoc(doc(db, 'institutions', user.institutionId));
-            if (instDoc.exists()) {
-              const instData = instDoc.data();
+            const instDoc = await getDocWithRetry(doc(db, 'institutions', user.institutionId));
+            if (instDoc && instDoc.exists()) {
+              const instData = instDoc.data() as any;
               if (instData.type && instData.type.length > 0) {
                 setInstitutionType(instData.type[0]);
               }
             }
           } catch (err) {
-            console.error("Failed to fetch institution type", err);
+            if (err instanceof Error && !err.message.includes('offline')) {
+              console.error("Failed to fetch institution type", err);
+            } else {
+              console.warn("Failed to fetch institution type (likely offline)");
+            }
           }
           
           const teachersQ = query(collection(db, 'users'), 
             where('institutionId', '==', user.institutionId),
             where('role', '==', UserRole.TEACHER)
           );
-          const teachersSnapshot = await getDocs(teachersQ);
+          const teachersSnapshot = await getDocsWithRetry(teachersQ);
           setInstitutionTeachers(teachersSnapshot.docs.map(doc => doc.data() as User));
         }
 
@@ -177,19 +205,21 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({ user }) => {
           ? query(collection(db, 'student_progress'), where('institutionId', '==', user.institutionId))
           : query(collection(db, 'student_progress'), where('teacherId', '==', user.id));
           
-        const snapshot = await getDocs(q);
+        const snapshot = await getDocsWithRetry(q);
         const data = snapshot.docs.map(doc => doc.data() as StudentProgress);
         
         // Mock data injection if empty for demo purposes
-        if (data.length === 0) {
+        if (data.length <= 1) {
           const mockData: StudentProgress[] = [
             {
               id: 'prog_teacher_1',
               studentId: 'stu_1',
               studentName: 'Sipho Dlamini',
+              grade: 'Form 4',
+              class: 'Pure',
               institutionId: user.institutionId || 'inst_1',
               teacherId: user.id,
-              parentId: 'parent_123',
+              parentId: 'parent_1',
               term: 'Term 1',
               year: 2026,
               academics: [
@@ -197,24 +227,19 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({ user }) => {
                 { subject: 'Science', grade: 'B+', comments: 'Good understanding of concepts.' },
                 { subject: 'English', grade: 'A-', comments: 'Strong reading comprehension.' }
               ],
-              behavior: {
-                rating: 'Excellent',
-                comments: 'Very respectful and attentive in class.'
-              },
-              participation: {
-                rating: 'High',
-                activities: ['Debate', 'Robotics'],
-                comments: 'Actively engages in all classroom discussions.'
-              },
+              behavior: { rating: 'Excellent', comments: 'Very respectful and attentive in class.' },
+              participation: { rating: 'High', activities: ['Debate', 'Robotics'], comments: 'Actively engages in all classroom discussions.' },
               lastUpdated: new Date().toISOString()
             },
             {
               id: 'prog_teacher_2',
               studentId: 'stu_2',
               studentName: 'Thando Lukhele',
+              grade: 'Form 4',
+              class: 'Arts',
               institutionId: user.institutionId || 'inst_1',
               teacherId: user.id,
-              parentId: 'parent_456',
+              parentId: 'parent_2',
               term: 'Term 1',
               year: 2026,
               academics: [
@@ -222,19 +247,70 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({ user }) => {
                 { subject: 'Science', grade: 'B', comments: 'Showing steady improvement.' },
                 { subject: 'English', grade: 'B+', comments: 'Great essay writing.' }
               ],
-              behavior: {
-                rating: 'Good',
-                comments: 'A bit talkative but stays on task.'
-              },
-              participation: {
-                rating: 'Medium',
-                activities: ['Basketball'],
-                comments: 'Prefers physical activities over classroom discussion.'
-              },
+              behavior: { rating: 'Good', comments: 'A bit talkative but stays on task.' },
+              participation: { rating: 'Medium', activities: ['Basketball'], comments: 'Prefers physical activities.' },
+              lastUpdated: new Date().toISOString()
+            },
+            {
+              id: 'prog_teacher_3',
+              studentId: 'stu_3',
+              studentName: 'Nomsa Mamba',
+              grade: 'Form 5',
+              class: 'Science',
+              institutionId: user.institutionId || 'inst_1',
+              teacherId: user.id,
+              parentId: 'parent_3',
+              term: 'Term 1',
+              year: 2026,
+              academics: [
+                { subject: 'Physics', grade: 'A+', comments: 'Brilliant grasp of theories.' },
+                { subject: 'Chemistry', grade: 'A', comments: 'Meticulous in lab work.' }
+              ],
+              behavior: { rating: 'Excellent', comments: 'A role model student.' },
+              participation: { rating: 'High', activities: ['Science Club'], comments: 'Leads effectively.' },
+              lastUpdated: new Date().toISOString()
+            },
+            {
+              id: 'prog_teacher_4',
+              studentId: 'stu_4',
+              studentName: 'Lwandle Ndlovu',
+              grade: 'Form 4',
+              class: 'Pure',
+              institutionId: user.institutionId || 'inst_1',
+              teacherId: user.id,
+              parentId: 'parent_4',
+              term: 'Term 1',
+              year: 2026,
+              academics: [
+                { subject: 'English', grade: 'B', comments: 'Creative writer.' },
+                { subject: 'SiSwati', grade: 'A', comments: 'Excellent linguistic ability.' }
+              ],
+              behavior: { rating: 'Needs Improvement', comments: 'Frequently distracted.' },
+              participation: { rating: 'Low', activities: ['Drama'], comments: 'Passive during rehearsals.' },
+              lastUpdated: new Date().toISOString()
+            },
+            {
+              id: 'prog_teacher_5',
+              studentId: 'stu_5',
+              studentName: 'Ncamiso Zwane',
+              grade: 'Form 5',
+              class: 'Science',
+              institutionId: user.institutionId || 'inst_1',
+              teacherId: user.id,
+              parentId: 'parent_5',
+              term: 'Term 1',
+              year: 2026,
+              academics: [
+                { subject: 'History', grade: 'B+', comments: 'Good analytical skills.' },
+                { subject: 'Geography', grade: 'B', comments: 'Improved map reading.' }
+              ],
+              behavior: { rating: 'Good', comments: 'Polite and helpful.' },
+              participation: { rating: 'Medium', activities: ['Eco Club'], comments: 'Participates well.' },
               lastUpdated: new Date().toISOString()
             }
           ];
-          setProgressData(mockData);
+          const combined = [...data, ...mockData.filter(m => !data.find(d => d.studentName === m.studentName))];
+          setProgressData(combined);
         } else {
           setProgressData(data);
         }
@@ -246,7 +322,89 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({ user }) => {
     };
 
     fetchProgress();
+    fetchBehaviorLogs();
+    fetchHomework();
   }, [user.id, user.institutionId]);
+
+  const fetchBehaviorLogs = async () => {
+    try {
+      const q = query(collection(db, 'behavior_logs'), where('teacherId', '==', user.id));
+      const snapshot = await getDocsWithRetry(q);
+      const logs = snapshot.docs.map(doc => doc.data() as BehaviorLog);
+      setBehaviorLogs(logs.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()));
+    } catch (error) {
+      console.warn("Failed to fetch behavior logs (likely offline)");
+    }
+  };
+
+  const fetchHomework = async () => {
+    try {
+      const q = query(collection(db, 'homework'), where('teacherId', '==', user.id));
+      const snapshot = await getDocsWithRetry(q);
+      setHomeworkTasks(snapshot.docs.map(doc => doc.data() as HomeworkTask));
+    } catch (error) {
+      console.warn("Failed to fetch homework (likely offline)");
+    }
+  };
+
+  const handleSaveLog = async (type: 'merit' | 'demerit' | 'participation' | 'warning') => {
+    if (!selectedStudentForLog || !logDescription.trim()) return;
+    
+    setSaveStatus('saving');
+    try {
+      const student = attendanceList.find(s => s.id === selectedStudentForLog);
+      const id = `log_${Date.now()}`;
+      const newLog: BehaviorLog = {
+        id,
+        studentId: selectedStudentForLog,
+        studentName: student?.name || 'Unknown Student',
+        teacherId: user.id,
+        teacherName: user.name,
+        type,
+        points: type === 'merit' ? 10 : type === 'demerit' ? -10 : 0,
+        description: logDescription,
+        createdAt: new Date().toISOString()
+      };
+      
+      await setDoc(doc(db, 'behavior_logs', id), newLog);
+      setBehaviorLogs([newLog, ...behaviorLogs]);
+      setLogDescription('');
+      setSaveStatus('success');
+      setTimeout(() => setSaveStatus('idle'), 3000);
+      triggerAlert('merit', `${type.charAt(0).toUpperCase() + type.slice(1)} logged successfully!`);
+    } catch (error) {
+      setSaveStatus('error');
+      handleFirestoreError(error, OperationType.CREATE, 'behavior_logs');
+    }
+  };
+
+  const handleSaveHomework = async () => {
+    if (!newHomework.title || !newHomework.subject) return;
+    
+    setSaveStatus('saving');
+    try {
+      const id = `hw_${Date.now()}`;
+      const task: HomeworkTask = {
+        ...newHomework,
+        id,
+        teacherId: user.id,
+        teacherName: user.name,
+        institutionId: user.institutionId || 'inst_1',
+        createdAt: new Date().toISOString()
+      } as HomeworkTask;
+      
+      await setDoc(doc(db, 'homework', id), task);
+      setHomeworkTasks([task, ...homeworkTasks]);
+      setIsCreatingHomework(false);
+      setNewHomework({ title: '', description: '', subject: '', dueDate: new Date(Date.now() + 86400000 * 2).toISOString().split('T')[0], status: 'active' });
+      setSaveStatus('success');
+      setTimeout(() => setSaveStatus('idle'), 3000);
+      triggerAlert('merit', 'Homework task created!');
+    } catch (error) {
+      setSaveStatus('error');
+      handleFirestoreError(error, OperationType.CREATE, 'homework');
+    }
+  };
 
   const handleEditClick = (progress: StudentProgress) => {
     setEditingId(progress.id);
@@ -299,9 +457,61 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({ user }) => {
     setIsCreating(true);
   };
 
-  const filteredData = progressData.filter(p => 
-    p.studentName.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredData = progressData.filter(p => {
+    const matchesSearch = p.studentName.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesGrade = selectedGrade === 'All Grades' || p.grade === selectedGrade;
+    const matchesClass = selectedClass === 'All Classes' || p.class === selectedClass;
+    return matchesSearch && matchesGrade && matchesClass;
+  }).sort((a, b) => {
+    if (sortOption === 'name_asc') return a.studentName.localeCompare(b.studentName);
+    if (sortOption === 'name_desc') return b.studentName.localeCompare(a.studentName);
+    if (sortOption === 'grade_asc') return (a.grade || '').localeCompare(b.grade || '');
+    if (sortOption === 'performance_desc') {
+      const avgA = a.academics.reduce((sum, sub) => sum + (sub.grade.charCodeAt(0) || 0), 0) / a.academics.length;
+      const avgB = b.academics.reduce((sum, sub) => sum + (sub.grade.charCodeAt(0) || 0), 0) / b.academics.length;
+      return avgA - avgB; // Lower char code (A) is better performance
+    }
+    return 0;
+  });
+
+  const uniqueGrades = ['All Grades', ...Array.from(new Set([...progressData.map(p => p.grade), ...MOCK_STUDENTS.map(s => s.grade || '')].filter(Boolean)))];
+  const uniqueClasses = ['All Classes', ...Array.from(new Set([...progressData.map(p => p.class), ...MOCK_STUDENTS.map(s => s.class || '')].filter(Boolean)))];
+
+  const filteredAttendance = attendanceList.filter(s => {
+    const matchesSearch = s.name.toLowerCase().includes(mgmtSearchTerm.toLowerCase());
+    const matchesGrade = selectedGrade === 'All Grades' || s.grade === selectedGrade;
+    const matchesClass = selectedClass === 'All Classes' || s.class === selectedClass;
+    return matchesSearch && matchesGrade && matchesClass;
+  }).sort((a, b) => {
+    if (sortOption === 'name_asc') return a.name.localeCompare(b.name);
+    if (sortOption === 'name_desc') return b.name.localeCompare(a.name);
+    if (sortOption === 'grade_asc') return (a.grade || '').localeCompare(b.grade || '');
+    return 0;
+  });
+
+
+  const filteredHomeworkTasks = homeworkTasks.filter(task => {
+    const matchesGrade = selectedGrade === 'All Grades' || task.assignedToGrade === selectedGrade;
+    const matchesSearch = task.title.toLowerCase().includes(mgmtSearchTerm.toLowerCase()) || 
+                          task.subject.toLowerCase().includes(mgmtSearchTerm.toLowerCase());
+    return matchesGrade && matchesSearch;
+  }).sort((a, b) => {
+    if (sortOption === 'name_asc') return a.title.localeCompare(b.title);
+    if (sortOption === 'name_desc') return b.title.localeCompare(a.title);
+    return new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime();
+  });
+
+  const filteredBehaviorLogs = behaviorLogs.filter(log => {
+    const matchesSearch = log.studentName.toLowerCase().includes(mgmtSearchTerm.toLowerCase());
+    const student = attendanceList.find(s => s.id === log.studentId);
+    const matchesGrade = selectedGrade === 'All Grades' || (student && student.grade === selectedGrade);
+    const matchesClass = selectedClass === 'All Classes' || (student && student.class === selectedClass);
+    return matchesSearch && matchesGrade && matchesClass;
+  }).sort((a, b) => {
+    if (sortOption === 'name_asc') return a.studentName.localeCompare(b.studentName);
+    if (sortOption === 'name_desc') return b.studentName.localeCompare(a.studentName);
+    return 0;
+  });
 
   const handleAcademicChange = (index: number, field: string, value: string) => {
     const newAcademics = [...(editForm.academics || [])];
@@ -406,15 +616,44 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({ user }) => {
           </div>
           
           {activeTab === 'classroom' && (
-            <div className="flex gap-4 w-full md:w-auto">
+            <div className="flex flex-wrap gap-4 w-full md:w-auto mt-6 md:mt-0">
                <div className="relative flex-grow md:flex-grow-0">
                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                  <input 
                   className="w-full md:w-64 bg-white border border-slate-200 rounded-2xl pl-12 pr-4 py-4 text-sm font-bold focus:ring-4 focus:ring-blue-50 focus:border-blue-200 transition-all"
-                  placeholder="Search students..."
+                  placeholder="Student name..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                  />
+               </div>
+               <div className="flex gap-2">
+                 <select 
+                    value={selectedGrade}
+                    onChange={(e) => setSelectedGrade(e.target.value)}
+                    className="bg-white border border-slate-200 text-slate-700 text-xs font-bold rounded-2xl px-4 py-4 focus:ring-4 focus:ring-blue-50 outline-none cursor-pointer"
+                  >
+                    {uniqueGrades.map(g => <option key={g} value={g}>{g}</option>)}
+                  </select>
+                  <select 
+                    value={selectedClass}
+                    onChange={(e) => setSelectedClass(e.target.value)}
+                    className="bg-white border border-slate-200 text-slate-700 text-xs font-bold rounded-2xl px-4 py-4 focus:ring-4 focus:ring-blue-50 outline-none cursor-pointer"
+                  >
+                    {uniqueClasses.map(c => <option key={c} value={c}>{c}</option>)}
+                  </select>
+                  <div className="relative">
+                    <ArrowUpDown className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                    <select 
+                      value={sortOption}
+                      onChange={(e) => setSortOption(e.target.value)}
+                      className="bg-white border border-slate-200 text-teal-700 text-xs font-black uppercase tracking-widest rounded-2xl pl-12 pr-10 py-4 focus:ring-4 focus:ring-teal-50 outline-none cursor-pointer appearance-none shadow-sm"
+                    >
+                      <option value="name_asc">Sort: A-Z</option>
+                      <option value="name_desc">Sort: Z-A</option>
+                      <option value="grade_asc">Sort: Grade</option>
+                      <option value="performance_desc">Sort: Academic Performance</option>
+                    </select>
+                  </div>
                </div>
                <button 
                 onClick={startCreate}
@@ -868,6 +1107,9 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({ user }) => {
                       <div>
                         <div className="flex items-center gap-2">
                            <h2 className="text-2xl font-black tracking-tight">{data.studentName}</h2>
+                           <span className="px-3 py-1 bg-white/20 text-white rounded-full text-[9px] font-black uppercase tracking-widest border border-white/20">
+                             {data.grade || 'No Grade'} {data.class || ''}
+                           </span>
                            {!isEditing && <span className="px-2 py-0.5 bg-emerald-100 text-emerald-700 rounded text-[8px] font-black uppercase tracking-widest">Active</span>}
                         </div>
                         <div className="flex items-center gap-4 mt-1 opacity-70">
@@ -1507,159 +1749,406 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({ user }) => {
                </div>
             </div>
           </div>
-        )}
-
-        {/* Classroom Management Tab */}
+        )}         {/* Classroom Management Tab */}
         {activeTab === 'management' && (
           <div className="animate-in fade-in duration-300">
              <div className="bg-rose-900 rounded-[40px] text-white p-10 mb-8 border border-rose-800 shadow-xl overflow-hidden relative">
                <div className="absolute top-0 right-0 w-96 h-96 bg-orange-500/20 rounded-full blur-[100px]" />
                <div className="relative z-10">
-                 <div className="flex items-center gap-3 mb-4">
-                   <CalendarCheck className="w-8 h-8 text-rose-300" />
-                   <h2 className="text-3xl font-black tracking-tight">
-                     {institutionType === InstitutionType.TERTIARY ? "Lecture Attendance & Conduct" :
-                      institutionType === InstitutionType.PRIMARY ? "Roll Call & Wellness" : 
-                      "Daily Roll Call & Ledger"}
-                   </h2>
+                 <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-8 mb-10">
+                   <div>
+                    <div className="flex items-center gap-3 mb-4">
+                      <CalendarCheck className="w-8 h-8 text-rose-300" />
+                      <h2 className="text-3xl font-black tracking-tight">
+                        Classroom Lifecycle
+                      </h2>
+                    </div>
+                    <p className="text-rose-200 font-medium leading-relaxed max-w-xl">
+                      Maintain daily records, enforce behavioral standards, and manage assigned workloads from a central hub.
+                    </p>
+                   </div>
+                   <div className="flex gap-2 bg-white/10 p-2 rounded-3xl border border-white/10 shrink-0">
+                      <button 
+                        onClick={() => setManagementSubTab('attendance')}
+                        className={`px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all ${managementSubTab === 'attendance' ? 'bg-white text-rose-900 shadow-xl' : 'text-rose-100 hover:bg-white/10'}`}
+                      >
+                        Attendance
+                      </button>
+                      <button 
+                        onClick={() => setManagementSubTab('behavior')}
+                        className={`px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all ${managementSubTab === 'behavior' ? 'bg-white text-rose-900 shadow-xl' : 'text-rose-100 hover:bg-white/10'}`}
+                      >
+                        Behavior Log
+                      </button>
+                      <button 
+                        onClick={() => setManagementSubTab('homework')}
+                        className={`px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all ${managementSubTab === 'homework' ? 'bg-white text-rose-900 shadow-xl' : 'text-rose-100 hover:bg-white/10'}`}
+                      >
+                        Homework
+                      </button>
+                   </div>
                  </div>
-                 <p className="text-rose-200 font-medium leading-relaxed max-w-xl">
-                   {institutionType === InstitutionType.TERTIARY ? "Record student attendance and issue participation alerts directly to students." :
-                    "Mark attendance and issue fast behavioral alerts that trigger immediate push notifications to connected parent guardians."}
-                 </p>
-               </div>
-             </div>
 
-              <div className="bg-white rounded-[32px] border border-slate-100 shadow-sm overflow-hidden">
-                <div className="grid grid-cols-1 md:grid-cols-12 gap-0">
-                  {/* Left Column: Ledger Form */}
-                  <div className="md:col-span-5 p-8 border-b md:border-b-0 md:border-r border-slate-100 bg-slate-50/50">
-                    <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-6">
-                      {institutionType === InstitutionType.TERTIARY ? "Module Participation & Conduct" : "Quick Issue Ledger"}
-                    </h3>
-                    <div className="space-y-4">
-                      <div>
-                        <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">
-                           {institutionType === InstitutionType.TERTIARY ? "Select Registered Student" : "Student Name"}
-                        </label>
-                        <select className="w-full bg-white border border-slate-200 rounded-xl p-4 font-bold text-slate-900 focus:ring-2 focus:ring-rose-100 outline-none">
-                          <option value="">Select Student...</option>
-                          {attendanceList.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+                 {/* Centralized Management Filters */}
+                 <div className="flex flex-wrap items-center gap-4 bg-white/5 p-6 rounded-[32px] border border-white/10 backdrop-blur-md">
+                    <div className="relative flex-grow min-w-[200px]">
+                      <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-rose-300" />
+                      <input 
+                        className="bg-white/10 border border-white/20 rounded-2xl pl-12 pr-4 py-4 text-sm font-bold text-white placeholder:text-rose-300/50 focus:ring-4 focus:ring-rose-500/20 outline-none w-full transition-all"
+                        placeholder="Filter list by student name..."
+                        value={mgmtSearchTerm}
+                        onChange={(e) => setMgmtSearchTerm(e.target.value)}
+                      />
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                       <select 
+                        value={selectedGrade}
+                        onChange={(e) => setSelectedGrade(e.target.value)}
+                        className="bg-white/10 border border-white/20 text-white text-[10px] font-black uppercase rounded-2xl px-6 py-4 focus:ring-4 focus:ring-rose-500/20 outline-none cursor-pointer appearance-none min-w-[140px]"
+                      >
+                        {uniqueGrades.map(g => <option key={g} value={g} className="text-slate-900">{g}</option>)}
+                      </select>
+                      <select 
+                        value={selectedClass}
+                        onChange={(e) => setSelectedClass(e.target.value)}
+                        className="bg-white/10 border border-white/20 text-white text-[10px] font-black uppercase rounded-2xl px-6 py-4 focus:ring-4 focus:ring-rose-500/20 outline-none cursor-pointer appearance-none min-w-[140px]"
+                      >
+                        {uniqueClasses.map(c => <option key={c} value={c} className="text-slate-900">{c}</option>)}
+                      </select>
+                      <div className="relative">
+                        <ArrowUpDown className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-rose-300" />
+                        <select 
+                          value={sortOption}
+                          onChange={(e) => setSortOption(e.target.value)}
+                          className="bg-white/10 border border-white/20 text-white text-[10px] font-black uppercase rounded-2xl pl-12 pr-10 py-4 focus:ring-4 focus:ring-rose-500/20 outline-none cursor-pointer appearance-none min-w-[140px]"
+                        >
+                          <option value="name_asc" className="text-slate-900">Sort: A-Z</option>
+                          <option value="name_desc" className="text-slate-900">Sort: Z-A</option>
+                          <option value="grade_asc" className="text-slate-900">Sort: Grade</option>
                         </select>
                       </div>
-                      <div>
-                        <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Notice Type</label>
-                        <div className="grid grid-cols-2 gap-3">
-                          <button 
-                            onClick={() => triggerAlert('merit', institutionType === InstitutionType.TERTIARY ? 'Participation Credit Logged' : 'Merit Logged & Parent Notified')} 
-                            className="p-4 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-xl font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-emerald-100 transition-colors"
-                          >
-                             <Award className="w-4 h-4" /> {institutionType === InstitutionType.TERTIARY ? "Mark Participation" : "Issue Merit"}
-                          </button>
-                          <button 
-                            onClick={() => triggerAlert('alert', institutionType === InstitutionType.TERTIARY ? 'Academic Warning Issued' : 'Discipline Alert Sent Home')} 
-                            className="p-4 bg-rose-50 text-rose-700 border border-rose-200 rounded-xl font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-rose-100 transition-colors"
-                          >
-                             <ShieldAlert className="w-4 h-4" /> {institutionType === InstitutionType.TERTIARY ? "Academic Warning" : "Log Demerit"}
-                          </button>
-                        </div>
-                      </div>
-                      <div>
-                        <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">
-                           {institutionType === InstitutionType.TERTIARY ? "Detailed Log / Misconduct Report" : "Brief Incident description"}
-                        </label>
-                        <textarea className="w-full bg-white border border-slate-200 rounded-xl p-4 font-medium text-sm resize-none h-24" placeholder="Type here..."></textarea>
+                    </div>
+                 </div>
+               </div>
+             </div>
+             {managementSubTab === 'attendance' && (
+               <div className="bg-white rounded-[32px] border border-slate-100 shadow-sm overflow-hidden">
+                 <div className="px-8 py-6 border-b border-slate-100 flex flex-col md:flex-row justify-between items-start md:items-center gap-6 bg-slate-50/50">
+                    <div>
+                      <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-1">
+                        {institutionType === InstitutionType.TERTIARY ? "Lecture Hall Attendance" : "Today's Attendance Roll Call"}
+                      </h3>
+                      <div className="flex items-center gap-4">
+                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Date: {new Date().toLocaleDateString()}</span>
+                        <span className="px-2 py-0.5 bg-rose-100 text-rose-700 rounded text-[9px] font-black uppercase tracking-widest">{filteredAttendance.length} Students Listed</span>
                       </div>
                     </div>
-                  </div>
+                    <button className="px-8 py-4 bg-rose-600 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-xl shadow-rose-200 hover:bg-rose-700 transition-all">Submit Final Roll</button>
+                 </div>
+                 <div className="divide-y divide-slate-100">
+                   {filteredAttendance.length === 0 ? (
+                      <div className="p-20 text-center">
+                         <Info className="w-12 h-12 text-slate-200 mx-auto mb-4" />
+                         <p className="text-slate-400 font-bold text-sm">No students match current filters.</p>
+                      </div>
+                   ) : filteredAttendance.map(student => (
+                     <div key={student.id} className="p-4 px-8 flex items-center justify-between hover:bg-slate-50 transition-colors">
+                       <div className="flex flex-col">
+                         <span className="font-bold text-slate-900">{student.name}</span>
+                         <div className="flex gap-3 text-[10px] font-black uppercase tracking-widest text-slate-400">
+                            <span className="text-emerald-500">{student.merits} {institutionType === InstitutionType.TERTIARY ? "Credits" : "Merits"}</span>
+                            <span className="text-rose-500">{student.demerits} {institutionType === InstitutionType.TERTIARY ? "Warnings" : "Demerits"}</span>
+                         </div>
+                       </div>
+                       <div className="flex gap-2">
+                          <button
+                            onClick={() => handleAttendanceChange(student.id, 'present')}
+                            className={`w-12 h-12 rounded-xl flex items-center justify-center transition-all ${student.status === 'present' ? 'bg-emerald-500 text-white shadow-md' : 'bg-slate-100 text-slate-400 hover:bg-emerald-50 hover:text-emerald-500'}`}
+                          >
+                             <UserCheck className="w-5 h-5" />
+                          </button>
+                          <button
+                            onClick={() => handleAttendanceChange(student.id, 'late')}
+                            className={`w-12 h-12 rounded-xl flex items-center justify-center font-black text-sm transition-all ${student.status === 'late' ? 'bg-amber-500 text-white shadow-md' : 'bg-slate-100 text-slate-400 hover:bg-amber-50 hover:text-amber-500'}`}
+                          >
+                             L
+                          </button>
+                          <button
+                            onClick={() => {
+                              handleAttendanceChange(student.id, 'absent');
+                              if (student.status !== 'absent' && institutionType !== InstitutionType.TERTIARY) {
+                                triggerAlert('alert', `Absence Notice triggered for ${student.name}'s parents`);
+                              }
+                            }}
+                            className={`w-12 h-12 rounded-xl flex items-center justify-center transition-all ${student.status === 'absent' ? 'bg-rose-500 text-white shadow-md' : 'bg-slate-100 text-slate-400 hover:bg-rose-50 hover:text-rose-500'}`}
+                          >
+                             <UserX className="w-5 h-5" />
+                          </button>
+                       </div>
+                     </div>
+                   ))}
+                 </div>
+               </div>
+             )}
 
-                  {/* Right Column: Attendance */}
-                  <div className="md:col-span-7 pb-4">
-                    <div className="px-8 py-6 border-b border-slate-100 flex justify-between items-center">
-                       <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest">
-                          {institutionType === InstitutionType.TERTIARY ? "Lecture Hall Attendance" : "Today's Attendance"}
-                       </h3>
-                       {institutionType === InstitutionType.TERTIARY && (
-                         <span className="text-[10px] font-black bg-slate-900 text-white px-3 py-1 rounded-full uppercase tracking-tighter">Module CSC301</span>
-                       )}
-                    </div>
-                    <div className="divide-y divide-slate-100">
-                      {attendanceList.map(student => (
-                        <div key={student.id} className="p-4 px-8 flex items-center justify-between hover:bg-slate-50 transition-colors">
-                          <div className="flex flex-col">
-                            <span className="font-bold text-slate-900">{student.name}</span>
-                            <div className="flex gap-3 text-[10px] font-black uppercase tracking-widest text-slate-400">
-                               <span className="text-emerald-500">{student.merits} {institutionType === InstitutionType.TERTIARY ? "Credits" : "Merits"}</span>
-                               <span className="text-rose-500">{student.demerits} {institutionType === InstitutionType.TERTIARY ? "Warnings" : "Demerits"}</span>
+             {managementSubTab === 'behavior' && (
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                   <div className="lg:col-span-5 space-y-6">
+                      <div className="bg-white rounded-[32px] border border-slate-100 p-8 shadow-sm">
+                        <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-6">Create Behavioral Entry</h3>
+                        <div className="space-y-4">
+                          <div>
+                            <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Target Student</label>
+                            <select 
+                              className="w-full bg-slate-50 border border-slate-200 rounded-xl p-4 font-bold text-slate-900 focus:ring-2 focus:ring-rose-100 outline-none"
+                              value={selectedStudentForLog}
+                              onChange={(e) => setSelectedStudentForLog(e.target.value)}
+                            >
+                              <option value="">Select Student...</option>
+                              {attendanceList.filter(s => {
+                                const matchesGrade = selectedGrade === 'All Grades' || s.grade === selectedGrade;
+                                const matchesClass = selectedClass === 'All Classes' || s.class === selectedClass;
+                                const matchesSearch = s.name.toLowerCase().includes(mgmtSearchTerm.toLowerCase());
+                                return matchesGrade && matchesClass && matchesSearch;
+                              }).map(s => <option key={s.id} value={s.id}>{s.name} ({s.grade} {s.class})</option>)}
+                            </select>
+                          </div>
+                          <div>
+                            <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Notice Type</label>
+                            <div className="grid grid-cols-2 gap-3 mb-4">
+                              <button 
+                                onClick={() => handleSaveLog('merit')}
+                                disabled={!selectedStudentForLog || (!logDescription.trim() && !logDescription) || saveStatus === 'saving'}
+                                className="p-5 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-2xl font-black text-[10px] uppercase tracking-widest flex flex-col items-center gap-3 hover:bg-emerald-100 transition-all disabled:opacity-50"
+                              >
+                                 <Award className="w-6 h-6" /> Issue Merit
+                              </button>
+                              <button 
+                                onClick={() => handleSaveLog('demerit')}
+                                disabled={!selectedStudentForLog || (!logDescription.trim() && !logDescription) || saveStatus === 'saving'}
+                                className="p-5 bg-rose-50 text-rose-700 border border-rose-200 rounded-2xl font-black text-[10px] uppercase tracking-widest flex flex-col items-center gap-3 hover:bg-rose-100 transition-all disabled:opacity-50"
+                              >
+                                 <ShieldAlert className="w-6 h-6" /> Log Demerit
+                              </button>
+                            </div>
+
+                            <div className="mb-4">
+                               <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Quick Templates</label>
+                               <div className="flex flex-wrap gap-2">
+                                  {['Excellent Participation', 'Homework Not Submitted', 'Improved Performance', 'Disruptive Behavior', 'Supporting Peers', 'Late for Class'].map(phrase => (
+                                    <button 
+                                      key={phrase}
+                                      onClick={() => setLogDescription(phrase)}
+                                      className="px-3 py-1.5 bg-slate-100 text-slate-600 rounded-lg text-[9px] font-bold uppercase tracking-wider hover:bg-slate-900 hover:text-white transition-all"
+                                    >
+                                      {phrase}
+                                    </button>
+                                  ))}
+                               </div>
                             </div>
                           </div>
-                          <div className="flex gap-2">
-                             <button
-                               onClick={() => handleAttendanceChange(student.id, 'present')}
-                               className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all ${student.status === 'present' ? 'bg-emerald-500 text-white shadow-md' : 'bg-slate-100 text-slate-400 hover:bg-emerald-50 hover:text-emerald-500'}`}
-                             >
-                                <UserCheck className="w-4 h-4" />
-                             </button>
-                             <button
-                               onClick={() => handleAttendanceChange(student.id, 'late')}
-                               className={`w-10 h-10 rounded-xl flex items-center justify-center font-black text-sm transition-all ${student.status === 'late' ? 'bg-amber-500 text-white shadow-md' : 'bg-slate-100 text-slate-400 hover:bg-amber-50 hover:text-amber-500'}`}
-                             >
-                                L
-                             </button>
-                             <button
-                               onClick={() => {
-                                 handleAttendanceChange(student.id, 'absent');
-                                 if (student.status !== 'absent' && institutionType !== InstitutionType.TERTIARY) {
-                                   triggerAlert('alert', `Absence Notice triggered for ${student.name}'s parents`);
-                                 }
-                               }}
-                               className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all ${student.status === 'absent' ? 'bg-rose-500 text-white shadow-md' : 'bg-slate-100 text-slate-400 hover:bg-rose-50 hover:text-rose-500'}`}
-                             >
-                                <UserX className="w-4 h-4" />
-                             </button>
+                          <div>
+                            <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Detailed Context (Optional)</label>
+                            <textarea 
+                              className="w-full bg-slate-50 border border-slate-200 rounded-2xl p-4 font-medium text-sm resize-none h-32 focus:bg-white transition-all outline-none" 
+                              placeholder="Describe the achievement or incident..."
+                              value={logDescription}
+                              onChange={(e) => setLogDescription(e.target.value)}
+                            ></textarea>
                           </div>
+                          <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest italic text-center">
+                            * Parent/Guardian will receive an encrypted notification upon logging.
+                          </p>
                         </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-             </div>
-
-             {institutionType === InstitutionType.TERTIARY && (
-                <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-8">
-                   <div className="bg-white rounded-[40px] p-8 border border-slate-100 shadow-sm">
-                      <h3 className="text-xl font-black text-slate-900 mb-6 flex items-center gap-3">
-                         <GraduationCap className="w-6 h-6 text-indigo-600" /> Thesis & Dissertation Tracking
-                      </h3>
-                      <div className="space-y-4">
-                         {[
-                           { name: 'Khosi Mavuso', topic: 'Renewable Power in SADC', progress: 75 },
-                           { name: 'Sabelo Dlamini', topic: 'Impact of AI on Law', progress: 40 }
-                         ].map(stu => (
-                           <div key={stu.name} className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
-                             <div className="flex justify-between items-start mb-2">
-                                <h4 className="font-bold text-sm text-slate-900">{stu.name}</h4>
-                                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{stu.progress}%</span>
-                             </div>
-                             <p className="text-[10px] text-slate-500 mb-3 uppercase font-bold tracking-widest">{stu.topic}</p>
-                             <div className="h-1.5 w-full bg-slate-200 rounded-full overflow-hidden">
-                                <div className="h-full bg-indigo-500 rounded-full" style={{ width: `${stu.progress}%` }} />
-                             </div>
-                           </div>
-                         ))}
                       </div>
                    </div>
 
-                   <div className="bg-slate-900 rounded-[40px] p-8 text-white">
-                      <h3 className="text-xl font-black mb-6">Exam Registry Portal</h3>
-                      <div className="space-y-3">
-                         {['Submit Final Marks', 'Verify Module Registration', 'Request Invigilation Schedule', 'Archive Paper Drafts'].map(link => (
-                           <button key={link} className="w-full text-left p-4 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-all flex justify-between items-center group">
-                              <span className="text-sm font-bold text-slate-300 group-hover:text-white">{link}</span>
-                              <ChevronRight className="w-4 h-4 text-slate-500 group-hover:translate-x-1 transition-all" />
-                           </button>
-                         ))}
+                   <div className="lg:col-span-7">
+                      <div className="bg-white rounded-[32px] border border-slate-100 shadow-sm overflow-hidden flex flex-col h-full">
+                         <div className="px-8 py-6 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
+                            <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest">Recent Behavioral Audit</h3>
+                            <History className="w-4 h-4 text-slate-300" />
+                         </div>
+                         <div className="divide-y divide-slate-100 overflow-y-auto max-h-[600px]">
+                            {filteredBehaviorLogs.map(log => (
+                              <div key={log.id} className="p-6 px-8 hover:bg-slate-50 transition-colors">
+                                 <div className="flex justify-between items-start mb-2">
+                                    <div className="flex items-center gap-3">
+                                       <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
+                                          log.type === 'merit' ? 'bg-emerald-100 text-emerald-600' : 
+                                          log.type === 'demerit' ? 'bg-rose-100 text-rose-600' : 
+                                          log.type === 'warning' ? 'bg-amber-100 text-amber-600' : 'bg-blue-100 text-blue-600'
+                                       }`}>
+                                          {log.type === 'merit' ? <Plus className="w-4 h-4" /> : <ShieldAlert className="w-4 h-4" />}
+                                       </div>
+                                       <div>
+                                          <div className="flex items-center gap-2">
+                                             <p className="font-bold text-slate-900">{log.studentName}</p>
+                                             <span className="text-[8px] font-black uppercase text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded">
+                                                {attendanceList.find(s => s.id === log.studentId)?.grade} {attendanceList.find(s => s.id === log.studentId)?.class}
+                                             </span>
+                                          </div>
+                                          <p className="text-[10px] font-black uppercase text-slate-400">{log.type}</p>
+                                       </div>
+                                    </div>
+                                    <span className="text-[10px] font-bold text-slate-400">{new Date(log.createdAt).toLocaleDateString()}</span>
+                                 </div>
+                                 <p className="text-sm font-medium text-slate-600 pl-11">{log.description}</p>
+                              </div>
+                            ))}
+                            {behaviorLogs.length === 0 && (
+                               <div className="py-20 text-center">
+                                  <History className="w-12 h-12 text-slate-100 mx-auto mb-4" />
+                                  <p className="text-slate-400 font-bold text-xs uppercase tracking-widest">No entries logged yet</p>
+                               </div>
+                            )}
+                         </div>
                       </div>
+                   </div>
+                </div>
+             )}
+
+             {managementSubTab === 'homework' && (
+                <div className="space-y-8">
+                   <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+                      <div>
+                        <h3 className="text-2xl font-black text-slate-900 tracking-tight">Class Assignments & Tasks</h3>
+                        <p className="text-slate-500 font-medium text-sm">Published homework will be visible to all students in the assigned class.</p>
+                      </div>
+                      <button 
+                        onClick={() => setIsCreatingHomework(true)}
+                        className="w-full md:w-auto px-8 py-4 bg-slate-900 text-white rounded-2xl font-black uppercase tracking-widest text-[10px] shadow-xl flex items-center justify-center gap-3 hover:bg-blue-600 transition-all"
+                      >
+                         <Plus className="w-4 h-4" /> Create Assignment
+                      </button>
+                   </div>
+
+                   {isCreatingHomework && (
+                      <motion.div 
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="bg-white rounded-[40px] border-4 border-dashed border-slate-200 p-10"
+                      >
+                         <div className="flex justify-between items-center mb-8">
+                            <div>
+                               <h4 className="text-xl font-black text-slate-900">New Homework Specification</h4>
+                               <p className="text-xs text-slate-400 font-bold uppercase tracking-widest mt-1">This task will reflect for the entire class registry.</p>
+                            </div>
+                            <button onClick={() => setIsCreatingHomework(false)} className="text-slate-400"><X className="w-6 h-6" /></button>
+                         </div>
+                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div className="space-y-4">
+                               <div>
+                                  <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Subject</label>
+                                  <input 
+                                    className="w-full bg-slate-50 border border-slate-200 rounded-xl p-4 font-bold"
+                                    placeholder="e.g. Mathematics"
+                                    value={newHomework.subject}
+                                    onChange={(e) => setNewHomework({...newHomework, subject: e.target.value})}
+                                  />
+                               </div>
+                               <div>
+                                  <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Assign To Class / Grade</label>
+                                  <select 
+                                    className="w-full bg-slate-50 border border-slate-200 rounded-xl p-4 font-bold text-slate-900 focus:ring-2 focus:ring-rose-100 outline-none"
+                                    value={newHomework.assignedToGrade || ''}
+                                    onChange={(e) => setNewHomework({...newHomework, assignedToGrade: e.target.value})}
+                                  >
+                                    <option value="">Select Target Class...</option>
+                                    <option value="Form 1A">Form 1A</option>
+                                    <option value="Form 2B">Form 2B</option>
+                                    <option value="Form 3 Science">Form 3 Science</option>
+                                    <option value="Form 4 Pure">Form 4 Pure</option>
+                                    <option value="Form 5 Commercial">Form 5 Commercial</option>
+                                    {institutionType === InstitutionType.TERTIARY && (
+                                       <>
+                                          <option value="CSC301 - Year 3">CSC301 - Year 3</option>
+                                          <option value="MAT101 - Year 1">MAT101 - Year 1</option>
+                                       </>
+                                    )}
+                                  </select>
+                               </div>
+                               <div>
+                                  <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Task Title</label>
+                                  <input 
+                                    className="w-full bg-slate-50 border border-slate-200 rounded-xl p-4 font-bold"
+                                    placeholder="e.g. Quadratic Equations Exercises"
+                                    value={newHomework.title}
+                                    onChange={(e) => setNewHomework({...newHomework, title: e.target.value})}
+                                  />
+                               </div>
+                               <div>
+                                  <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Due Date</label>
+                                  <input 
+                                    type="date"
+                                    className="w-full bg-slate-50 border border-slate-200 rounded-xl p-4 font-bold"
+                                    value={newHomework.dueDate}
+                                    onChange={(e) => setNewHomework({...newHomework, dueDate: e.target.value})}
+                                  />
+                               </div>
+                            </div>
+                            <div>
+                               <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Instructions & References</label>
+                               <textarea 
+                                 className="w-full bg-slate-50 border border-slate-200 rounded-2xl p-6 font-medium text-slate-600 h-full min-h-[200px] resize-none focus:bg-white transition-all outline-none"
+                                 placeholder="Detail the pages, question numbers or specific requirements..."
+                                 value={newHomework.description}
+                                 onChange={(e) => setNewHomework({...newHomework, description: e.target.value})}
+                               ></textarea>
+                            </div>
+                         </div>
+                         <div className="flex justify-end gap-4 mt-10 pt-10 border-t border-slate-100">
+                            <button onClick={() => setIsCreatingHomework(false)} className="px-8 py-4 bg-slate-100 text-slate-400 rounded-2xl font-black uppercase tracking-widest text-[10px]">Back</button>
+                            <button 
+                              onClick={handleSaveHomework}
+                              disabled={!newHomework.title || !newHomework.subject || !newHomework.assignedToGrade || saveStatus === 'saving'}
+                              className="px-12 py-4 bg-rose-600 text-white rounded-2xl font-black uppercase tracking-widest text-[10px] shadow-xl shadow-rose-200"
+                            >
+                               {saveStatus === 'saving' ? 'Publishing...' : 'Publish to Entire Class'}
+                            </button>
+                         </div>
+                      </motion.div>
+                   )}
+
+                   <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                      {filteredHomeworkTasks.map(task => (
+                        <div key={task.id} className="bg-white rounded-[32px] border border-slate-100 p-8 hover:shadow-xl hover:border-rose-200 transition-all flex flex-col group">
+                           <div className="flex justify-between items-start mb-6">
+                              <div className="w-12 h-12 bg-rose-50 text-rose-600 rounded-2xl flex items-center justify-center shadow-inner group-hover:bg-rose-600 group-hover:text-white transition-all">
+                                 <ClipboardCheck className="w-6 h-6" />
+                              </div>
+                              <span className={`px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest ${
+                                 task.status === 'active' ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' : 'bg-slate-50 text-slate-400 border border-slate-200'
+                              }`}>
+                                 {task.status}
+                              </span>
+                           </div>
+                           <div className="flex items-center gap-2 mb-1">
+                              <h4 className="text-[10px] font-black text-rose-600 uppercase tracking-widest">{task.subject}</h4>
+                              <span className="text-[10px] text-slate-300">•</span>
+                              <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{task.assignedToGrade || 'General Class'}</span>
+                           </div>
+                           <h3 className="text-xl font-black text-slate-900 leading-tight mb-4">{task.title}</h3>
+                           <p className="text-sm font-medium text-slate-500 mb-8 line-clamp-3 leading-relaxed">{task.description}</p>
+                           
+                           <div className="mt-auto pt-6 border-t border-slate-100 flex justify-between items-center">
+                              <div>
+                                 <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Submission Deadline</p>
+                                 <p className="text-sm font-black text-slate-900">{new Date(task.dueDate).toLocaleDateString()}</p>
+                              </div>
+                              <button className="p-3 bg-slate-50 text-slate-400 rounded-xl hover:bg-rose-600 hover:text-white transition-all">
+                                 <Edit2 className="w-4 h-4" />
+                              </button>
+                           </div>
+                        </div>
+                      ))}
+                      {filteredHomeworkTasks.length === 0 && !isCreatingHomework && (
+                         <div className="col-span-full py-20 bg-slate-50 rounded-[40px] border-2 border-dashed border-slate-200 text-center">
+                            <ClipboardList className="w-12 h-12 text-slate-200 mx-auto mb-4" />
+                            <p className="text-slate-400 font-bold text-xs uppercase tracking-widest">No active homework tasks listed</p>
+                            <button onClick={() => setIsCreatingHomework(true)} className="mt-4 text-rose-600 font-black text-[10px] uppercase hover:underline underline-offset-8">+ Create your first task</button>
+                         </div>
+                      )}
                    </div>
                 </div>
              )}

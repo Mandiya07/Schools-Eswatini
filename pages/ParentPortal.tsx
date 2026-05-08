@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { User, UserRole, StudentProgress } from '../types';
-import { db, collection, query, where, getDocs, setDoc, doc, getDoc, OperationType, handleFirestoreError } from '../src/lib/firebase';
+import { db, collection, query, where, getDocs, setDoc, doc, getDoc, OperationType, handleFirestoreError, getDocWithRetry, getDocsWithRetry } from '../src/lib/firebase';
 import { BookOpen, Activity, Users, Save, Edit2, CheckCircle, AlertCircle, Bot, Sparkles, Loader2, Wallet, CreditCard, Receipt, GraduationCap, Building, ChevronRight, FileText, Download, ShieldCheck, BusFront, MapPin, Vote, FileSignature, Clock, ClipboardCheck, ThumbsUp, XCircle, Upload } from 'lucide-react';
 import { GoogleGenAI } from "@google/genai";
 
@@ -107,7 +107,7 @@ const ParentPortal: React.FC<ParentPortalProps> = ({ user }) => {
           ? query(collection(db, 'student_progress'), where('teacherId', '==', user.id))
           : query(collection(db, 'student_progress'), where('parentId', '==', user.id));
         
-        const snapshot = await getDocs(q);
+        const snapshot = await getDocsWithRetry(q);
         const data = snapshot.docs.map(doc => doc.data() as StudentProgress);
         let finalData = data;
         
@@ -147,12 +147,12 @@ const ParentPortal: React.FC<ParentPortalProps> = ({ user }) => {
 
         if (finalData.length > 0 && finalData[0].institutionId) {
           try {
-             const docSnap = await getDoc(doc(db, 'institutions', finalData[0].institutionId));
-             if (docSnap.exists() && docSnap.data().type?.length > 0) {
+             const docSnap = await getDocWithRetry(doc(db, 'institutions', finalData[0].institutionId));
+             if (docSnap && docSnap.exists() && docSnap.data().type?.length > 0) {
                setInstitutionType(docSnap.data().type[0]);
              }
           } catch(err) {
-             // fallback mapping or ignore
+             console.warn("Failed to fetch institution type for parent portal (likely offline)");
           }
         }
 
@@ -236,7 +236,7 @@ const ParentPortal: React.FC<ParentPortalProps> = ({ user }) => {
     try {
       // In a real app, query 'students' collection. 
       // For this prototype, we check all institutions' metadata.students
-      const instSnapshot = await getDocs(collection(db, 'institutions'));
+      const instSnapshot = await getDocsWithRetry(collection(db, 'institutions'));
       let foundStudent = null;
       let foundInstId = '';
 

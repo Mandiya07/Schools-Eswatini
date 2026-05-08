@@ -6,7 +6,7 @@ import {
 import { 
   Users, BookOpen, AlertTriangle, TrendingUp, FileText, 
   Plus, Search, Filter, ShieldCheck, Globe, Download, 
-  Calendar, ChevronRight, Info, AlertCircle, Bell, Loader2, Send, CheckCircle2
+  Calendar, ChevronRight, Info, AlertCircle, Bell, Loader2, Send, CheckCircle2, Leaf
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { PolicyAnnouncement, Region, User, Institution, UserRole } from '../types';
@@ -306,8 +306,8 @@ const MinistryPortal: React.FC<MinistryPortalProps> = ({ user, institutions }) =
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 {[
                   { label: 'Active Learners', value: '42,500', sub: 'Across 4 regions', icon: Users, color: 'text-blue-600', bg: 'bg-blue-50' },
-                  { label: 'Teaching Force', value: '3,842', sub: '92% TSC Registered', icon: ShieldCheck, color: 'text-emerald-600', bg: 'bg-emerald-50' },
-                  { label: 'Y/Y Pass Increase', value: '+14.2%', sub: 'SGCSE performance', icon: TrendingUp, color: 'text-amber-600', bg: 'bg-amber-50' },
+                  { label: 'Paperless Docs', value: '45.2k', sub: 'Digital transformation', icon: Leaf, color: 'text-emerald-600', bg: 'bg-emerald-50' },
+                  { label: 'Teaching Force', value: '3,842', sub: '92% TSC Registered', icon: ShieldCheck, color: 'text-indigo-600', bg: 'bg-indigo-50' },
                   { label: 'Critical Alerts', value: '28', sub: 'Requiring attention', icon: AlertCircle, color: 'text-rose-600', bg: 'bg-rose-50' },
                 ].map((kpi, i) => (
                   <div key={i} className="bg-white p-8 rounded-[40px] border border-slate-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all group">

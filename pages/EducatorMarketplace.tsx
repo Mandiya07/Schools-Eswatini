@@ -180,7 +180,7 @@ const EducatorMarketplace: React.FC = () => {
            <div className="absolute -top-32 -left-32 w-96 h-96 bg-amber-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20" />
            <div className="relative z-10 max-w-2xl space-y-6">
               <h2 className="text-4xl md:text-5xl font-black tracking-tight mb-4">Are you a top educator in Eswatini?</h2>
-              <p className="text-lg text-slate-400">Monetize your hard work. Upload your original study materials, set your price, and reach thousands of students nationwide. You keep 80% of every sale.</p>
+              <p className="text-lg text-slate-400">Monetize your expertise. Choose a small monthly subscription to list as a professional, or leverage our high-traffic platform with a commission-based model. You keep up to 90% of your earnings.</p>
               <div className="flex items-center gap-6 pt-4">
                  <div className="flex items-center gap-2">
                    <TrendingUp className="w-5 h-5 text-amber-400" />

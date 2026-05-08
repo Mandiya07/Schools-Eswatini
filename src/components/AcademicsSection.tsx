@@ -18,7 +18,9 @@ import {
   Award,
   Star,
   Search,
-  CheckCircle2
+  CheckCircle2,
+  Rocket,
+  ArrowRight
 } from 'lucide-react';
 import { Institution, InstitutionType } from '../../types';
 
@@ -29,7 +31,7 @@ interface AcademicsSectionProps {
 }
 
 const AcademicsSection: React.FC<AcademicsSectionProps> = ({ academics, primaryColor, institutionType }) => {
-  const [activeTab, setActiveTab] = useState<'overview' | 'staff' | 'departments' | 'performance' | 'faculty'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'staff' | 'departments' | 'performance' | 'faculty' | 'elearning'>('overview');
   const [selectedDept, setSelectedDept] = useState<number | null>(null);
   const [selectedProgram, setSelectedProgram] = useState<string | null>(null);
 
@@ -54,7 +56,8 @@ const AcademicsSection: React.FC<AcademicsSectionProps> = ({ academics, primaryC
     { id: 'departments', label: `${getTabLabel('departments', 'Departments')} & Programs`, icon: <GraduationCap className="w-4 h-4" /> },
     { id: 'staff', label: `${getTabLabel('staff', 'Staff')} Profiles`, icon: <Users className="w-4 h-4" /> },
     { id: 'faculty', label: getTabLabel('faculty', 'Faculty'), icon: <Users className="w-4 h-4" /> },
-    { id: 'performance', label: 'Performance & Tools', icon: <Award className="w-4 h-4" /> },
+    { id: 'performance', label: 'Performance & Facilities', icon: <Award className="w-4 h-4" /> },
+    ...(academics.elearning?.enabled ? [{ id: 'elearning', label: 'E-Learning', icon: <Monitor className="w-4 h-4" /> } as const] : []),
   ] as const;
 
   return (
@@ -98,6 +101,31 @@ const AcademicsSection: React.FC<AcademicsSectionProps> = ({ academics, primaryC
                   <h3 className="text-6xl md:text-8xl font-black text-slate-900 tracking-tighter leading-[0.9]">
                     {academics.overview.headline}
                   </h3>
+                  {academics.studentPortal?.enabled && academics.studentPortal.url && (
+                    <motion.div 
+                      initial={{ opacity: 0, scale: 0.9 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      className="inline-block"
+                    >
+                      <a 
+                        href={academics.studentPortal.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="group relative inline-flex items-center gap-4 px-10 py-6 bg-slate-900 text-white rounded-[40px] font-black uppercase tracking-widest text-xs transition-all hover:bg-blue-600 hover:scale-105 shadow-2xl shadow-slate-200"
+                      >
+                        <div className="p-2 bg-white/10 rounded-xl group-hover:bg-white group-hover:text-blue-600 transition-colors">
+                          <Rocket className="w-5 h-5" />
+                        </div>
+                        <div className="text-left">
+                          <p className="text-[10px] text-slate-400 group-hover:text-white/80 transition-colors">Digital Campus</p>
+                          <p className="text-sm">Student Portal</p>
+                        </div>
+                        <div className="ml-4 w-10 h-10 rounded-full border border-white/20 flex items-center justify-center group-hover:border-white transition-colors">
+                          <ArrowRight className="w-4 h-4" />
+                        </div>
+                      </a>
+                    </motion.div>
+                  )}
                   <p className="text-2xl text-slate-500 font-medium leading-relaxed">
                     {academics.overview.introduction}
                   </p>
@@ -324,11 +352,18 @@ const AcademicsSection: React.FC<AcademicsSectionProps> = ({ academics, primaryC
                                     )}
                                   </div>
                                 </div>
-                                {prog.syllabusUrl && (
-                                  <a href={prog.syllabusUrl} target="_blank" rel="noreferrer" download className="w-full py-4 bg-blue-600 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-slate-900 transition-all">
-                                    <Download className="w-4 h-4" /> Download Syllabus
-                                  </a>
-                                )}
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                  {prog.syllabusUrl && (
+                                    <a href={prog.syllabusUrl} target="_blank" rel="noreferrer" download className="w-full py-4 bg-blue-600 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-slate-900 transition-all">
+                                      <Download className="w-4 h-4" /> Download Syllabus
+                                    </a>
+                                  )}
+                                  {prog.courseOutlineUrl && (
+                                    <a href={prog.courseOutlineUrl} target="_blank" rel="noreferrer" download className="w-full py-4 bg-slate-800 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-blue-600 transition-all">
+                                      <Download className="w-4 h-4" /> Course Outline
+                                    </a>
+                                  )}
+                                </div>
                               </div>
                             </motion.div>
                           )}
@@ -353,7 +388,7 @@ const AcademicsSection: React.FC<AcademicsSectionProps> = ({ academics, primaryC
               </div>
 
               <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
-                <div className="lg:col-span-5">
+                <div className="lg:col-span-5 space-y-8">
                   <div className="p-12 bg-white border border-slate-100 rounded-[64px] shadow-sm space-y-10 sticky top-48">
                     <div className="flex items-center gap-6">
                       <div className="w-20 h-20 bg-slate-900 rounded-[32px] flex items-center justify-center text-3xl shadow-xl shadow-slate-200">👨‍🏫</div>
@@ -362,6 +397,7 @@ const AcademicsSection: React.FC<AcademicsSectionProps> = ({ academics, primaryC
                         <h4 className="text-3xl font-black text-slate-900 tracking-tight">{academics.staff.head.name}</h4>
                       </div>
                     </div>
+                    
                     <div className="space-y-6">
                       <div className="p-8 bg-slate-50 rounded-[32px] border border-slate-100 shadow-inner">
                         <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Qualifications</p>
@@ -372,6 +408,27 @@ const AcademicsSection: React.FC<AcademicsSectionProps> = ({ academics, primaryC
                         <p className="text-lg font-bold text-slate-800">{academics.staff.head.experience}</p>
                       </div>
                     </div>
+
+                    {academics.staff.head.professionalBackground && (
+                      <div className="space-y-3 px-4">
+                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Professional Background</p>
+                        <p className="text-sm font-medium text-slate-600 leading-relaxed italic line-clamp-6">
+                          {academics.staff.head.professionalBackground}
+                        </p>
+                      </div>
+                    )}
+
+                    {academics.staff.head.messageFromPrincipal && (
+                      <div className="p-10 bg-blue-600 rounded-[48px] text-white shadow-2xl shadow-blue-100 relative overflow-hidden group">
+                        <div className="relative z-10">
+                          <p className="text-[10px] font-black uppercase tracking-[0.3em] text-blue-200 mb-4">Message from the Principal</p>
+                          <p className="text-lg font-medium leading-relaxed italic">
+                            "{academics.staff.head.messageFromPrincipal}"
+                          </p>
+                        </div>
+                        <div className="absolute -bottom-10 -right-10 w-40 h-40 bg-white/10 rounded-full blur-3xl group-hover:scale-150 transition-transform duration-1000" />
+                      </div>
+                    )}
                   </div>
                 </div>
 
@@ -457,6 +514,60 @@ const AcademicsSection: React.FC<AcademicsSectionProps> = ({ academics, primaryC
             </section>
           )}
 
+          {activeTab === 'elearning' && academics.elearning?.enabled && (
+             <section className="space-y-20 animate-in fade-in transition-all duration-700">
+               <div className="text-center space-y-6 max-w-4xl mx-auto">
+                 <div className="inline-flex items-center gap-3 px-6 py-2 bg-emerald-50 text-emerald-600 rounded-full border border-emerald-100 shadow-sm">
+                   <Monitor className="w-4 h-4" />
+                   <span className="text-[10px] font-black uppercase tracking-[0.2em]">Active E-Learning Hub</span>
+                 </div>
+                 <h3 className="text-6xl md:text-8xl font-black text-slate-900 tracking-tighter leading-[0.9]">
+                   Digital First Education.
+                 </h3>
+                 <p className="text-2xl text-slate-500 font-medium leading-relaxed">
+                   Leveraging modern technology to provide accessible, high-quality education anywhere in the Kingdom.
+                 </p>
+               </div>
+
+               <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+                 <div className="p-12 bg-white rounded-[64px] border border-slate-100 shadow-sm space-y-10 group hover:border-emerald-500 transition-all duration-500">
+                   <div className="w-20 h-20 bg-emerald-500 text-white rounded-[32px] flex items-center justify-center shadow-xl shadow-emerald-200">
+                     <GraduationCap className="w-10 h-10" />
+                   </div>
+                   <div className="space-y-6">
+                     <h4 className="text-4xl font-black text-slate-900 tracking-tight italic">Our Platform: {academics.elearning.platform}</h4>
+                     <p className="text-slate-500 font-medium text-lg leading-relaxed">{academics.elearning.onlineClassOptions}</p>
+                   </div>
+                 </div>
+
+                 <div className="p-12 bg-slate-900 text-white rounded-[64px] shadow-2xl space-y-10">
+                    <div className="w-20 h-20 bg-white/10 rounded-[32px] flex items-center justify-center">
+                      <ClipboardCheck className="w-10 h-10 text-emerald-400" />
+                    </div>
+                    <div className="space-y-6">
+                      <h4 className="text-4xl font-black tracking-tight italic">Digital Assignments</h4>
+                      <p className="text-slate-400 font-medium text-lg leading-relaxed">{academics.elearning.digitalAssignments}</p>
+                    </div>
+                 </div>
+
+                 <div className="md:col-span-2 p-16 bg-slate-50 rounded-[80px] border border-slate-200 flex flex-col md:flex-row items-center gap-12 group hover:bg-white hover:shadow-2xl transition-all duration-700">
+                    <div className="w-full md:w-1/3 aspect-video bg-slate-200 rounded-[40px] flex items-center justify-center text-slate-400 overflow-hidden relative shadow-inner">
+                        <Monitor className="w-20 h-20 opacity-20" />
+                        <div className="absolute inset-0 bg-blue-600/5 group-hover:bg-transparent transition-colors" />
+                    </div>
+                    <div className="flex-1 space-y-6">
+                       <h4 className="text-4xl font-black text-slate-900 tracking-tight italic">Recorded Knowledge Archiving</h4>
+                       <p className="text-xl text-slate-500 font-medium leading-relaxed">{academics.elearning.recordedLectures}</p>
+                       <div className="flex items-center gap-4 text-[10px] font-black uppercase tracking-widest text-emerald-600">
+                         <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                         Available for 24/7 student access
+                       </div>
+                    </div>
+                 </div>
+               </div>
+             </section>
+          )}
+
           {activeTab === 'performance' && (
             <div className="space-y-24 animate-in fade-in transition-all duration-700">
               {/* 9. Performance & Achievements */}
@@ -520,24 +631,28 @@ const AcademicsSection: React.FC<AcademicsSectionProps> = ({ academics, primaryC
 
                 <section className="p-14 bg-white border border-slate-100 rounded-[64px] shadow-sm space-y-12">
                   <div className="flex items-center gap-6">
-                    <div className="w-16 h-16 bg-slate-900 text-white rounded-3xl flex items-center justify-center">
-                      <Monitor className="w-8 h-8" />
+                    <div className="w-16 h-16 bg-blue-600 text-white rounded-3xl flex items-center justify-center">
+                      <GraduationCap className="w-8 h-8" />
                     </div>
-                    <h3 className="text-3xl font-black text-slate-900 tracking-tight">Digital Learning</h3>
+                    <h3 className="text-3xl font-black text-slate-900 tracking-tight">E-Learning & Digital</h3>
                   </div>
                   <div className="space-y-8">
-                    <div className="p-6 bg-slate-900 text-white rounded-3xl">
-                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Primary Platform</p>
-                      <p className="text-xl font-black tracking-tight">{academics.digital.platform}</p>
-                    </div>
+                    {academics.elearning?.enabled ? (
+                      <div className="p-6 bg-slate-900 text-white rounded-3xl">
+                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Platform</p>
+                        <p className="text-xl font-black tracking-tight">{academics.elearning.platform}</p>
+                      </div>
+                    ) : (
+                      <div className="p-6 bg-slate-50 text-slate-400 rounded-3xl italic border border-slate-100">
+                        E-learning features are managed by individual departments.
+                      </div>
+                    )}
                     <div className="space-y-4">
-                      <p className="text-[10px] font-black text-blue-600 uppercase tracking-widest">Digital Features</p>
+                      <p className="text-[10px] font-black text-blue-600 uppercase tracking-widest">Digital Resources</p>
                       <div className="flex flex-wrap gap-3">
-                        {academics.digital.features.map((feat, idx) => (
-                          <span key={idx} className="px-5 py-3 bg-slate-50 rounded-2xl text-[10px] font-black text-slate-600 uppercase tracking-widest border border-slate-100">
-                            {feat}
-                          </span>
-                        ))}
+                        <span className="px-5 py-3 bg-slate-50 rounded-2xl text-[10px] font-black text-slate-600 uppercase tracking-widest border border-slate-100">E-Library</span>
+                        <span className="px-5 py-3 bg-slate-50 rounded-2xl text-[10px] font-black text-slate-600 uppercase tracking-widest border border-slate-100">Student Portal</span>
+                        <span className="px-5 py-3 bg-slate-50 rounded-2xl text-[10px] font-black text-slate-600 uppercase tracking-widest border border-slate-100">Online Results</span>
                       </div>
                     </div>
                   </div>

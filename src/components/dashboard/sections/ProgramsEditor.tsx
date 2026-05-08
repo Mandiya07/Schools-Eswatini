@@ -1,6 +1,6 @@
 import React from 'react';
 import { Institution, AcademicProgram } from '../../../../types';
-import { Trash2, Plus, FileText, ChevronDown, ChevronUp } from 'lucide-react';
+import { Trash2, Plus, FileText, ChevronDown, ChevronUp, Upload, ExternalLink } from 'lucide-react';
 
 interface ProgramsEditorProps {
   institution: Institution;
@@ -30,7 +30,8 @@ const ProgramsEditor: React.FC<ProgramsEditorProps> = ({ institution, onUpdate }
       subjects: [],
       requirements: 'General Entry Requirements',
       description: 'Brief description of the program.',
-      syllabusUrl: ''
+      syllabusUrl: '',
+      courseOutlineUrl: ''
     };
     updatePrograms([...academics.programs, newProgram]);
     setExpandedId(newProgram.id);
@@ -127,12 +128,86 @@ const ProgramsEditor: React.FC<ProgramsEditorProps> = ({ institution, onUpdate }
                     </div>
                     <div className="group">
                       <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 px-1">Syllabus URL (PDF)</label>
-                      <input 
-                        className="w-full bg-slate-50 border-2 border-transparent focus:border-blue-500 focus:bg-white rounded-xl px-4 py-3 font-bold transition-all outline-none" 
-                        value={prog.syllabusUrl || ''} 
-                        onChange={e => updateProgramField(prog.id, 'syllabusUrl', e.target.value)}
-                        placeholder="https://..."
-                      />
+                      <div className="flex gap-2">
+                        <input 
+                          className="flex-1 bg-slate-50 border-2 border-transparent focus:border-blue-500 focus:bg-white rounded-xl px-4 py-3 font-bold transition-all outline-none" 
+                          value={prog.syllabusUrl || ''} 
+                          onChange={e => updateProgramField(prog.id, 'syllabusUrl', e.target.value)}
+                          placeholder="https://... or upload PDF"
+                        />
+                        <div className="relative">
+                          <input
+                            type="file"
+                            accept=".pdf"
+                            onChange={(e) => {
+                              const file = e.target.files?.[0];
+                              if (file) {
+                                const reader = new FileReader();
+                                reader.onloadend = () => {
+                                  updateProgramField(prog.id, 'syllabusUrl', reader.result as string);
+                                };
+                                reader.readAsDataURL(file);
+                              }
+                            }}
+                            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                          />
+                          <button className="h-full px-4 bg-slate-100 text-slate-600 rounded-xl hover:bg-slate-200 transition-colors flex items-center justify-center gap-2">
+                            <Upload className="w-4 h-4" />
+                          </button>
+                        </div>
+                        {prog.syllabusUrl && (
+                          <a 
+                            href={prog.syllabusUrl} 
+                            target="_blank" 
+                            rel="noreferrer"
+                            className="h-full px-4 bg-blue-50 text-blue-600 rounded-xl hover:bg-blue-100 transition-colors flex items-center justify-center"
+                          >
+                            <ExternalLink className="w-4 h-4" />
+                          </a>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="group">
+                      <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 px-1">Course Outline URL (PDF)</label>
+                      <div className="flex gap-2">
+                        <input 
+                          className="flex-1 bg-slate-50 border-2 border-transparent focus:border-blue-500 focus:bg-white rounded-xl px-4 py-3 font-bold transition-all outline-none" 
+                          value={prog.courseOutlineUrl || ''} 
+                          onChange={e => updateProgramField(prog.id, 'courseOutlineUrl', e.target.value)}
+                          placeholder="Link to course outline PDF"
+                        />
+                        <div className="relative">
+                          <input
+                            type="file"
+                            accept=".pdf"
+                            onChange={(e) => {
+                              const file = e.target.files?.[0];
+                              if (file) {
+                                const reader = new FileReader();
+                                reader.onloadend = () => {
+                                  updateProgramField(prog.id, 'courseOutlineUrl', reader.result as string);
+                                };
+                                reader.readAsDataURL(file);
+                              }
+                            }}
+                            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                          />
+                          <button className="h-full px-4 bg-slate-100 text-slate-600 rounded-xl hover:bg-slate-200 transition-colors flex items-center justify-center gap-2">
+                            <Upload className="w-4 h-4" />
+                          </button>
+                        </div>
+                        {prog.courseOutlineUrl && (
+                          <a 
+                            href={prog.courseOutlineUrl} 
+                            target="_blank" 
+                            rel="noreferrer"
+                            className="h-full px-4 bg-blue-50 text-blue-600 rounded-xl hover:bg-blue-100 transition-colors flex items-center justify-center"
+                          >
+                            <ExternalLink className="w-4 h-4" />
+                          </a>
+                        )}
+                      </div>
                     </div>
                   </div>
 

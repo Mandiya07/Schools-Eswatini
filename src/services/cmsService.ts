@@ -1,4 +1,4 @@
-import { db, collection, query, where, getDocs, orderBy, limit } from '../lib/firebase';
+import { db, collection, query, where, getDocs, orderBy, limit, getDocsWithRetry } from '../lib/firebase';
 import { SuccessStory, FundraisingCampaign } from '../../types';
 
 /**
@@ -13,7 +13,7 @@ export const fetchSuccessStories = async (institutionId?: string, count: number 
     if (institutionId) {
       q = query(collection(db, 'success_stories'), where('institutionId', '==', institutionId), orderBy('createdAt', 'desc'), limit(count));
     }
-    const snapshot = await getDocs(q);
+    const snapshot = await getDocsWithRetry(q);
     return snapshot.docs.map(doc => doc.data() as SuccessStory);
   } catch (error) {
     console.error("CMS: Failed to fetch success stories", error);
@@ -27,7 +27,7 @@ export const fetchCampaigns = async (institutionId?: string): Promise<Fundraisin
     if (institutionId) {
       q = query(collection(db, 'fundraising_campaigns'), where('institutionId', '==', institutionId), orderBy('createdAt', 'desc'));
     }
-    const snapshot = await getDocs(q);
+    const snapshot = await getDocsWithRetry(q);
     return snapshot.docs.map(doc => doc.data() as FundraisingCampaign);
   } catch (error) {
     console.error("CMS: Failed to fetch campaigns", error);
