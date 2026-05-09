@@ -8,7 +8,10 @@ import {
   Calendar,
   MessageSquare,
   Award,
-  Verified
+  Verified,
+  Video,
+  MonitorPlay,
+  PenTool
 } from 'lucide-react';
 
 const mockTutors = [
@@ -23,7 +26,7 @@ const mockTutors = [
     hourlyRate: 150,
     image: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&q=80&w=400',
     status: 'available',
-    meetingLink: 'https://meet.google.com/abc-defg-hij'
+    meetingType: 'Platform Virtual Classroom'
   },
   {
     id: 'tutor-2',
@@ -36,7 +39,7 @@ const mockTutors = [
     hourlyRate: 200,
     image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=400',
     status: 'busy',
-    meetingLink: 'https://zoom.us/j/123456789'
+    meetingType: 'Platform Virtual Classroom'
   },
   {
     id: 'tutor-3',
@@ -49,7 +52,7 @@ const mockTutors = [
     hourlyRate: 180,
     image: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&q=80&w=400',
     status: 'available',
-    meetingLink: 'https://teams.microsoft.com/l/meetup-join/...'
+    meetingType: 'Platform Virtual Classroom'
   }
 ];
 
@@ -72,11 +75,50 @@ const TutoringMarketplace: React.FC = () => {
             Find Your Expert Tutor
           </h1>
           <p className="text-xl text-slate-500 font-medium leading-relaxed mb-6">
-            Connect with Eswatini's top-rated professional educators for personalized, one-on-one tutoring sessions.
+            Connect with Eswatini's top-rated professional educators and conduct seamless, high-quality lessons directly on our platform.
           </p>
-          <p className="text-sm font-bold text-slate-400 uppercase tracking-widest">
-            Looking for free peer help? <Link to="/resources" className="text-indigo-600 hover:underline">Check out Peer Tutoring</Link>
-          </p>
+          <div className="flex flex-wrap gap-4 items-center">
+            <Link to="/classroom" className="px-6 py-3 bg-indigo-600 text-white rounded-xl text-xs font-black uppercase tracking-widest hover:bg-indigo-700 transition-colors flex items-center gap-2 shadow-lg">
+              <MonitorPlay className="w-5 h-5" /> Enter Virtual Classroom
+            </Link>
+            <p className="text-sm font-bold text-slate-400 uppercase tracking-widest">
+              Looking for free peer help? <Link to="/resources" className="text-indigo-600 hover:underline">Check out Peer Tutoring</Link>
+            </p>
+          </div>
+        </div>
+
+        {/* Built-in Virtual Classroom Promo */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="p-8 bg-indigo-600 text-white rounded-[32px] overflow-hidden relative">
+            <div className="relative z-10 space-y-4">
+              <div className="w-12 h-12 bg-white/10 rounded-2xl flex items-center justify-center backdrop-blur-sm">
+                <Video className="w-6 h-6" />
+              </div>
+              <h3 className="text-xl font-black tracking-tight">HD Video Calling</h3>
+              <p className="text-indigo-100 font-medium leading-relaxed">No external apps required. Start crystal-clear face-to-face video lessons directly from your browser.</p>
+            </div>
+            <div className="absolute -bottom-10 -right-10 w-48 h-48 bg-white/5 rounded-full blur-[40px] pointer-events-none" />
+          </div>
+          <div className="p-8 bg-blue-500 text-white rounded-[32px] overflow-hidden relative">
+            <div className="relative z-10 space-y-4">
+              <div className="w-12 h-12 bg-white/10 rounded-2xl flex items-center justify-center backdrop-blur-sm">
+                <PenTool className="w-6 h-6" />
+              </div>
+              <h3 className="text-xl font-black tracking-tight">Interactive Whiteboard</h3>
+              <p className="text-blue-100 font-medium leading-relaxed">Collaborate in real-time. Draw diagrams, solve math problems, and annotate notes together instantly.</p>
+            </div>
+            <div className="absolute -bottom-10 -right-10 w-48 h-48 bg-white/5 rounded-full blur-[40px] pointer-events-none" />
+          </div>
+          <div className="p-8 bg-emerald-500 text-white rounded-[32px] overflow-hidden relative">
+            <div className="relative z-10 space-y-4">
+              <div className="w-12 h-12 bg-white/10 rounded-2xl flex items-center justify-center backdrop-blur-sm">
+                <MonitorPlay className="w-6 h-6" />
+              </div>
+              <h3 className="text-xl font-black tracking-tight">Screen Sharing</h3>
+              <p className="text-emerald-100 font-medium leading-relaxed">Share presentations, documents, or your entire screen with a single click during your sessions.</p>
+            </div>
+            <div className="absolute -bottom-10 -right-10 w-48 h-48 bg-white/5 rounded-full blur-[40px] pointer-events-none" />
+          </div>
         </div>
 
         {/* Search & Filters */}
@@ -138,17 +180,31 @@ const TutoringMarketplace: React.FC = () => {
                          </span>
                     </div>
                     
-                    <div className="space-y-2 mb-6">
-                        <p className="text-xs font-bold text-slate-500">Subjects: <span className="text-slate-900">{tutor.subjects.join(', ')}</span></p>
-                        <p className="text-xs font-bold text-slate-500">Level: <span className="text-slate-900">{tutor.level}</span></p>
-                        <p className="text-xs font-bold text-slate-500">Meeting: <a href={tutor.meetingLink} target="_blank" rel="noopener noreferrer" className="text-indigo-600 hover:underline">Join Session</a></p>
+                    <div className="space-y-4 mb-6">
+                        <div>
+                          <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">Subjects</p>
+                          <p className="text-sm font-bold text-slate-900">{tutor.subjects.join(', ')}</p>
+                        </div>
+                        <div>
+                          <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">Level</p>
+                          <p className="text-sm font-bold text-slate-900">{tutor.level}</p>
+                        </div>
+                        <div className="flex items-center gap-2 p-3 bg-slate-50 rounded-xl border border-slate-100">
+                           <Video className="w-4 h-4 text-indigo-600" />
+                           <span className="text-xs font-bold text-slate-700">{tutor.meetingType}</span>
+                        </div>
                     </div>
 
                     <div className="mt-auto pt-6 border-t border-slate-100 flex items-center justify-between">
                          <p className="text-lg font-black text-slate-900">E{tutor.hourlyRate}<span className="text-xs font-medium text-slate-400">/hr</span></p>
-                         <button className="px-6 py-3 bg-indigo-600 text-white rounded-xl text-[11px] font-black uppercase tracking-widest hover:bg-slate-900 transition-colors shadow-lg">
-                            Book Session
-                         </button>
+                         <div className="flex gap-2">
+                           <Link to="/classroom" className="px-4 py-3 bg-slate-100 text-slate-700 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-slate-200 transition-colors shadow-sm flex items-center gap-1">
+                             <Video className="w-4 h-4" /> Preview
+                           </Link>
+                           <button className="px-6 py-3 bg-indigo-600 text-white rounded-xl text-[11px] font-black uppercase tracking-widest hover:bg-slate-900 transition-colors shadow-lg">
+                              Book
+                           </button>
+                         </div>
                     </div>
                 </div>
              </motion.div>
@@ -160,3 +216,4 @@ const TutoringMarketplace: React.FC = () => {
 };
 
 export default TutoringMarketplace;
+

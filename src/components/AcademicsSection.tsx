@@ -98,7 +98,7 @@ const AcademicsSection: React.FC<AcademicsSectionProps> = ({ academics, primaryC
                     <span className="h-px w-12 bg-blue-600" />
                     <h2 className="text-[11px] font-black text-blue-600 uppercase tracking-[0.3em]">Academic Excellence</h2>
                   </div>
-                  <h3 className="text-6xl md:text-8xl font-black text-slate-900 tracking-tighter leading-[0.9]">
+                  <h3 className="text-6xl md:text-8xl font-black text-slate-900 tracking-tighter leading-snug">
                     {academics.overview.headline}
                   </h3>
                   {academics.studentPortal?.enabled && academics.studentPortal.url && (
@@ -167,11 +167,11 @@ const AcademicsSection: React.FC<AcademicsSectionProps> = ({ academics, primaryC
                 <section className="bg-slate-50 p-12 md:p-16 rounded-[64px] border border-slate-100 space-y-10 relative overflow-hidden">
                    <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500/10 rounded-full blur-[80px]" />
                    <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-8 mb-4">
-                      <div>
-                         <h3 className="text-3xl font-black text-slate-900 tracking-tight">Tuition & Fees</h3>
+                      <div className="min-w-0 pr-4">
+                         <h3 className="text-3xl font-black text-slate-900 tracking-tight leading-snug break-words">Tuition & Fees</h3>
                          <p className="text-slate-500 font-medium mt-2">Estimated cost of attendance for the academic year</p>
                       </div>
-                      <div className="px-6 py-3 bg-white border border-slate-200 rounded-full text-[10px] font-black uppercase tracking-widest text-slate-400">
+                      <div className="shrink-0 px-6 py-3 bg-white border border-slate-200 rounded-full text-[10px] font-black uppercase tracking-widest text-slate-400">
                         Subject to Change
                       </div>
                    </div>
@@ -212,9 +212,9 @@ const AcademicsSection: React.FC<AcademicsSectionProps> = ({ academics, primaryC
 
           {activeTab === 'departments' && (
             <section className="space-y-16 animate-in fade-in transition-all duration-700">
-              <div className="flex justify-between items-end">
-                <div className="space-y-4">
-                  <h3 className="text-4xl font-black text-slate-900 tracking-tight">
+              <div className="flex justify-between items-end gap-6">
+                <div className="space-y-4 min-w-0">
+                  <h3 className="text-4xl font-black text-slate-900 tracking-tight leading-snug break-words">
                     {isTertiary ? 'Faculties & Degree Programs' : isPrimary ? 'Grades, Phases & Activities' : 'Departments & Programs'}
                   </h3>
                   <p className="text-slate-500 font-medium">Explore our diverse academic landscape</p>
@@ -233,13 +233,13 @@ const AcademicsSection: React.FC<AcademicsSectionProps> = ({ academics, primaryC
                       className={`p-10 rounded-[48px] border transition-all cursor-pointer group ${selectedDept === idx ? 'bg-white border-blue-500 shadow-2xl' : 'bg-slate-50 border-slate-100 hover:bg-white hover:border-slate-200'}`}
                       onClick={() => setSelectedDept(idx === selectedDept ? null : idx)}
                     >
-                      <div className="flex justify-between items-center">
-                        <div className="flex items-center gap-6">
-                          <div className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-colors ${selectedDept === idx ? 'bg-blue-600 text-white' : 'bg-white text-slate-400 group-hover:bg-blue-50 group-hover:text-blue-600'}`}>
+                      <div className="flex justify-between items-center gap-4">
+                        <div className="flex items-center gap-6 min-w-0">
+                          <div className={`w-14 h-14 shrink-0 rounded-2xl flex items-center justify-center transition-colors ${selectedDept === idx ? 'bg-blue-600 text-white' : 'bg-white text-slate-400 group-hover:bg-blue-50 group-hover:text-blue-600'}`}>
                             {dept.icon ? <span className="text-2xl">{dept.icon}</span> : <BookOpen className="w-6 h-6" />}
                           </div>
-                          <div>
-                            <h5 className="text-xl font-black text-slate-900 tracking-tight">{dept.name}</h5>
+                          <div className="min-w-0">
+                            <h5 className="text-xl font-black text-slate-900 tracking-tight leading-snug break-words">{dept.name}</h5>
                             <p className="text-[10px] font-bold text-blue-600 uppercase tracking-widest mt-1">
                               {dept.subjects && dept.subjects.length > 0 ? `${dept.subjects.length} Subjects` : 'Explore Programs'}
                             </p>
@@ -401,7 +401,7 @@ const AcademicsSection: React.FC<AcademicsSectionProps> = ({ academics, primaryC
                     <div className="space-y-6">
                       <div className="p-8 bg-slate-50 rounded-[32px] border border-slate-100 shadow-inner">
                         <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Qualifications</p>
-                        <p className="text-lg font-bold text-slate-800 leading-tight">{academics.staff.head.qualifications}</p>
+                        <p className="text-lg font-bold text-slate-800 leading-snug">{academics.staff.head.qualifications}</p>
                       </div>
                       <div className="p-8 bg-slate-50 rounded-[32px] border border-slate-100 shadow-inner">
                         <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Academic Experience</p>
@@ -521,7 +521,7 @@ const AcademicsSection: React.FC<AcademicsSectionProps> = ({ academics, primaryC
                    <Monitor className="w-4 h-4" />
                    <span className="text-[10px] font-black uppercase tracking-[0.2em]">Active E-Learning Hub</span>
                  </div>
-                 <h3 className="text-6xl md:text-8xl font-black text-slate-900 tracking-tighter leading-[0.9]">
+                 <h3 className="text-6xl md:text-8xl font-black text-slate-900 tracking-tighter leading-snug">
                    Digital First Education.
                  </h3>
                  <p className="text-2xl text-slate-500 font-medium leading-relaxed">
@@ -579,18 +579,18 @@ const AcademicsSection: React.FC<AcademicsSectionProps> = ({ academics, primaryC
                     <p className="text-blue-100 font-medium text-xl">Measurable outcomes of our dedication to excellence</p>
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
-                    <div className="text-center space-y-4">
-                      <p className="text-8xl font-black tracking-tighter">{academics.performance.passRate}</p>
-                      <p className="text-[11px] font-black text-blue-200 uppercase tracking-[0.4em]">Pass Rate</p>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 md:gap-8 lg:gap-12 mt-12">
+                    <div className="flex flex-col items-center justify-center p-6 lg:p-8 bg-blue-700/30 rounded-[32px] border border-white/10 overflow-hidden">
+                      <p className="text-xl md:text-2xl font-black tracking-tight text-white text-center break-words w-full">{academics.performance.passRate}</p>
+                      <p className="text-[10px] sm:text-xs font-black text-blue-200 uppercase tracking-widest mt-4 text-center">Pass Rate</p>
                     </div>
-                    <div className="text-center space-y-4">
-                      <p className="text-8xl font-black tracking-tighter">{academics.performance.ranking}</p>
-                      <p className="text-[11px] font-black text-blue-200 uppercase tracking-[0.4em]">Regional Rank</p>
+                    <div className="flex flex-col items-center justify-center p-6 lg:p-8 bg-blue-700/30 rounded-[32px] border border-white/10 overflow-hidden">
+                      <p className="text-xl md:text-2xl font-black tracking-tight text-white text-center break-words w-full">{academics.performance.ranking}</p>
+                      <p className="text-[10px] sm:text-xs font-black text-blue-200 uppercase tracking-widest mt-4 text-center">Regional Rank</p>
                     </div>
-                    <div className="text-center space-y-4">
-                      <p className="text-8xl font-black tracking-tighter">{academics.performance.distinctions}</p>
-                      <p className="text-[11px] font-black text-blue-200 uppercase tracking-[0.4em]">Avg Distinctions</p>
+                    <div className="flex flex-col items-center justify-center p-6 lg:p-8 bg-blue-700/30 rounded-[32px] border border-white/10 overflow-hidden">
+                      <p className="text-xl md:text-2xl font-black tracking-tight text-white text-center break-words w-full">{academics.performance.distinctions}</p>
+                      <p className="text-[10px] sm:text-xs font-black text-blue-200 uppercase tracking-widest mt-4 text-center">Avg Distinctions</p>
                     </div>
                   </div>
 

@@ -82,8 +82,8 @@ const SchoolComparison: React.FC<SchoolComparisonProps> = ({ schools, onRemove, 
                         <img src={school.logo || undefined} alt={school.name} className="w-full h-full object-contain" />
                       </div>
                       <div>
-                        <h3 className="font-black text-slate-900 text-lg leading-tight line-clamp-2">{school.name}</h3>
-                        <span className="text-[10px] font-black uppercase tracking-widest text-indigo-600 bg-indigo-50 px-2 py-1 rounded-lg mt-2 inline-block">
+                        <h3 className="font-black text-slate-900 text-lg leading-snug line-clamp-2 mb-2">{school.name}</h3>
+                        <span className="text-[10px] font-black uppercase tracking-widest text-indigo-600 bg-indigo-50 px-2 py-1 rounded-lg inline-block">
                           {school.region}
                         </span>
                       </div>

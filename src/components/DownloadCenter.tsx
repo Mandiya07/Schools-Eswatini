@@ -35,7 +35,7 @@ const DownloadCenter: React.FC<DownloadCenterProps> = ({ downloads, primaryColor
             <div className="w-20 h-20 bg-white/10 rounded-[28px] flex items-center justify-center mb-8 group-hover:bg-white group-hover:text-blue-600 transition-all">
               <Icon className="w-10 h-10" />
             </div>
-            <h5 className="text-sm font-black uppercase tracking-widest mb-6 leading-tight h-10 flex items-center">{doc.label}</h5>
+            <h5 className="text-sm font-black uppercase tracking-widest mb-6 leading-snug h-10 flex items-center">{doc.label}</h5>
             <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] opacity-60 group-hover:opacity-100 transition-opacity">
               <Download className="w-4 h-4" />
               Download PDF

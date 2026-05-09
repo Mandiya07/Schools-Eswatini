@@ -70,7 +70,7 @@ const MissionSection: React.FC<MissionSectionProps> = ({ mission, primaryColor }
                   >
                     <IconComponent className="w-10 h-10" />
                   </div>
-                  <h4 className="text-2xl font-black text-slate-900 mb-5 uppercase tracking-tight leading-none">{pillar.title}</h4>
+                  <h4 className="text-2xl font-black text-slate-900 mb-5 uppercase tracking-tight leading-snug">{pillar.title}</h4>
                   <p className="text-slate-500 text-lg font-medium leading-relaxed">
                     {pillar.description}
                   </p>

@@ -397,10 +397,10 @@ const BrowsePage: React.FC<BrowsePageProps> = ({
                           <div className="flex justify-between items-start mb-4">
                               <div>
                                 <p className="text-[10px] font-black text-blue-600 uppercase tracking-widest mb-1">{inst.region}</p>
-                                <h3 className="text-3xl font-black text-slate-900 group-hover:text-blue-600 transition-colors leading-tight flex items-center gap-2">
-                                  {inst.name}
+                                <h3 className="text-3xl font-black text-slate-900 group-hover:text-blue-600 transition-colors leading-snug flex items-start gap-2">
+                                  <span className="min-w-0 break-words">{inst.name}</span>
                                   {inst.isVerified && (
-                                    <span className="text-emerald-500 text-xl" title="Verified Institution">✅</span>
+                                    <span className="text-emerald-500 text-2xl shrink-0 mt-0.5" title="Verified Institution">✅</span>
                                   )}
                                 </h3>
                               </div>

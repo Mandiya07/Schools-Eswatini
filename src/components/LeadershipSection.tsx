@@ -96,7 +96,7 @@ const LeadershipSection: React.FC<LeadershipSectionProps> = ({ leadership, prima
               <div className="p-10 bg-white border border-slate-100 rounded-[48px] shadow-sm relative">
                 <Quote className="absolute top-8 right-8 w-12 h-12 text-slate-100" />
                 <h4 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-4">Leadership Philosophy</h4>
-                <p className="text-2xl font-black text-slate-900 leading-tight italic">
+                <p className="text-2xl font-black text-slate-900 leading-snug italic">
                   "{principal.philosophy}"
                 </p>
               </div>

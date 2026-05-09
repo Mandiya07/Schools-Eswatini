@@ -50,7 +50,7 @@ const MapComponent: React.FC<MapComponentProps> = ({ institutions }) => {
                   <div className="p-2 min-w-[200px]">
                     <img src={inst.coverImage} alt={inst.name} className="w-full h-24 object-cover rounded-xl mb-3" />
                     <p className="text-[8px] font-black text-blue-600 uppercase tracking-widest mb-1">{inst.region}</p>
-                    <h4 className="font-black text-slate-900 leading-tight mb-2">{inst.name}</h4>
+                    <h4 className="font-black text-slate-900 leading-snug mb-2 min-w-0 break-words">{inst.name}</h4>
                     <div className="flex gap-2 mb-3">
                       {inst.type.slice(0, 2).map(t => (
                         <span key={t} className="px-2 py-0.5 bg-slate-100 rounded-md text-[8px] font-bold text-slate-500 uppercase">{t}</span>

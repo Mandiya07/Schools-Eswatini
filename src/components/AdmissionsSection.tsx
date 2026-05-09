@@ -33,7 +33,7 @@ const AdmissionsSection: React.FC<AdmissionsSectionProps> = ({ admissions, prima
       <section className="relative">
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-16 items-start">
           <div className="lg:col-span-3">
-            <h2 className="text-6xl font-black text-slate-900 tracking-tighter mb-8 leading-[0.9]">
+            <h2 className="text-6xl font-black text-slate-900 tracking-tighter mb-8 leading-snug">
               {admissions.headline}
             </h2>
             <p className="text-xl text-slate-600 leading-relaxed font-medium">
@@ -182,7 +182,7 @@ const AdmissionsSection: React.FC<AdmissionsSectionProps> = ({ admissions, prima
                 <div className="w-12 h-12 rounded-2xl bg-slate-50 flex items-center justify-center group-hover:bg-blue-600 transition-colors">
                   <ArrowRight className="w-6 h-6 text-slate-400 group-hover:text-white transition-colors" />
                 </div>
-                <p className="text-lg font-bold text-slate-900 leading-tight">
+                <p className="text-lg font-bold text-slate-900 leading-snug">
                   {step.instruction}
                 </p>
               </div>

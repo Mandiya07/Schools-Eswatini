@@ -66,7 +66,7 @@ const CoreValuesSection: React.FC<CoreValuesSectionProps> = ({ values, primaryCo
                 {val.quote && (
                   <div className="pt-8 border-t border-slate-100 space-y-4">
                     <Quote className="w-8 h-8 opacity-20" style={{ color: primaryColor }} />
-                    <p className="text-lg font-black text-slate-900 leading-tight">
+                    <p className="text-lg font-black text-slate-900 leading-snug">
                       {val.quote.text}
                     </p>
                     <div className="flex items-center gap-2">

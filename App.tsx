@@ -44,6 +44,7 @@ import Advertising from './pages/Advertising';
 import PaymentCheckoutPage from './pages/PaymentCheckoutPage';
 import TermsOfService from './pages/TermsOfService';
 import PrivacyPolicy from './pages/PrivacyPolicy';
+import VirtualClassroom from './pages/VirtualClassroom';
 
 // Components
 import Navbar from './components/Navbar';
@@ -465,6 +466,7 @@ const App: React.FC = () => {
             <Route path="/marketplace" element={<EducatorMarketplace />} />
             <Route path="/advertising" element={<Advertising />} />
             <Route path="/tutors" element={<TutoringMarketplace />} />
+            <Route path="/classroom" element={<VirtualClassroom />} />
             <Route path="/payment-checkout" element={<PaymentCheckoutPage />} />
             <Route path="/terms" element={<TermsOfService />} />
             <Route path="/privacy" element={<PrivacyPolicy />} />

@@ -226,17 +226,17 @@ export const InstitutionLayout: React.FC<InstitutionLayoutProps> = ({ institutio
                <div className="p-8 md:p-10 bg-slate-50 rounded-[40px] border border-slate-100 space-y-6">
                   <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Quick Facts</h4>
                   <div className="space-y-4">
-                     <div className="flex justify-between items-center">
-                        <span className="text-xs font-medium text-slate-500">Ownership</span>
-                        <span className="text-xs font-bold text-slate-900">{inst.type.join(', ')}</span>
+                     <div className="flex justify-between items-center gap-4">
+                        <span className="text-xs font-medium text-slate-500 shrink-0">Ownership</span>
+                        <span className="text-xs font-bold text-slate-900 text-right min-w-0 break-words">{inst.type.join(', ')}</span>
                      </div>
-                     <div className="flex justify-between items-center">
-                        <span className="text-xs font-medium text-slate-500">Gender</span>
-                        <span className="text-xs font-bold text-slate-900">{inst.metadata?.gender || 'N/A'}</span>
+                     <div className="flex justify-between items-center gap-4">
+                        <span className="text-xs font-medium text-slate-500 shrink-0">Gender</span>
+                        <span className="text-xs font-bold text-slate-900 text-right min-w-0 break-words">{inst.metadata?.gender || 'N/A'}</span>
                      </div>
-                     <div className="flex justify-between items-center">
-                        <span className="text-xs font-medium text-slate-500">Boarding</span>
-                        <span className="text-xs font-bold text-slate-900">{inst.metadata?.isBoarding ? 'Yes' : 'No'}</span>
+                     <div className="flex justify-between items-center gap-4">
+                        <span className="text-xs font-medium text-slate-500 shrink-0">Boarding</span>
+                        <span className="text-xs font-bold text-slate-900 text-right min-w-0 break-words">{inst.metadata?.isBoarding ? 'Yes' : 'No'}</span>
                      </div>
                   </div>
                </div>

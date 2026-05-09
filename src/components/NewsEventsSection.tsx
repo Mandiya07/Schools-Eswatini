@@ -72,7 +72,7 @@ const NewsEventsSection: React.FC<NewsEventsSectionProps> = ({ news, primaryColo
                  Events Calendar
                </button>
             </div>
-            <h2 className="text-7xl font-black text-slate-900 tracking-tighter leading-[0.9]">
+            <h2 className="text-7xl font-black text-slate-900 tracking-tighter leading-snug">
               {activeTab === 'news' ? news.overview.title : 'Campus Events'}
             </h2>
           </div>
@@ -271,7 +271,7 @@ const NewsEventsSection: React.FC<NewsEventsSectionProps> = ({ news, primaryColo
                               <MapPin className="w-3 h-3 text-rose-500" /> {event.location}
                             </div>
                           </div>
-                          <h3 className="text-3xl font-black text-slate-900 tracking-tighter leading-tight group-hover:text-blue-600 transition-colors">
+                          <h3 className="text-3xl font-black text-slate-900 tracking-tighter leading-snug group-hover:text-blue-600 transition-colors mt-2">
                             {event.title}
                           </h3>
                           <p className="text-sm text-slate-500 font-medium leading-relaxed line-clamp-2">
@@ -367,7 +367,7 @@ const NewsEventsSection: React.FC<NewsEventsSectionProps> = ({ news, primaryColo
                   {item.type === 'photo' ? <ImageIcon className="w-4 h-4 text-white" /> : <PlayCircle className="w-4 h-4 text-white" />}
                   <span className="text-[9px] font-black text-white uppercase tracking-widest">{item.type}</span>
                 </div>
-                <p className="text-lg font-bold text-white leading-tight">{item.caption}</p>
+                <p className="text-lg font-bold text-white leading-snug">{item.caption}</p>
               </div>
             </motion.div>
           ))}

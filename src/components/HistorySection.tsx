@@ -41,7 +41,7 @@ const HistorySection: React.FC<HistorySectionProps> = ({ foundingBackground, his
             <Clock className="w-6 h-6" style={{ color: primaryColor }} />
             <h2 className="text-[11px] font-black uppercase tracking-[0.3em]" style={{ color: primaryColor }}>Historical Background</h2>
           </div>
-          <p className="text-3xl md:text-5xl font-black text-slate-900 tracking-tighter leading-tight max-w-4xl">
+          <p className="text-3xl md:text-5xl font-black text-slate-900 tracking-tighter leading-snug max-w-4xl">
             {foundingBackground}
           </p>
         </section>

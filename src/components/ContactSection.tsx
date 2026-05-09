@@ -65,7 +65,7 @@ const ContactSection: React.FC<ContactSectionProps> = ({ institution, primaryCol
       {/* Hero Section */}
       <section className="text-center space-y-8">
         <h2 className="text-7xl font-black text-slate-900 tracking-tighter">{labels.title}</h2>
-        <p className="text-4xl font-black text-slate-900 tracking-tight max-w-4xl mx-auto leading-tight">
+        <p className="text-4xl font-black text-slate-900 tracking-tight max-w-4xl mx-auto leading-snug">
           {labels.headline}
         </p>
         <p className="text-xl text-slate-500 font-medium leading-relaxed max-w-2xl mx-auto">
@@ -174,7 +174,7 @@ const ContactSection: React.FC<ContactSectionProps> = ({ institution, primaryCol
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             {contact.departments.map((dept, idx) => (
               <div key={idx} className="p-10 bg-white border border-slate-100 rounded-[48px] shadow-sm hover:shadow-xl transition-all group">
-                <h4 className="text-xl font-black text-slate-900 mb-6 group-hover:text-blue-600 transition-colors">{dept.name}</h4>
+                <h4 className="text-xl font-black text-slate-900 mb-6 group-hover:text-blue-600 transition-colors leading-snug break-words">{dept.name}</h4>
                 <div className="space-y-4">
                   <div className="flex items-center gap-3 text-slate-500">
                     <Phone className="w-4 h-4" />
@@ -203,13 +203,13 @@ const ContactSection: React.FC<ContactSectionProps> = ({ institution, primaryCol
               <h3 className="text-3xl font-black text-slate-900 tracking-tight">{labels.hours}</h3>
             </div>
             <div className="space-y-6">
-              <div className="p-8 bg-white rounded-[32px] border border-slate-100 flex justify-between items-center">
-                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Weekdays</span>
-                <span className="text-lg font-black text-slate-900">{contact.officeHours}</span>
+              <div className="p-8 bg-white rounded-[32px] border border-slate-100 flex justify-between items-center gap-4">
+                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest shrink-0">Weekdays</span>
+                <span className="text-lg font-black text-slate-900 text-right min-w-0 break-words">{contact.officeHours}</span>
               </div>
-              <div className="p-8 bg-white rounded-[32px] border border-slate-100 flex justify-between items-center">
-                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Weekends</span>
-                <span className="text-lg font-black text-slate-900 italic opacity-50">Closed</span>
+              <div className="p-8 bg-white rounded-[32px] border border-slate-100 flex justify-between items-center gap-4">
+                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest shrink-0">Weekends</span>
+                <span className="text-lg font-black text-slate-900 italic opacity-50 text-right min-w-0 break-words">Closed</span>
               </div>
             </div>
           </div>
@@ -227,9 +227,9 @@ const ContactSection: React.FC<ContactSectionProps> = ({ institution, primaryCol
               </div>
               <div className="space-y-6">
                 {contact.emergencyContacts.map((emergency, idx) => (
-                  <div key={idx} className="p-8 bg-white rounded-[32px] border border-rose-100 flex justify-between items-center group hover:bg-rose-600 transition-all">
-                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest group-hover:text-rose-100">{emergency.name}</span>
-                    <span className="text-lg font-black text-slate-900 group-hover:text-white">{emergency.phone}</span>
+                  <div key={idx} className="p-8 bg-white rounded-[32px] border border-rose-100 flex justify-between items-center group hover:bg-rose-600 transition-all gap-4">
+                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest group-hover:text-rose-100 shrink-0">{emergency.name}</span>
+                    <span className="text-lg font-black text-slate-900 group-hover:text-white text-right min-w-0 break-words">{emergency.phone}</span>
                   </div>
                 ))}
               </div>

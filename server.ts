@@ -4,6 +4,8 @@ import path from "path";
 import { fileURLToPath } from "url";
 import cors from "cors";
 import dotenv from "dotenv";
+import { createServer } from "http";
+import { Server } from "socket.io";
 import apiRouter from "./src/routes/api.js";
 
 dotenv.config();
@@ -37,6 +39,55 @@ function cacheMiddleware(req: express.Request, res: express.Response, next: expr
 async function startServer() {
   const app = express();
   const PORT = 3000;
+  
+  const httpServer = createServer(app);
+  const io = new Server(httpServer, {
+    cors: {
+      origin: "*",
+      methods: ["GET", "POST"]
+    }
+  });
+
+  // Socket.IO Logic
+  io.on("connection", (socket) => {
+    console.log("User connected:", socket.id);
+
+    // Join a classroom room
+    socket.on("join-room", (roomId, userId) => {
+      socket.join(roomId);
+      // broadcast to others in room
+      socket.to(roomId).emit("user-connected", userId);
+
+      socket.on("disconnect", () => {
+        socket.to(roomId).emit("user-disconnected", userId);
+      });
+      
+      // Signaling
+      socket.on("offer", (payload) => {
+        io.to(payload.target).emit("offer", payload);
+      });
+      socket.on("answer", (payload) => {
+        io.to(payload.target).emit("answer", payload);
+      });
+      socket.on("ice-candidate", (incoming) => {
+        io.to(incoming.target).emit("ice-candidate", incoming);
+      });
+
+      // Chat
+      socket.on("chat-message", (message) => {
+        io.to(roomId).emit("chat-message", message);
+      });
+
+      // Whiteboard drawing path
+      socket.on("draw", (path) => {
+        socket.to(roomId).emit("draw", path);
+      });
+
+      socket.on("clear-board", () => {
+        socket.to(roomId).emit("clear-board");
+      });
+    });
+  });
 
   app.use(cors());
   app.use(express.json());
@@ -59,7 +110,7 @@ async function startServer() {
     });
   }
 
-  app.listen(PORT, "0.0.0.0", () => {
+  httpServer.listen(PORT, "0.0.0.0", () => {
     console.log(`Server running on http://localhost:${PORT}`);
   });
 }

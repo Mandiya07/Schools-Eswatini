@@ -105,7 +105,7 @@ const PortalSection: React.FC<PortalSectionProps> = ({ portal, primaryColor }) =
             <span className="px-4 py-2 bg-blue-600 rounded-full text-[10px] font-black uppercase tracking-widest">
               {portal.name}
             </span>
-            <h2 className="text-6xl md:text-8xl font-black tracking-tighter leading-[0.9]">
+            <h2 className="text-6xl md:text-8xl font-black tracking-tighter leading-snug">
               {portal.headline}
             </h2>
           </div>
