@@ -1,5 +1,6 @@
 import React from 'react';
-import { Outlet, useParams, NavLink, Navigate } from 'react-router-dom';
+import { Outlet, useParams, NavLink, Navigate, useLocation } from 'react-router-dom';
+import { motion, AnimatePresence } from 'motion/react';
 import { Institution, InstitutionType } from '../../types';
 import { getOptimizedImageUrl } from '../../src/services/performanceService';
 import SEO from '../../src/components/SEO';
@@ -14,6 +15,7 @@ interface InstitutionLayoutProps {
 
 export const InstitutionLayout: React.FC<InstitutionLayoutProps> = ({ institutions, favorites, onToggleFavorite, lang, loading }) => {
   const { slug } = useParams<{ slug: string }>();
+  const location = useLocation();
   const inst = institutions.find(i => i.slug === slug);
 
   if (loading && !inst) {
@@ -91,20 +93,18 @@ export const InstitutionLayout: React.FC<InstitutionLayoutProps> = ({ institutio
     };
   }).filter(Boolean) as { id: string, path: string, label: string }[];
 
-  if (!orderedSections.find(s => s.id === 'contact')) {
-    orderedSections.push({ id: 'contact', path: 'contact', label: labels.contact });
-  }
-
-  if (!orderedSections.find(s => s.id === 'ministry')) {
-    const contactIndex = orderedSections.findIndex(s => s.id === 'contact');
-    if (contactIndex !== -1) {
-       orderedSections.splice(contactIndex, 0, { id: 'ministry', path: 'ministry', label: 'Ministry Info' });
-    } else {
-       orderedSections.push({ id: 'ministry', path: 'ministry', label: 'Ministry Info' });
-    }
-  }
-
   const sections = orderedSections;
+  
+  // Ensure Ministry Info is present if applicable
+  if (!sections.find(s => s.id === 'ministry')) {
+     const contactIndex = sections.findIndex(s => s.id === 'contact');
+     if (contactIndex !== -1) {
+        sections.splice(contactIndex, 0, { id: 'ministry', path: 'ministry', label: 'Ministry Info' });
+     } else {
+        sections.push({ id: 'ministry', path: 'ministry', label: 'Ministry Info' });
+     }
+  }
+
   const acad = inst.sections?.academics;
 
   return (
@@ -144,29 +144,61 @@ export const InstitutionLayout: React.FC<InstitutionLayoutProps> = ({ institutio
         </div>
       </div>
 
-      {/* Sticky Navigation */}
-      <div className="bg-white/80 backdrop-blur-xl border-b sticky top-0 z-50 shadow-sm overflow-x-auto scrollbar-hide">
-        <div className="max-w-7xl mx-auto px-4 md:px-10 flex space-x-3.5 h-16 items-center">
+      {/* Sticky Navigation Tabs */}
+      <div className="bg-white/90 backdrop-blur-2xl border-b sticky top-0 z-50 shadow-sm">
+        <div className="max-w-7xl mx-auto px-4 md:px-10 flex items-center h-20">
            <div className="w-48 shrink-0 hidden md:block" />
-           {sections.map(s => (
-             <NavLink 
-               key={s.id} 
-               to={s.path}
-               end={s.path === '.'}
-               className={({ isActive }) => `text-[9px] font-black uppercase tracking-[0.1em] border-b-2 h-full flex items-center px-0.5 transition-all whitespace-nowrap ${isActive ? 'text-slate-900 font-black border-slate-900 border-b-[3px]' : 'text-slate-400 hover:text-slate-600 border-transparent'} `} 
-               style={({ isActive }) => ({ borderBottomColor: isActive ? inst.theme.primaryColor : 'transparent' })}
-             >
-               {s.label}
-             </NavLink>
-           ))}
+           <nav className="flex items-center h-full overflow-x-auto no-scrollbar scroll-smooth gap-1 md:gap-2 pr-4">
+              {sections.map(s => {
+                const isActive = s.path === '.' ? location.pathname.endsWith(slug!) : location.pathname.includes(s.path);
+                
+                return (
+                  <NavLink 
+                    key={s.id} 
+                    to={s.path}
+                    end={s.path === '.'}
+                    className={({ isActive: linkActive }) => `
+                      relative px-5 py-2.5 rounded-full text-[10px] font-black uppercase tracking-[0.15em] transition-all whitespace-nowrap group
+                      ${linkActive ? 'text-white' : 'text-slate-400 hover:text-slate-900'}
+                    `}
+                  >
+                    {({ isActive: linkActive }) => (
+                      <>
+                        <span className="relative z-10">{s.label}</span>
+                        {linkActive && (
+                          <motion.div 
+                            layoutId="activeTab"
+                            className="absolute inset-0 bg-slate-900 rounded-full -z-0"
+                            style={{ backgroundColor: inst.theme.primaryColor }}
+                            transition={{ type: 'spring', bounce: 0.2, duration: 0.6 }}
+                          />
+                        )}
+                        {!linkActive && (
+                          <div className="absolute inset-0 bg-slate-100 rounded-full opacity-0 group-hover:opacity-100 transition-opacity -z-0" />
+                        )}
+                      </>
+                    )}
+                  </NavLink>
+                );
+              })}
+           </nav>
         </div>
       </div>
 
       <div className="max-w-[1600px] mx-auto px-4 sm:px-8 md:px-12 lg:px-20 py-12 md:py-24">
          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-16">
             <div className="lg:col-span-8 flex flex-col gap-12">
-               {/* Main route content goes here */}
-               <Outlet context={{ inst, lang }} />
+               <AnimatePresence mode="wait">
+                 <motion.div
+                   key={location.pathname}
+                   initial={{ opacity: 0, y: 20 }}
+                   animate={{ opacity: 1, y: 0 }}
+                   exit={{ opacity: 0, y: -20 }}
+                   transition={{ duration: 0.3 }}
+                 >
+                   <Outlet context={{ inst, lang }} />
+                 </motion.div>
+               </AnimatePresence>
             </div>
 
             {/* Sticky Sidebar Profile Context */}
@@ -266,4 +298,5 @@ export const InstitutionLayout: React.FC<InstitutionLayoutProps> = ({ institutio
     </div>
   );
 };
+
 

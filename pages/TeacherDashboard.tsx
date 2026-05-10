@@ -44,7 +44,7 @@ const MOCK_VACANCIES = [
 ];
 
 const TeacherDashboard: React.FC<TeacherDashboardProps> = ({ user }) => {
-  const [activeTab, setActiveTab] = useState<'classroom' | 'resources' | 'ai_assistant' | 'management' | 'cpd' | 'marketplace' | 'colleagues'>('classroom');
+  const [activeTab, setActiveTab] = useState<'classroom' | 'resources' | 'ai_assistant' | 'management' | 'cpd' | 'marketplace' | 'colleagues' | 'virtual_sessions'>('classroom');
   const [resourceFilter, setResourceFilter] = useState('all');
   const [cpdFilter, setCpdFilter] = useState<'forums' | 'vacancies'>('forums');
 
@@ -685,6 +685,12 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({ user }) => {
               <BookOpen className="w-4 h-4" /> Reports
             </button>
             <button 
+              onClick={() => setActiveTab('virtual_sessions')}
+              className={`px-6 py-4 rounded-full text-[10px] font-black uppercase tracking-widest flex items-center gap-3 transition-all ${activeTab === 'virtual_sessions' ? 'bg-emerald-600 text-white shadow-xl shadow-emerald-600/20' : 'bg-white text-slate-500 hover:bg-slate-100 border border-slate-200'}`}
+            >
+              <Video className="w-4 h-4" /> Virtual Sessions
+            </button>
+            <button 
               onClick={() => setActiveTab('management')}
               className={`px-6 py-4 rounded-full text-[10px] font-black uppercase tracking-widest flex items-center gap-3 transition-all ${activeTab === 'management' ? 'bg-rose-600 text-white shadow-xl shadow-rose-600/20' : 'bg-white text-slate-500 hover:bg-slate-100 border border-slate-200'}`}
             >
@@ -883,16 +889,7 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({ user }) => {
                               </div>
                            </div>
 
-                           <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-                              <div className="space-y-4">
-                                 <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest uppercase">Preferred Time Slot</label>
-                                 <input 
-                                   className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-6 py-4 font-bold text-slate-900 outline-none"
-                                   placeholder="e.g. 16:00 - 18:00"
-                                   value={tutorProfileForm?.availability.timeRange}
-                                   onChange={(e) => setTutorProfileForm(prev => ({ ...prev!, availability: { ...prev!.availability, timeRange: e.target.value } }))}
-                                 />
-                              </div>
+                           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                               <div className="space-y-4">
                                  <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest uppercase tracking-widest">Rate (SZL / Hr)</label>
                                  <input 
@@ -911,6 +908,65 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({ user }) => {
                                    placeholder="e.g. 10"
                                    onChange={(e) => setTutorProfileForm(prev => ({ ...prev!, weeklyTeachingLoad: parseInt(e.target.value) || 0 }))}
                                  />
+                              </div>
+                           </div>
+
+                           <div className="space-y-4">
+                              <div className="flex justify-between items-center">
+                                 <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest uppercase">Specific Availability Slots</label>
+                                 <button 
+                                   onClick={() => {
+                                      const newSlot = { id: `slot_${Date.now()}`, date: '', time: '' };
+                                      setTutorProfileForm(prev => ({
+                                         ...prev!,
+                                         availability: {
+                                            ...prev!.availability,
+                                            slots: [...(prev!.availability.slots || []), newSlot]
+                                         }
+                                      }));
+                                   }}
+                                   className="text-[10px] font-black uppercase tracking-widest text-amber-600 hover:text-amber-700 flex items-center gap-1"
+                                 >
+                                    <Plus className="w-3 h-3" /> Add Slot
+                                 </button>
+                              </div>
+                              <div className="space-y-3">
+                                 {(tutorProfileForm?.availability.slots || []).map((slot, idx) => (
+                                    <div key={slot.id} className="flex items-center gap-2">
+                                       <input 
+                                         type="date"
+                                         value={slot.date || ''}
+                                         onChange={(e) => {
+                                            const newSlots = [...(tutorProfileForm!.availability.slots || [])];
+                                            newSlots[idx].date = e.target.value;
+                                            setTutorProfileForm(prev => ({ ...prev!, availability: { ...prev!.availability, slots: newSlots } }));
+                                         }}
+                                         className="flex-1 bg-slate-50 border border-slate-100 rounded-xl px-4 py-3 text-sm font-bold text-slate-900 outline-none"
+                                       />
+                                       <input 
+                                         type="time"
+                                         value={slot.time || ''}
+                                         onChange={(e) => {
+                                            const newSlots = [...(tutorProfileForm!.availability.slots || [])];
+                                            newSlots[idx].time = e.target.value;
+                                            setTutorProfileForm(prev => ({ ...prev!, availability: { ...prev!.availability, slots: newSlots } }));
+                                         }}
+                                         className="flex-1 bg-slate-50 border border-slate-100 rounded-xl px-4 py-3 text-sm font-bold text-slate-900 outline-none"
+                                       />
+                                       <button 
+                                         onClick={() => {
+                                            const newSlots = tutorProfileForm!.availability.slots!.filter(s => s.id !== slot.id);
+                                            setTutorProfileForm(prev => ({ ...prev!, availability: { ...prev!.availability, slots: newSlots } }));
+                                         }}
+                                         className="p-3 bg-rose-50 text-rose-500 rounded-xl hover:bg-rose-100"
+                                       >
+                                          <X className="w-4 h-4" />
+                                       </button>
+                                    </div>
+                                 ))}
+                                 {(!tutorProfileForm?.availability.slots || tutorProfileForm.availability.slots.length === 0) && (
+                                    <p className="text-xs text-slate-400 font-medium text-center py-4 border border-dashed border-slate-200 rounded-2xl">No specific slots added. Add slots to allow students to book specific times.</p>
+                                 )}
                               </div>
                            </div>
 
@@ -1749,7 +1805,130 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({ user }) => {
                </div>
             </div>
           </div>
-        )}         {/* Classroom Management Tab */}
+        )}
+
+        {activeTab === 'virtual_sessions' && (
+            <div className="animate-in fade-in slide-in-from-bottom-8 duration-700 space-y-8">
+               <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                  <div className="lg:col-span-2 space-y-8">
+                     <div className="p-12 bg-emerald-900 rounded-[56px] text-white relative overflow-hidden">
+                        <div className="absolute top-0 right-0 p-12 opacity-10">
+                           <Video className="w-48 h-48" />
+                        </div>
+                        <div className="relative z-10 space-y-6">
+                           <span className="px-4 py-2 bg-emerald-500/20 text-emerald-400 rounded-full text-[10px] font-black uppercase tracking-widest border border-emerald-500/30">
+                              Live E-Learning Portal
+                           </span>
+                           <h2 className="text-5xl font-black tracking-tight leading-tight italic">Host Your Next Class Online</h2>
+                           <p className="text-emerald-200/70 font-medium max-w-lg text-lg">
+                              Enable real-time learning with integrated whiteboard, student chat, and AI-powered session summaries.
+                           </p>
+                           <button 
+                             onClick={() => window.open('/classroom', '_blank')}
+                             className="px-10 py-5 bg-emerald-500 text-emerald-950 rounded-3xl font-black uppercase tracking-widest text-[10px] flex items-center gap-3 hover:bg-white transition-all shadow-2xl shadow-emerald-500/20 group"
+                           >
+                              Launch Virtual Classroom
+                              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                           </button>
+                        </div>
+                     </div>
+
+                     <div className="space-y-6">
+                        <div className="flex justify-between items-end">
+                           <div>
+                              <h3 className="text-2xl font-black text-slate-900 tracking-tight">Upcoming Scheduled Classes</h3>
+                              <p className="text-slate-500 font-medium">Manage your virtual teaching timetable</p>
+                           </div>
+                           <button className="px-6 py-3 bg-white border border-slate-200 rounded-2xl text-[10px] font-black uppercase tracking-widest flex items-center gap-2 hover:bg-slate-50">
+                              <Plus className="w-4 h-4" /> Schedule New
+                           </button>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                           {[
+                             { time: '09:00 AM Today', subject: 'Advanced Mathematics', grade: 'Form 5 Science', status: 'ready', link: '#' },
+                             { time: '11:15 AM Today', subject: 'Physics Practical', grade: 'Form 4 Pure', status: 'pending', link: '#' },
+                             { time: '02:30 PM Today', subject: 'Biology Review', grade: 'Form 4 Arts', status: 'pending', link: '#' },
+                             { time: '08:30 AM Tomorrow', subject: 'SiSwati Literature', grade: 'Form 3-A', status: 'pending', link: '#' },
+                           ].map((session, idx) => (
+                             <div key={idx} className="p-8 bg-white border border-slate-100 rounded-[40px] shadow-sm hover:shadow-xl transition-all group">
+                                <div className="flex justify-between items-start mb-6">
+                                   <div className="p-4 bg-emerald-50 text-emerald-600 rounded-2xl">
+                                      <Clock className="w-6 h-6" />
+                                   </div>
+                                   <span className={`px-3 py-1 rounded-full text-[8px] font-black uppercase tracking-widest ${session.status === 'ready' ? 'bg-emerald-500 text-white' : 'bg-slate-100 text-slate-400'}`}>
+                                      {session.status === 'ready' ? 'Ready to Start' : 'Scheduled'}
+                                   </span>
+                                </div>
+                                <div className="space-y-4">
+                                   <div className="space-y-1">
+                                      <p className="text-[10px] font-black text-emerald-600 uppercase tracking-widest">{session.time}</p>
+                                      <h4 className="text-xl font-black text-slate-900 tracking-tight">{session.subject}</h4>
+                                   </div>
+                                   <div className="flex items-center gap-3 text-slate-400 font-bold text-xs pb-4 border-b border-dashed border-slate-100">
+                                      <Users className="w-3.5 h-3.5" />
+                                      {session.grade}
+                                   </div>
+                                   <button 
+                                     onClick={() => window.open('/classroom', '_blank')}
+                                     className="w-full py-4 bg-slate-900 text-white rounded-2xl font-black uppercase tracking-widest text-[9px] flex items-center justify-center gap-2 group-hover:bg-emerald-600 transition-all"
+                                   >
+                                      Open Classroom Link
+                                   </button>
+                                </div>
+                             </div>
+                           ))}
+                        </div>
+                     </div>
+                  </div>
+
+                  <div className="space-y-8">
+                     <div className="p-8 bg-slate-50 border border-slate-100 rounded-[40px] space-y-6">
+                        <div className="flex items-center gap-3">
+                           <div className="p-3 bg-blue-100 text-blue-600 rounded-xl">
+                              <Sparkles className="w-5 h-5" />
+                           </div>
+                           <h4 className="text-sm font-black text-slate-900 uppercase tracking-widest">E-Learning Stats</h4>
+                        </div>
+                        <div className="grid grid-cols-1 gap-4">
+                           <div className="p-6 bg-white rounded-3xl border border-slate-100">
+                              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Total Virtual Sessions</p>
+                              <p className="text-3xl font-black text-slate-900">124</p>
+                           </div>
+                           <div className="p-6 bg-white rounded-3xl border border-slate-100">
+                              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Student Engagement</p>
+                              <p className="text-3xl font-black text-emerald-600">88%</p>
+                           </div>
+                        </div>
+                        <div className="pt-4 space-y-3">
+                           <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Recommended AI Tools</p>
+                           <button className="w-full p-4 bg-white border border-slate-200 rounded-2xl text-[10px] font-bold text-slate-600 hover:border-blue-500 hover:text-blue-600 flex items-center gap-3 transition-all">
+                              <Bot className="w-4 h-4" /> AI Session Transcription
+                           </button>
+                           <button className="w-full p-4 bg-white border border-slate-200 rounded-2xl text-[10px] font-bold text-slate-600 hover:border-blue-500 hover:text-blue-600 flex items-center gap-3 transition-all">
+                              <ClipboardCheck className="w-4 h-4" /> Auto-Attendance Generator
+                           </button>
+                        </div>
+                     </div>
+
+                     <div className="p-8 bg-indigo-50 border border-indigo-100 rounded-[40px] space-y-6">
+                        <h4 className="text-sm font-black text-indigo-900 uppercase tracking-widest italic">Digital Resources</h4>
+                        <p className="text-xs text-indigo-700/70 font-medium">Upload recordings or assignments for your students to access on the web portal.</p>
+                        <div className="flex flex-col gap-3">
+                           <button className="px-6 py-4 bg-indigo-600 text-white rounded-2xl font-black uppercase tracking-widest text-[9px] flex items-center justify-center gap-2">
+                              <UploadCloud className="w-4 h-4" /> Upload New Resource
+                           </button>
+                           <button className="px-6 py-4 bg-white border border-indigo-200 text-indigo-600 rounded-2xl font-black uppercase tracking-widest text-[9px]">
+                              View Resource Library
+                           </button>
+                        </div>
+                     </div>
+                  </div>
+               </div>
+            </div>
+          )}
+
+         {/* Classroom Management Tab */}
         {activeTab === 'management' && (
           <div className="animate-in fade-in duration-300">
              <div className="bg-rose-900 rounded-[40px] text-white p-10 mb-8 border border-rose-800 shadow-xl overflow-hidden relative">

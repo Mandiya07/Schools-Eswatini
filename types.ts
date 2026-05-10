@@ -971,10 +971,12 @@ export interface User {
     availability: {
       days: string[];
       timeRange: string;
+      slots?: { date?: string; time: string; id: string }[];
       status: 'available' | 'busy' | 'away';
     };
     hourlyRate?: number;
     rating?: number;
+    reviews?: number;
     connections?: number;
     weeklyTeachingLoad?: number;
     meetingLink?: string;

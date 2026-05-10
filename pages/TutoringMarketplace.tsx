@@ -1,5 +1,5 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'motion/react';
 import { 
   Star, 
@@ -8,10 +8,11 @@ import {
   Calendar,
   MessageSquare,
   Award,
-  Verified,
   Video,
   MonitorPlay,
-  PenTool
+  PenTool,
+  X,
+  Clock
 } from 'lucide-react';
 
 const mockTutors = [
@@ -26,7 +27,12 @@ const mockTutors = [
     hourlyRate: 150,
     image: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&q=80&w=400',
     status: 'available',
-    meetingType: 'Platform Virtual Classroom'
+    meetingType: 'Platform Virtual Classroom',
+    slots: [
+      { id: '1', date: new Date(Date.now() + 86400000).toISOString().split('T')[0], time: '14:00' },
+      { id: '2', date: new Date(Date.now() + 86400000).toISOString().split('T')[0], time: '15:30' },
+      { id: '3', date: new Date(Date.now() + 86400000 * 2).toISOString().split('T')[0], time: '09:00' }
+    ]
   },
   {
     id: 'tutor-2',
@@ -39,7 +45,10 @@ const mockTutors = [
     hourlyRate: 200,
     image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=400',
     status: 'busy',
-    meetingType: 'Platform Virtual Classroom'
+    meetingType: 'Platform Virtual Classroom',
+    slots: [
+      { id: '4', date: new Date(Date.now() + 86400000).toISOString().split('T')[0], time: '10:00' }
+    ]
   },
   {
     id: 'tutor-3',
@@ -52,11 +61,23 @@ const mockTutors = [
     hourlyRate: 180,
     image: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&q=80&w=400',
     status: 'available',
-    meetingType: 'Platform Virtual Classroom'
+    meetingType: 'Platform Virtual Classroom',
+    slots: []
   }
 ];
 
 const TutoringMarketplace: React.FC = () => {
+  const navigate = useNavigate();
+  const [bookingTutor, setBookingTutor] = useState<typeof mockTutors[0] | null>(null);
+  const [sessionDate, setSessionDate] = useState<string>('');
+  const [sessionTime, setSessionTime] = useState<string>('');
+
+  const handleBooking = () => {
+    if (!sessionDate || !sessionTime || !bookingTutor) return;
+    const checkoutUrl = `/payment-checkout?amount=${bookingTutor.hourlyRate}&ref=BOOK-${bookingTutor.id}-${Date.now()}&tx=TUTOR-${Date.now()}&date=${sessionDate}&time=${sessionTime}`;
+    navigate(checkoutUrl);
+  };
+
   return (
     <div className="min-h-screen bg-slate-50 pt-32 pb-20 px-6 lg:px-8">
       <div className="max-w-7xl mx-auto space-y-16">
@@ -201,7 +222,7 @@ const TutoringMarketplace: React.FC = () => {
                            <Link to="/classroom" className="px-4 py-3 bg-slate-100 text-slate-700 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-slate-200 transition-colors shadow-sm flex items-center gap-1">
                              <Video className="w-4 h-4" /> Preview
                            </Link>
-                           <button className="px-6 py-3 bg-indigo-600 text-white rounded-xl text-[11px] font-black uppercase tracking-widest hover:bg-slate-900 transition-colors shadow-lg">
+                           <button onClick={() => setBookingTutor(tutor)} className="px-6 py-3 bg-indigo-600 text-white rounded-xl text-[11px] font-black uppercase tracking-widest hover:bg-slate-900 transition-colors shadow-lg">
                               Book
                            </button>
                          </div>
@@ -211,6 +232,89 @@ const TutoringMarketplace: React.FC = () => {
            ))}
         </div>
       </div>
+
+      {/* Booking Modal */}
+      {bookingTutor && (
+        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl w-full max-w-md shadow-2xl overflow-hidden">
+            <div className="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50">
+               <h3 className="text-lg font-black text-slate-900 flex items-center gap-2">
+                 <Calendar className="w-5 h-5 text-indigo-600" /> Schedule Session
+               </h3>
+               <button onClick={() => setBookingTutor(null)} className="text-slate-400 hover:text-slate-600">
+                 <X className="w-5 h-5" />
+               </button>
+            </div>
+            
+            <div className="p-6 space-y-6">
+               <div className="flex items-center gap-4 bg-slate-50 p-4 rounded-2xl border border-slate-100">
+                  <img src={bookingTutor.image} className="w-12 h-12 rounded-full object-cover" alt="" />
+                  <div>
+                     <p className="text-sm font-black text-slate-900">{bookingTutor.name}</p>
+                     <p className="text-[10px] font-bold uppercase tracking-widest text-indigo-600">E{bookingTutor.hourlyRate}/Hr</p>
+                  </div>
+               </div>
+
+               <div>
+                 <label className="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">Select Date</label>
+                 <select
+                   value={sessionDate}
+                   onChange={e => {
+                      setSessionDate(e.target.value);
+                      setSessionTime('');
+                   }}
+                   className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 font-bold text-slate-900 focus:ring-2 focus:ring-indigo-500 outline-none appearance-none" 
+                 >
+                   <option value="" disabled>Select available date</option>
+                   {Array.from(new Set(bookingTutor?.slots?.map(s => s.date))).sort().map(d => (
+                     <option key={d} value={d}>{d}</option>
+                   ))}
+                   {(!bookingTutor?.slots || bookingTutor.slots.length === 0) && (
+                     <option value="" disabled>No dates available</option>
+                   )}
+                 </select>
+               </div>
+
+               <div>
+                 <label className="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">Select Available Slot</label>
+                 <div className="relative">
+                   <Clock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                   <select 
+                     value={sessionTime}
+                     onChange={e => setSessionTime(e.target.value)}
+                     disabled={!sessionDate}
+                     className="w-full bg-white border border-slate-200 rounded-xl pl-10 pr-4 py-3 font-bold text-slate-900 focus:ring-2 focus:ring-indigo-500 outline-none appearance-none disabled:opacity-50" 
+                   >
+                     <option value="" disabled>Select a time slot</option>
+                     {bookingTutor?.slots?.filter(s => s.date === sessionDate).map(slot => (
+                       <option key={slot.id} value={slot.time}>{slot.time}</option>
+                     ))}
+                   </select>
+                 </div>
+                 {sessionDate && (
+                   <p className="text-[9px] text-slate-500 mt-2 font-medium">These are the available slots for the selected date.</p>
+                 )}
+               </div>
+            </div>
+
+            <div className="px-6 py-4 bg-slate-50 border-t border-slate-100 flex justify-end gap-3">
+               <button 
+                 onClick={() => setBookingTutor(null)}
+                 className="px-6 py-3 rounded-xl text-xs font-black uppercase tracking-widest text-slate-600 hover:bg-slate-200 transition-colors"
+               >
+                 Cancel
+               </button>
+               <button 
+                 onClick={handleBooking}
+                 disabled={!sessionDate || !sessionTime}
+                 className="px-6 py-3 bg-indigo-600 text-white rounded-xl text-xs font-black uppercase tracking-widest hover:bg-indigo-700 transition-colors shadow-lg disabled:opacity-50 flex items-center gap-2"
+               >
+                 Proceed to Payment
+               </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

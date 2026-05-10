@@ -8,6 +8,8 @@ export default function PaymentCheckoutPage() {
   const tx = searchParams.get('tx');
   const amount = searchParams.get('amount');
   const ref = searchParams.get('ref');
+  const date = searchParams.get('date');
+  const time = searchParams.get('time');
 
   const [processing, setProcessing] = useState(false);
   const [success, setSuccess] = useState(false);
@@ -41,8 +43,14 @@ export default function PaymentCheckoutPage() {
             <CheckCircle className="w-12 h-12" />
           </div>
           <h1 className="text-3xl font-black text-slate-900 tracking-tight mb-2">Payment Successful!</h1>
-          <p className="text-slate-500 font-medium mb-8">Ref: {ref}<br/>Transaction ID: {tx}</p>
-          <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
+          <p className="text-slate-500 font-medium mb-4">Ref: {ref}<br/>Transaction ID: {tx}</p>
+          {date && time && (
+            <div className="bg-emerald-50 rounded-2xl p-4 mb-8 text-emerald-700 w-full">
+              <p className="text-[10px] font-black uppercase tracking-widest mb-1">Session Scheduled</p>
+              <p className="font-bold">{date} at {time}</p>
+            </div>
+          )}
+          <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden mt-4">
              <div className="h-full bg-emerald-500 animate-pulse w-full"></div>
           </div>
           <p className="text-[10px] font-black uppercase tracking-widest text-emerald-600 mt-4">Redirecting you back...</p>
@@ -68,6 +76,12 @@ export default function PaymentCheckoutPage() {
            <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">Amount Due</p>
            <p className="text-5xl font-black text-slate-900 tracking-tighter mb-2">SZL {amount}</p>
            <p className="text-xs font-bold text-slate-400 bg-white inline-block px-3 py-1 rounded-full border border-slate-100">Ref: {ref}</p>
+           {date && time && (
+             <div className="mt-4 p-3 bg-white border border-slate-200 rounded-xl inline-block max-w-[200px] w-full items-center justify-center gap-2 text-slate-700 font-bold mx-auto">
+                <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 block mb-1">Date & Time</span>
+                <span className="text-sm">{date}</span> <span className="text-slate-300">•</span> <span className="text-sm">{time}</span>
+             </div>
+           )}
         </div>
 
         <h2 className="text-sm font-black text-slate-900 uppercase tracking-widest mb-4">Select Payment Method</h2>

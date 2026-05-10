@@ -95,6 +95,15 @@ const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({ institutions,
   const adRevenue = 15000; // Mock current monthly ad revenue
   const b2cSubscriptionRevenue = 25000; // Mock current monthly AI + Tutor subs
 
+  const revenueData6Months = [
+    { month: 'Nov', mrr: mrr * 0.7, ad: adRevenue * 0.6, b2c: b2cSubscriptionRevenue * 0.5 },
+    { month: 'Dec', mrr: mrr * 0.8, ad: adRevenue * 0.7, b2c: b2cSubscriptionRevenue * 0.6 },
+    { month: 'Jan', mrr: mrr * 0.85, ad: adRevenue * 0.8, b2c: b2cSubscriptionRevenue * 0.7 },
+    { month: 'Feb', mrr: mrr * 0.9, ad: adRevenue * 0.85, b2c: b2cSubscriptionRevenue * 0.8 },
+    { month: 'Mar', mrr: mrr * 0.95, ad: adRevenue * 0.9, b2c: b2cSubscriptionRevenue * 0.9 },
+    { month: 'Apr', mrr: mrr, ad: adRevenue, b2c: b2cSubscriptionRevenue },
+  ];
+
   const securityLogs = [
     { id: '1', action: '2FA Enrollment', user: 'principal@waterford.sz', ip: '196.24.12.5', timestamp: '2023-11-23 10:12' },
     { id: '2', action: 'Plan Upgrade: Premium', user: 'admin@stmarks.sz', ip: '196.24.15.82', timestamp: '2023-11-23 11:45' },
@@ -189,49 +198,87 @@ const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({ institutions,
 
       {activeTab === 'overview' ? (
         <>
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-10 mb-10">
-            <div className="bg-white p-10 rounded-[48px] border border-slate-100 shadow-sm col-span-1 flex flex-col items-center">
-               <h3 className="text-sm font-black text-slate-900 uppercase tracking-widest mb-10 text-center">Plan Distribution</h3>
-               <div className="h-64 w-full">
-                  <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
-                     <PieChart>
-                        <Pie data={planData} innerRadius={60} outerRadius={80} paddingAngle={5} dataKey="value">
-                           {planData.map((entry, index) => <Cell key={`cell-${index}`} fill={entry.color} />)}
-                        </Pie>
-                        <Tooltip contentStyle={{ borderRadius: '24px', border: 'none' }} />
-                     </PieChart>
-                  </ResponsiveContainer>
-               </div>
-               <div className="flex gap-4 mt-6">
-                  {planData.map(p => (
-                    <div key={p.name} className="flex items-center gap-2">
-                       <div className="w-3 h-3 rounded-full" style={{backgroundColor: p.color}} />
-                       <span className="text-[10px] font-black uppercase text-slate-500">{p.name}</span>
-                    </div>
-                  ))}
-               </div>
+          {/* Main Stats Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+            <div className="bg-white p-8 rounded-[32px] border border-slate-100 shadow-sm">
+              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Total Institutions</p>
+              <p className="text-3xl font-black text-slate-900">{institutions.length}</p>
             </div>
+            <div className="bg-white p-8 rounded-[32px] border border-slate-100 shadow-sm">
+              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Pending Verifications</p>
+              <p className="text-3xl font-black text-amber-600">{institutions.filter(i => i.verificationStatus === 'pending').length}</p>
+            </div>
+            <div className="bg-white p-8 rounded-[32px] border border-slate-100 shadow-sm">
+              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Current MRR</p>
+              <p className="text-3xl font-black text-emerald-600">E{mrr.toLocaleString()}</p>
+            </div>
+          </div>
 
-            <div className="bg-white p-10 rounded-[48px] border border-slate-100 shadow-sm col-span-2 overflow-hidden">
-               <h3 className="text-sm font-black text-slate-900 uppercase tracking-widest mb-10">Security Activity Feed</h3>
-               <div className="space-y-6">
-                  {securityLogs.map(log => (
-                    <div key={log.id} className="flex items-center justify-between p-6 bg-slate-50 rounded-3xl group hover:bg-slate-100 transition-colors">
-                       <div className="flex items-center gap-4">
-                          <div className="w-10 h-10 bg-white rounded-2xl flex items-center justify-center text-xl shadow-sm">🔒</div>
-                          <div>
-                             <p className="text-xs font-black text-slate-900">{log.action}</p>
-                             <p className="text-[10px] text-slate-500 font-medium">{log.user}</p>
-                          </div>
-                       </div>
-                       <div className="text-right">
-                          <p className="text-[10px] font-black text-slate-400">{log.ip}</p>
-                          <p className="text-[10px] font-bold text-slate-400 uppercase">{log.timestamp}</p>
-                       </div>
-                    </div>
-                  ))}
-               </div>
+          {/* Key Performance Indicators */}
+          <div className="mb-10">
+            <h3 className="text-sm font-black text-slate-900 uppercase tracking-widest mb-6">Key Performance Indicators</h3>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
+              <div className="bg-white p-10 rounded-[48px] border border-slate-100 shadow-sm flex flex-col items-center">
+                 <h4 className="text-sm font-black text-slate-900 uppercase tracking-widest mb-10 text-center">Plan Distribution</h4>
+                 <div className="h-64 w-full">
+                    <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
+                       <PieChart>
+                          <Pie data={planData} innerRadius={60} outerRadius={80} paddingAngle={5} dataKey="value">
+                             {planData.map((entry, index) => <Cell key={`cell-${index}`} fill={entry.color} />)}
+                          </Pie>
+                          <Tooltip contentStyle={{ borderRadius: '24px', border: 'none' }} />
+                       </PieChart>
+                    </ResponsiveContainer>
+                 </div>
+                 <div className="flex gap-4 mt-6">
+                    {planData.map(p => (
+                      <div key={p.name} className="flex items-center gap-2">
+                         <div className="w-3 h-3 rounded-full" style={{backgroundColor: p.color}} />
+                         <span className="text-[10px] font-black uppercase text-slate-500">{p.name}</span>
+                      </div>
+                    ))}
+                 </div>
+              </div>
+
+              <div className="bg-white p-10 rounded-[48px] border border-slate-100 shadow-sm">
+                 <h4 className="text-sm font-black text-slate-900 uppercase tracking-widest mb-10 text-center">Monthly Revenue (6 Months)</h4>
+                 <div className="h-64 w-full">
+                    <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
+                      <LineChart data={revenueData6Months} margin={{ top: 5, right: 20, bottom: 5, left: 0 }}>
+                        <Line type="monotone" dataKey="mrr" name="MRR" stroke="#8884d8" strokeWidth={3} dot={{ r: 4 }} activeDot={{ r: 6 }} />
+                        <Line type="monotone" dataKey="ad" name="Ad Revenue" stroke="#82ca9d" strokeWidth={3} />
+                        <Line type="monotone" dataKey="b2c" name="B2C Subs" stroke="#ffc658" strokeWidth={3} />
+                        <CartesianGrid stroke="#ccc" strokeDasharray="5 5" vertical={false} />
+                        <XAxis dataKey="month" tickLine={false} axisLine={false} tick={{ fontSize: 10, fill: '#94a3b8', fontWeight: 700 }} />
+                        <YAxis tickFormatter={(val) => `E${val / 1000}k`} tickLine={false} axisLine={false} tick={{ fontSize: 10, fill: '#94a3b8', fontWeight: 700 }} />
+                        <Tooltip contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} cursor={{ strokeDasharray: '3 3' }} />
+                        <Legend wrapperStyle={{ fontSize: '10px', fontWeight: 700, marginTop: '20px' }} />
+                      </LineChart>
+                    </ResponsiveContainer>
+                 </div>
+              </div>
             </div>
+          </div>
+
+          <div className="bg-white p-10 rounded-[48px] border border-slate-100 shadow-sm mb-10 overflow-hidden">
+             <h3 className="text-sm font-black text-slate-900 uppercase tracking-widest mb-10">Security Activity Feed</h3>
+             <div className="space-y-6">
+                {securityLogs.map(log => (
+                  <div key={log.id} className="flex items-center justify-between p-6 bg-slate-50 rounded-3xl group hover:bg-slate-100 transition-colors">
+                     <div className="flex items-center gap-4">
+                        <div className="w-10 h-10 bg-white rounded-2xl flex items-center justify-center text-xl shadow-sm">🔒</div>
+                        <div>
+                           <p className="text-xs font-black text-slate-900">{log.action}</p>
+                           <p className="text-[10px] text-slate-500 font-medium">{log.user}</p>
+                        </div>
+                     </div>
+                     <div className="text-right">
+                        <p className="text-[10px] font-black text-slate-400">{log.ip}</p>
+                        <p className="text-[10px] font-bold text-slate-400 uppercase">{log.timestamp}</p>
+                     </div>
+                  </div>
+                ))}
+             </div>
           </div>
           
           <div className="bg-slate-900 text-white p-12 rounded-[48px] shadow-2xl flex flex-col md:flex-row justify-between items-center gap-8">

@@ -41,38 +41,127 @@ const VirtualClassroom: React.FC = () => {
 
   // Video state
   const [localStream, setLocalStream] = useState<MediaStream | null>(null);
+  const localStreamRef = useRef<MediaStream | null>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
+  
+  // Multi-peer state
+  const [peerStreams, setPeerStreams] = useState<{ [key: string]: MediaStream }>({});
+  const peersRef = useRef<{ [key: string]: RTCPeerConnection }>({});
 
   useEffect(() => {
-    // Basic setup for socket implementation
-    socket.emit('join-room', 'demo-room', 'student');
+    const initWebRTCAndSocket = async () => {
+      await startVideo();
+      // Basic setup for socket implementation
+      socket.emit('join-room', 'demo-room');
 
-    socket.on('chat-message', (msg) => {
-      setChatMessages((prev) => [...prev, msg]);
-    });
+      socket.on('user-connected', async (newUserId) => {
+        const pc = createConnection(newUserId);
+        peersRef.current[newUserId] = pc;
+        if (localStreamRef.current) {
+          localStreamRef.current.getTracks().forEach(track => pc.addTrack(track, localStreamRef.current!));
+        }
+        const offer = await pc.createOffer();
+        await pc.setLocalDescription(offer);
+        socket.emit('offer', { target: newUserId, offer });
+      });
 
-    socket.on('draw', (drawingLines) => {
-       setLines(drawingLines);
-    });
+      socket.on('offer', async (payload) => {
+        const pc = createConnection(payload.caller);
+        peersRef.current[payload.caller] = pc;
+        if (localStreamRef.current) {
+          localStreamRef.current.getTracks().forEach(track => pc.addTrack(track, localStreamRef.current!));
+        }
+        await pc.setRemoteDescription(payload.offer);
+        const answer = await pc.createAnswer();
+        await pc.setLocalDescription(answer);
+        socket.emit('answer', { target: payload.caller, answer });
+      });
 
-    socket.on('clear-board', () => {
-       setLines([]);
-    });
+      socket.on('answer', async (payload) => {
+        if (peersRef.current[payload.caller]) {
+          await peersRef.current[payload.caller].setRemoteDescription(payload.answer);
+        }
+      });
 
-    startVideo();
+      socket.on('ice-candidate', (incoming) => {
+        if (peersRef.current[incoming.sender] && incoming.candidate) {
+          peersRef.current[incoming.sender].addIceCandidate(incoming.candidate).catch(e => console.error(e));
+        }
+      });
+
+      socket.on('user-disconnected', (userId) => {
+        if (peersRef.current[userId]) {
+           peersRef.current[userId].close();
+           delete peersRef.current[userId];
+           setPeerStreams(prev => {
+              const newStreams = {...prev};
+              delete newStreams[userId];
+              return newStreams;
+           });
+        }
+      });
+
+      socket.on('chat-message', (msg) => {
+        setChatMessages((prev) => [...prev, msg]);
+      });
+
+      socket.on('draw', (drawingLines) => {
+         setLines(drawingLines);
+      });
+
+      socket.on('clear-board', () => {
+         setLines([]);
+      });
+
+      socket.on('file-share', (fileData) => {
+         setSharedFiles(prev => [...prev, fileData]);
+      });
+    };
+
+    initWebRTCAndSocket();
 
     return () => {
+      socket.off('user-connected');
+      socket.off('offer');
+      socket.off('answer');
+      socket.off('ice-candidate');
+      socket.off('user-disconnected');
       socket.off('chat-message');
       socket.off('draw');
       socket.off('clear-board');
+      socket.off('file-share');
       stopVideo();
+      Object.values(peersRef.current).forEach(pc => pc.close());
+      peersRef.current = {};
     };
   }, []);
+
+  const createConnection = (targetId: string) => {
+    const pc = new RTCPeerConnection({
+        iceServers: [{ urls: 'stun:stun.l.google.com:19302' }]
+    });
+
+    pc.onicecandidate = (event) => {
+       if (event.candidate) {
+          socket.emit('ice-candidate', { target: targetId, candidate: event.candidate });
+       }
+    };
+
+    pc.ontrack = (event) => {
+       setPeerStreams(prev => ({
+         ...prev,
+         [targetId]: event.streams[0]
+       }));
+    };
+
+    return pc;
+  };
 
   const startVideo = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
       setLocalStream(stream);
+      localStreamRef.current = stream;
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
       }
@@ -195,7 +284,7 @@ const VirtualClassroom: React.FC = () => {
 
   // File state
   const [sharedFiles, setSharedFiles] = useState<any[]>([
-    { name: 'Math_SGCSE_2023_Past_Paper.pdf', size: '2.4 MB', sender: 'Tutor' }
+    { name: 'Math_SGCSE_2023_Past_Paper.pdf', size: '2.4 MB', sender: 'Tutor', dataUrl: null }
   ]);
 
   const handleDrop = (e: React.DragEvent) => {
@@ -203,17 +292,38 @@ const VirtualClassroom: React.FC = () => {
     const files = e.dataTransfer.files;
     if (files.length > 0) {
       const file = files[0];
-      const newFile = {
-        name: file.name,
-        size: (file.size / (1024 * 1024)).toFixed(1) + ' MB',
-        sender: 'You'
+      const reader = new FileReader();
+      
+      reader.onload = (event) => {
+        const newFile = {
+          name: file.name,
+          size: (file.size / (1024 * 1024)).toFixed(1) + ' MB',
+          sender: 'You',
+          dataUrl: event.target?.result as string
+        };
+        setSharedFiles(prev => [...prev, newFile]);
+        socket.emit('file-share', {...newFile, sender: 'Peer'});
       };
-      setSharedFiles(prev => [...prev, newFile]);
+      
+      reader.readAsDataURL(file);
     }
   };
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
+  };
+
+  const handleDownload = (file: any) => {
+    if (!file.dataUrl) {
+      alert("This is a demo file. You cannot download it.");
+      return;
+    }
+    const a = document.createElement('a');
+    a.href = file.dataUrl;
+    a.download = file.name;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
   };
 
   return (
@@ -305,32 +415,68 @@ const VirtualClassroom: React.FC = () => {
                  </div>
               </div>
             ) : (
-               <div className="w-[calc(100%-48px)] h-[calc(100%-48px)] relative rounded-3xl overflow-hidden bg-slate-900">
-                  <img src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&q=80&w=1200" alt="Tutor" className="w-full h-full object-cover" />
-                  <div className="absolute bottom-6 left-6 px-4 py-2 bg-black/60 backdrop-blur-md rounded-xl text-white font-bold tracking-wide">
-                     Mr. Sipho Dlamini
-                  </div>
+               <div className="w-[calc(100%-48px)] h-[calc(100%-48px)] relative rounded-3xl overflow-hidden bg-slate-900 flex items-center justify-center">
+                  {Object.keys(peerStreams).length > 0 ? (
+                    <div className={`grid w-full h-full gap-4 p-4 ${Object.keys(peerStreams).length === 1 ? 'grid-cols-1' : Object.keys(peerStreams).length <= 4 ? 'grid-cols-2' : 'grid-cols-3'}`}>
+                      {Object.entries(peerStreams).map(([id, stream]) => (
+                        <div key={id} className="relative rounded-2xl overflow-hidden bg-slate-800 shadow-lg border border-white/10">
+                          <video 
+                            ref={(el) => { if (el) el.srcObject = stream; }}
+                            autoPlay 
+                            playsInline 
+                            className="w-full h-full object-cover" 
+                          />
+                          <div className="absolute bottom-4 left-4 px-3 py-1.5 bg-black/60 backdrop-blur-md rounded-lg text-white font-bold text-sm tracking-wide">
+                             Student
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-slate-500 font-bold uppercase tracking-widest text-sm animate-pulse flex flex-col items-center">
+                      <MonitorUp className="w-12 h-12 mb-4 opacity-50" />
+                      Waiting for participants...
+                    </div>
+                  )}
                </div>
             )}
 
-            {/* Picture-in-Picture (Student Video) */}
-            <div className="absolute bottom-6 right-6 w-64 aspect-video bg-slate-800 rounded-2xl border-2 border-white/10 overflow-hidden shadow-2xl">
-               {!isVideoOff ? (
-                 <video 
-                   ref={videoRef} 
-                   autoPlay 
-                   playsInline 
-                   muted 
-                   className="w-full h-full object-cover transform -scale-x-100" 
-                 />
-               ) : (
-                 <div className="w-full h-full flex flex-col items-center justify-center text-slate-500">
-                    <VideoOff className="w-8 h-8 mb-2" />
-                    <span className="text-xs font-bold uppercase tracking-widest">Camera Off</span>
+            {/* Picture-in-Picture (Student Video + Mini Peers) */}
+            <div className="absolute bottom-6 right-6 flex gap-4">
+               {/* Show smaller peer PIPs when in Whiteboard mode */}
+               {viewMode === 'whiteboard' && Object.entries(peerStreams).map(([id, stream]) => (
+                 <div key={id} className="w-48 aspect-video bg-slate-800 rounded-2xl border-2 border-white/10 overflow-hidden shadow-2xl relative">
+                    <video 
+                      ref={(el) => { if (el) el.srcObject = stream; }}
+                      autoPlay 
+                      playsInline 
+                      className="w-full h-full object-cover" 
+                    />
+                    <div className="absolute bottom-2 left-2 px-2 py-1 bg-black/60 backdrop-blur-md rounded text-[10px] text-white font-bold">
+                       Student
+                    </div>
                  </div>
-               )}
-               <div className="absolute bottom-2 left-2 px-2 py-1 bg-black/60 backdrop-blur-md rounded text-[10px] text-white font-bold">
-                  You
+               ))}
+
+               {/* Local Self-View */}
+               <div className="w-48 aspect-video bg-slate-800 rounded-2xl border-2 border-indigo-500/50 overflow-hidden shadow-2xl relative">
+                  {!isVideoOff ? (
+                    <video 
+                      ref={videoRef} 
+                      autoPlay 
+                      playsInline 
+                      muted 
+                      className="w-full h-full object-cover transform -scale-x-100" 
+                    />
+                  ) : (
+                    <div className="w-full h-full flex flex-col items-center justify-center text-slate-500">
+                       <VideoOff className="w-6 h-6 mb-2" />
+                       <span className="text-[10px] font-bold uppercase tracking-widest">Camera Off</span>
+                    </div>
+                  )}
+                  <div className="absolute bottom-2 left-2 px-2 py-1 bg-indigo-600 backdrop-blur-md rounded text-[10px] text-white font-bold">
+                     You
+                  </div>
                </div>
             </div>
           </div>
@@ -475,7 +621,30 @@ const VirtualClassroom: React.FC = () => {
                   className="border-2 border-dashed border-white/10 rounded-3xl p-8 flex flex-col items-center justify-center text-center hover:bg-white/5 hover:border-indigo-500/50 transition-all cursor-pointer group mb-8"
                   onDrop={handleDrop}
                   onDragOver={handleDragOver}
+                  onClick={() => document.getElementById('file-upload')?.click()}
                 >
+                  <input 
+                    type="file" 
+                    id="file-upload" 
+                    className="hidden" 
+                    onChange={(e) => {
+                      if (e.target.files && e.target.files.length > 0) {
+                        const file = e.target.files[0];
+                        const reader = new FileReader();
+                        reader.onload = (event) => {
+                          const newFile = {
+                            name: file.name,
+                            size: (file.size / (1024 * 1024)).toFixed(1) + ' MB',
+                            sender: 'You',
+                            dataUrl: event.target?.result as string
+                          };
+                          setSharedFiles(prev => [...prev, newFile]);
+                          socket.emit('file-share', {...newFile, sender: 'Peer'});
+                        };
+                        reader.readAsDataURL(file);
+                      }
+                    }}
+                  />
                   <div className="w-12 h-12 bg-slate-800 rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
                     <Files className="w-5 h-5 text-indigo-400" />
                   </div>
@@ -497,7 +666,7 @@ const VirtualClassroom: React.FC = () => {
                            <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Shared by {f.sender} • {f.size}</p>
                          </div>
                       </div>
-                      <button className="w-8 h-8 rounded-full bg-slate-700 flex items-center justify-center text-slate-300 hover:bg-blue-600 hover:text-white transition-colors shrink-0">
+                      <button onClick={() => handleDownload(f)} className="w-8 h-8 rounded-full bg-slate-700 flex items-center justify-center text-slate-300 hover:bg-blue-600 hover:text-white transition-colors shrink-0">
                         <Download className="w-4 h-4" />
                       </button>
                     </div>

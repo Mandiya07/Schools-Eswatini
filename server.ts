@@ -53,24 +53,29 @@ async function startServer() {
     console.log("User connected:", socket.id);
 
     // Join a classroom room
-    socket.on("join-room", (roomId, userId) => {
+    socket.on("join-room", (roomId) => {
       socket.join(roomId);
       // broadcast to others in room
-      socket.to(roomId).emit("user-connected", userId);
+      socket.to(roomId).emit("user-connected", socket.id);
 
       socket.on("disconnect", () => {
-        socket.to(roomId).emit("user-disconnected", userId);
+        socket.to(roomId).emit("user-disconnected", socket.id);
       });
       
       // Signaling
       socket.on("offer", (payload) => {
-        io.to(payload.target).emit("offer", payload);
+        io.to(payload.target).emit("offer", { ...payload, caller: socket.id });
       });
       socket.on("answer", (payload) => {
-        io.to(payload.target).emit("answer", payload);
+        io.to(payload.target).emit("answer", { ...payload, caller: socket.id });
       });
       socket.on("ice-candidate", (incoming) => {
-        io.to(incoming.target).emit("ice-candidate", incoming);
+        io.to(incoming.target).emit("ice-candidate", { ...incoming, sender: socket.id });
+      });
+
+      // Files
+      socket.on("file-share", (fileData) => {
+        socket.to(roomId).emit("file-share", fileData);
       });
 
       // Chat
