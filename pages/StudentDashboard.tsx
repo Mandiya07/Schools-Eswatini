@@ -10,7 +10,7 @@ import {
   Users2,
   AlertCircle,
   Star,
-  Video
+  Video as VideoIcon
 } from 'lucide-react';
 import { User, UserRole, InstitutionType, WellnessArticle } from '../types';
 import { db, doc, getDoc, getDocWithRetry } from '../src/lib/firebase';
@@ -127,7 +127,7 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ user }) => {
           </button>
 
           <button onClick={() => setActiveTab('virtual_classroom')} className={`px-8 py-4 rounded-full text-[10px] font-black uppercase tracking-widest flex items-center gap-3 transition-all ${activeTab === 'virtual_classroom' ? 'bg-emerald-600 text-white shadow-xl shadow-emerald-500/20' : 'bg-white text-slate-500 hover:bg-slate-100 border border-slate-200'}`}>
-            <Video className="w-4 h-4" /> Live Classroom
+            <VideoIcon className="w-4 h-4" /> Live Classroom
           </button>
           
           <button onClick={() => setActiveTab('wellness')} className={`px-8 py-4 rounded-full text-[10px] font-black uppercase tracking-widest flex items-center gap-3 transition-all ${activeTab === 'wellness' ? 'bg-rose-500 text-white shadow-xl' : 'bg-white text-slate-500 hover:bg-slate-100 border border-slate-200'}`}>
@@ -149,12 +149,12 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ user }) => {
 
         {/* Main Content Area */}
         <motion.div initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} className="space-y-8">
-            {activeTab === 'academics' && <AcademicsView institutionType={institutionType} />}
+            {activeTab === 'academics' && <AcademicsView institutionType={institutionType} user={user} />}
             {activeTab === 'virtual_classroom' && (
               <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4">
                 <div className="p-12 bg-emerald-900 rounded-[48px] text-white relative overflow-hidden">
                    <div className="absolute top-0 right-0 p-12 opacity-10">
-                      <Video className="w-48 h-48" />
+                      <VideoIcon className="w-48 h-48" />
                    </div>
                    <div className="relative z-10 space-y-6">
                       <span className="px-4 py-2 bg-emerald-500/20 text-emerald-400 rounded-full text-[10px] font-black uppercase tracking-widest border border-emerald-500/30">Active Online Schooling</span>

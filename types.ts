@@ -114,9 +114,10 @@ export interface WorkflowTask {
   institutionId: string;
   title: string;
   description: string;
-  status: 'pending' | 'completed' | 'overdue';
-  dueDate: string;
-  type: 'document_expiry' | 'application_review' | 'inquiry_followup';
+  status: 'pending' | 'completed' | 'overdue' | 'Pending' | 'In Progress' | 'New';
+  dueDate?: string;
+  date?: string;
+  type: 'document_expiry' | 'application_review' | 'inquiry_followup' | 'warning' | 'info' | 'success';
 }
 
 export interface Notification {
@@ -250,6 +251,7 @@ export interface LeadershipMember {
   name: string;
   title: string;
   description?: string;
+  bio?: string;
   photo?: string;
   qualifications?: string;
   experience?: string;
@@ -369,7 +371,6 @@ export interface Institution {
   isFlagged?: boolean;
   flagReason?: string;
   accreditationStatus?: 'accredited' | 'provisional' | 'expired' | 'not_accredited';
-  lastInspectionDate?: string;
   examResults?: ExamResult[];
   performanceHistory?: SchoolPerformance[];
   plan: SubscriptionPlan;
@@ -549,6 +550,7 @@ export interface Institution {
     establishedYear: number;
     studentCount: number;
     hasStudentPortal: boolean;
+    students?: Student[];
   };
   contact: {
     address: string;
@@ -837,7 +839,7 @@ export interface Institution {
       featuredPostId?: string;
       posts: BlogPost[];
       events: EventItem[];
-      gallery: { url: string; caption: string; type: 'photo' | 'video' }[];
+      gallery: { id: string; url: string; title: string; type: 'image' | 'video'; createdAt: string }[];
       newsletterCta: string;
     };
     studentLife: {
@@ -853,9 +855,12 @@ export interface Institution {
         description: string;
       };
       clubs: {
+        id?: string | number;
         name: string;
         focus: string;
         description: string;
+        icon?: string;
+        category?: string;
       }[];
       arts: {
         activities: string[];
@@ -867,8 +872,11 @@ export interface Institution {
         development?: string;
       };
       facilities: {
+        id?: string | number;
         name: string;
         description: string;
+        icon?: string;
+        image?: string;
       }[];
       support: {
         services: string[];
@@ -961,6 +969,7 @@ export interface User {
   linkedStudentIds?: string[]; // For parents to track their children
   isVerified: boolean;
   twoFactorEnabled: boolean;
+  isAiPro?: boolean;
   aiCredits?: number; // Free tier credits
   isAiSubscriptionActive?: boolean; // B2C E50.00/month status
   isTutorSubscriptionActive?: boolean; // B2C E50.00/month status
@@ -986,6 +995,17 @@ export interface User {
     contactPhone?: string;
     contactEmail?: string;
     bio?: string;
+  };
+  permissions?: {
+    canEditNews?: boolean;
+    canEditStudentLife?: boolean;
+    canEditAdmissions?: boolean;
+    canEditAcademics?: boolean;
+    canManagePortal?: boolean;
+    canManageFinance?: boolean;
+    canManageInventory?: boolean;
+    canManageStudents?: boolean;
+    canManageStaff?: boolean;
   };
 }
 

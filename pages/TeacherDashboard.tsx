@@ -1,10 +1,14 @@
 
 import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'motion/react';
 import { User, UserRole, StudentProgress, AcademicResource, InstitutionType, BehaviorLog, HomeworkTask } from '../types';
 import { db, collection, query, where, getDocs, setDoc, doc, getDoc, OperationType, handleFirestoreError, getDocWithRetry, getDocsWithRetry } from '../src/lib/firebase';
-import { BookOpen, Activity, Users, Save, Edit2, CheckCircle, GraduationCap, ClipboardList, TrendingUp, Search, Plus, X, FolderOpen, FileText, Download, UploadCloud, FileArchive, Lightbulb, Star, Bot, Sparkles, Loader2, CalendarCheck, BellRing, UserCheck, UserX, Award, ShieldAlert, MessageSquare, Briefcase, ChevronRight, History, ClipboardCheck, Info, ArrowUpDown } from 'lucide-react';
+import { BookOpen, Activity, Users, Save, Edit2, CheckCircle, GraduationCap, ClipboardList, TrendingUp, Search, Plus, X, FolderOpen, FileText, Download, UploadCloud, FileArchive, Lightbulb, Star, Bot, Sparkles, Loader2, CalendarCheck, BellRing, UserCheck, UserX, Award, ShieldAlert, MessageSquare, Briefcase, ChevronRight, ChevronDown, History, ClipboardCheck, Info, ArrowUpDown, Video as VideoIcon, Clock, ArrowRight, ShoppingBag } from 'lucide-react';
 import { GoogleGenAI } from "@google/genai";
+
+import { uploadFile } from '../src/services/storageService';
+import { requestToPay, checkPaymentStatus } from '../src/services/momoService';
+import { Phone } from 'lucide-react';
 
 interface TeacherDashboardProps {
   user: User;
@@ -65,14 +69,29 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({ user }) => {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editForm, setEditForm] = useState<Partial<StudentProgress>>({});
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'success' | 'error'>('idle');
+  const [isPurchasing, setIsPurchasing] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [mgmtSearchTerm, setMgmtSearchTerm] = useState('');
   const [selectedGrade, setSelectedGrade] = useState<string>('All Grades');
   const [selectedClass, setSelectedClass] = useState<string>('All Classes');
   const [sortOption, setSortOption] = useState<string>('name_asc');
   const [isCreating, setIsCreating] = useState(false);
+  const [expandedReportIds, setExpandedReportIds] = useState<string[]>([]);
+  const [showMomoModal, setShowMomoModal] = useState<AcademicResource | null>(null);
+  const [phoneNumber, setPhoneNumber] = useState('76');
+  const [paymentStatus, setPaymentStatus] = useState<'idle' | 'pending' | 'success' | 'failed'>('idle');
+  const [referenceId, setReferenceId] = useState<string | null>(null);
+
+  const toggleReportExpansion = (id: string) => {
+    setExpandedReportIds(prev => 
+      prev.includes(id) ? prev.filter(item => item !== id) : [...prev, id]
+    );
+  };
 
   // Resource Upload States
+  const [isUploadingResource, setIsUploadingResource] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const resourceInputRef = React.useRef<HTMLInputElement>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadForm, setUploadForm] = useState<Partial<AcademicResource>>({
     type: 'past_paper',
@@ -119,6 +138,58 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({ user }) => {
     status: 'active'
   });
 
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+    if (paymentStatus === 'pending' && referenceId) {
+      interval = setInterval(async () => {
+        try {
+          const status = await checkPaymentStatus(referenceId);
+          if (status.status === 'SUCCESSFUL') {
+            setPaymentStatus('success');
+            setIsPurchasing(null);
+            clearInterval(interval);
+          } else if (status.status === 'FAILED' || status.status === 'REJECTED') {
+            setPaymentStatus('failed');
+            setIsPurchasing(null);
+            clearInterval(interval);
+          }
+        } catch (error) {
+          console.error("Polling error", error);
+        }
+      }, 5000);
+    }
+    return () => clearInterval(interval);
+  }, [paymentStatus, referenceId]);
+
+  const handlePurchase = (resource: AcademicResource) => {
+    if (resource.price === 0) {
+      window.open(resource.url, '_blank');
+      return;
+    }
+    setShowMomoModal(resource);
+    setPaymentStatus('idle');
+    setReferenceId(null);
+  };
+
+  const handleMomoPay = async () => {
+    if (!showMomoModal) return;
+    if (!phoneNumber.match(/^(76|78|79)\d{6}$/)) {
+      alert("Please enter a valid Eswatini MTN MoMo number (76xxxxxx)");
+      return;
+    }
+
+    setIsPurchasing(showMomoModal.id);
+    setPaymentStatus('pending');
+    try {
+      const res = await requestToPay(showMomoModal, phoneNumber);
+      setReferenceId(res.referenceId);
+    } catch (error: any) {
+      alert(error.message);
+      setPaymentStatus('failed');
+      setIsPurchasing(null);
+    }
+  };
+
   const handleUpdateTeacherProfile = async () => {
     setSaveStatus('saving');
     try {
@@ -152,21 +223,43 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({ user }) => {
 
   const handleUploadSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const newResource = {
-      ...uploadForm,
-      id: `res_${Date.now()}`,
-      authorName: user.name,
-      authorId: user.id,
-      size: '1.2 MB',
-      downloads: 0,
-      rating: 0,
-      date: new Date().toISOString().split('T')[0],
-      createdAt: new Date().toISOString()
-    };
-    setResources([newResource, ...resources]);
-    setIsUploading(false);
-    setUploadForm({ type: 'past_paper', title: '', subject: '', level: 'EGCSE', price: 0 });
-    triggerAlert('merit', 'Resource uploaded successfully!');
+    if (!selectedFile) {
+      alert("Please select a file to upload.");
+      return;
+    }
+
+    setIsUploadingResource(true);
+    try {
+      const path = `resources/${user.id}/${Date.now()}_${selectedFile.name}`;
+      const downloadUrl = await uploadFile(path, selectedFile);
+
+      const newResource: AcademicResource = {
+        ...(uploadForm as any),
+        id: `res_${Date.now()}`,
+        authorName: user.name,
+        authorId: user.id,
+        size: `${(selectedFile.size / (1024 * 1024)).toFixed(2)} MB`,
+        downloads: 0,
+        rating: 0,
+        date: new Date().toISOString().split('T')[0],
+        url: downloadUrl,
+        createdAt: new Date().toISOString()
+      };
+
+      // Save to Firestore
+      await setDoc(doc(db, 'resources', newResource.id), newResource);
+      
+      setResources([newResource, ...resources]);
+      setIsUploading(false);
+      setSelectedFile(null);
+      setUploadForm({ type: 'past_paper', title: '', subject: '', level: 'EGCSE', price: 0 });
+      triggerAlert('merit', 'Resource uploaded successfully!');
+    } catch (error) {
+      console.error("Upload failed", error);
+      triggerAlert('alert', 'Resource upload failed. Please try again.');
+    } finally {
+      setIsUploadingResource(false);
+    }
   };
 
   const [institutionType, setInstitutionType] = useState<InstitutionType | null>(null);
@@ -584,6 +677,109 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({ user }) => {
 
   return (
     <div className="max-w-7xl mx-auto px-6 py-12 relative">
+      <AnimatePresence>
+        {showMomoModal && (
+          <motion.div 
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md"
+          >
+            <motion.div 
+              initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }}
+              className="bg-white p-8 rounded-[40px] shadow-2xl max-w-md w-full border border-slate-100 text-center"
+            >
+              <div className="w-20 h-20 bg-amber-100 rounded-3xl flex items-center justify-center mx-auto mb-6">
+                <ShoppingBag className="w-10 h-10 text-amber-600" />
+              </div>
+              
+              <h3 className="text-2xl font-black text-slate-900 mb-2">Purchase Resource</h3>
+              <p className="text-slate-500 font-medium mb-8">
+                You are purchasing <span className="font-bold text-slate-900">{showMomoModal.title}</span> for <span className="font-bold text-emerald-600">E{showMomoModal.price}</span>
+              </p>
+
+              {paymentStatus === 'idle' ? (
+                <div className="space-y-6">
+                  <div className="relative">
+                    <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+                    <input 
+                      type="text" 
+                      value={phoneNumber}
+                      onChange={(e) => setPhoneNumber(e.target.value)}
+                      placeholder="MTN Mobile Number (76xxxxxx)"
+                      className="w-full pl-12 pr-6 py-4 bg-slate-100 border-none rounded-2xl font-bold text-slate-900 focus:ring-2 focus:ring-blue-500 transition-all text-center"
+                    />
+                  </div>
+                  <button 
+                    onClick={handleMomoPay}
+                    className="w-full py-4 bg-slate-900 text-white rounded-2xl text-xs font-black uppercase tracking-widest hover:bg-blue-600 transition-all"
+                  >
+                    Pay with MTN MoMo
+                  </button>
+                  <button 
+                    onClick={() => setShowMomoModal(null)}
+                    className="w-full py-4 bg-slate-100 text-slate-500 rounded-2xl text-xs font-black uppercase tracking-widest hover:bg-slate-200 transition-all"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              ) : paymentStatus === 'pending' ? (
+                <div className="py-10">
+                  <Loader2 className="w-12 h-12 text-blue-600 animate-spin mx-auto mb-6" />
+                  <h4 className="text-lg font-black text-slate-900 mb-2">Payment Pending</h4>
+                  <p className="text-sm font-medium text-slate-500">
+                    Check your phone and enter your MoMo PIN to authorize <span className="font-bold">E{showMomoModal.price}</span>.
+                  </p>
+                </div>
+              ) : paymentStatus === 'success' ? (
+                <div className="py-10">
+                   <div className="w-16 h-16 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                    <CheckCircle className="w-8 h-8 text-emerald-600" />
+                  </div>
+                  <h4 className="text-lg font-black text-slate-900 mb-2">Success!</h4>
+                  <p className="text-sm font-medium text-slate-500 mb-8">
+                    Resource unlocked.
+                  </p>
+                  <a 
+                    href={showMomoModal.url} 
+                    target="_blank" 
+                    rel="noreferrer"
+                    className="inline-flex items-center gap-2 px-8 py-4 bg-emerald-600 text-white rounded-2xl text-xs font-black uppercase tracking-widest hover:bg-emerald-700 transition-all"
+                  >
+                    <Download className="w-5 h-5" /> Download Now
+                  </a>
+                  <button 
+                    onClick={() => setShowMomoModal(null)}
+                    className="block w-full mt-4 text-[10px] font-black text-slate-400 uppercase tracking-widest hover:text-slate-600"
+                  >
+                    Close
+                  </button>
+                </div>
+              ) : (
+                <div className="py-10">
+                  <div className="w-16 h-16 bg-rose-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                    <X className="w-8 h-8 text-rose-600" />
+                  </div>
+                  <h4 className="text-lg font-black text-slate-900 mb-2">Failed</h4>
+                  <p className="text-sm font-medium text-slate-500 mb-8">
+                    Please try again.
+                  </p>
+                  <button 
+                    onClick={() => setPaymentStatus('idle')}
+                    className="w-full py-4 bg-slate-900 text-white rounded-2xl text-xs font-black uppercase tracking-widest hover:bg-blue-600 transition-all"
+                  >
+                    Try Again
+                  </button>
+                  <button 
+                    onClick={() => setShowMomoModal(null)}
+                    className="block w-full mt-4 text-[10px] font-black text-slate-400 uppercase tracking-widest hover:text-slate-600"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              )}
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
       <header className="mb-12">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
           <div className="flex-1">
@@ -688,7 +884,7 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({ user }) => {
               onClick={() => setActiveTab('virtual_sessions')}
               className={`px-6 py-4 rounded-full text-[10px] font-black uppercase tracking-widest flex items-center gap-3 transition-all ${activeTab === 'virtual_sessions' ? 'bg-emerald-600 text-white shadow-xl shadow-emerald-600/20' : 'bg-white text-slate-500 hover:bg-slate-100 border border-slate-200'}`}
             >
-              <Video className="w-4 h-4" /> Virtual Sessions
+              <VideoIcon className="w-4 h-4" /> Virtual Sessions
             </button>
             <button 
               onClick={() => setActiveTab('management')}
@@ -1150,12 +1346,16 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({ user }) => {
           ) : (
             filteredData.map(progress => {
               const isEditing = editingId === progress.id;
+              const isExpanded = expandedReportIds.includes(progress.id) || isEditing;
               const data = isEditing ? editForm as StudentProgress : progress;
 
               return (
                 <div key={progress.id} className={`transition-all duration-500 bg-white rounded-[40px] border shadow-sm overflow-hidden ${isEditing ? 'border-blue-200 ring-4 ring-blue-50' : 'border-slate-100 hover:shadow-md'}`}>
                   {/* Header Card */}
-                  <div className={`p-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-6 border-b transition-colors ${isEditing ? 'bg-blue-600 border-blue-700 text-white' : 'bg-slate-50 border-slate-100 text-slate-900'}`}>
+                  <div 
+                    onClick={() => !isEditing && toggleReportExpansion(progress.id)}
+                    className={`p-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-6 border-b transition-colors ${isEditing ? 'bg-blue-600 border-blue-700 text-white cursor-default' : 'bg-slate-50 border-slate-100 text-slate-900 cursor-pointer hover:bg-slate-100'}`}
+                  >
                     <div className="flex items-center gap-6">
                       <div className={`w-16 h-16 rounded-3xl flex items-center justify-center text-2xl shadow-inner ${isEditing ? 'bg-white/20' : 'bg-white border border-slate-200 text-blue-600'}`}>
                         {data.studentName.charAt(0)}
@@ -1163,7 +1363,7 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({ user }) => {
                       <div>
                         <div className="flex items-center gap-2">
                            <h2 className="text-2xl font-black tracking-tight">{data.studentName}</h2>
-                           <span className="px-3 py-1 bg-white/20 text-white rounded-full text-[9px] font-black uppercase tracking-widest border border-white/20">
+                           <span className={`px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest border ${isEditing ? 'bg-white/20 text-white border-white/20' : 'bg-blue-50 text-blue-600 border-blue-100'}`}>
                              {data.grade || 'No Grade'} {data.class || ''}
                            </span>
                            {!isEditing && <span className="px-2 py-0.5 bg-emerald-100 text-emerald-700 rounded text-[8px] font-black uppercase tracking-widest">Active</span>}
@@ -1178,59 +1378,84 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({ user }) => {
                       </div>
                     </div>
 
-                    <div className="flex gap-3 w-full md:w-auto">
-                      {isEditing ? (
-                        <>
+                    <div className="flex items-center gap-4 w-full md:w-auto">
+                      <div className="flex gap-3 flex-1 md:flex-none">
+                        {isEditing ? (
+                          <>
+                            <button 
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setEditingId(null);
+                              }}
+                              className="flex-1 md:flex-none px-6 py-4 bg-white/10 hover:bg-white/20 text-white rounded-2xl font-black uppercase tracking-widest text-[10px] transition-all"
+                            >
+                              Cancel
+                            </button>
+                            <button 
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleSave();
+                              }}
+                              disabled={saveStatus === 'saving'}
+                              className="flex-1 md:flex-none px-8 py-4 bg-white text-blue-600 hover:bg-slate-50 rounded-2xl font-black uppercase tracking-widest text-[10px] shadow-lg transition-all flex items-center justify-center gap-2"
+                            >
+                              <Save className="w-4 h-4" />
+                              {saveStatus === 'saving' ? 'Saving...' : 'Save Report'}
+                            </button>
+                          </>
+                        ) : (
                           <button 
-                            onClick={() => setEditingId(null)}
-                            className="flex-1 md:flex-none px-6 py-4 bg-white/10 hover:bg-white/20 text-white rounded-2xl font-black uppercase tracking-widest text-[10px] transition-all"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleEditClick(progress);
+                            }}
+                            className="w-full md:w-auto px-8 py-4 bg-slate-900 hover:bg-blue-600 text-white rounded-2xl font-black uppercase tracking-widest text-[10px] transition-all flex items-center justify-center gap-2 shadow-xl"
                           >
-                            Cancel
+                            <Edit2 className="w-4 h-4" />
+                            Edit Progress
                           </button>
-                          <button 
-                            onClick={handleSave}
-                            disabled={saveStatus === 'saving'}
-                            className="flex-1 md:flex-none px-8 py-4 bg-white text-blue-600 hover:bg-slate-50 rounded-2xl font-black uppercase tracking-widest text-[10px] shadow-lg transition-all flex items-center justify-center gap-2"
-                          >
-                            <Save className="w-4 h-4" />
-                            {saveStatus === 'saving' ? 'Saving...' : 'Save Report'}
-                          </button>
-                        </>
-                      ) : (
-                        <button 
-                          onClick={() => handleEditClick(progress)}
-                          className="w-full md:w-auto px-8 py-4 bg-slate-900 hover:bg-blue-600 text-white rounded-2xl font-black uppercase tracking-widest text-[10px] transition-all flex items-center justify-center gap-2 shadow-xl"
-                        >
-                          <Edit2 className="w-4 h-4" />
-                          Edit Progress
-                        </button>
+                        )}
+                      </div>
+                      
+                      {!isEditing && (
+                        <div className={`p-2 rounded-xl transition-all ${isExpanded ? 'bg-blue-600 text-white rotate-180' : 'bg-slate-200 text-slate-500'}`}>
+                          <ChevronDown className="w-5 h-5" />
+                        </div>
                       )}
                     </div>
                   </div>
 
-                  <div className="p-8 md:p-10">
-                    {isEditing && (
-                      <div className="mb-8 p-6 bg-blue-50 rounded-3xl border border-blue-100">
-                        <label className="block text-[10px] font-black text-blue-400 uppercase tracking-widest mb-3">Reassign Academic Oversight</label>
-                        <div className="flex flex-wrap gap-3">
-                          <button 
-                            onClick={() => setEditForm({...editForm, teacherId: user.id})}
-                            className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${editForm.teacherId === user.id ? 'bg-blue-600 text-white' : 'bg-white text-blue-600 border border-blue-200'}`}
-                          >
-                            Assign to Me
-                          </button>
-                          {institutionTeachers.filter(t => t.id !== user.id).map(t => (
-                            <button 
-                              key={t.id}
-                              onClick={() => setEditForm({...editForm, teacherId: t.id})}
-                              className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${editForm.teacherId === t.id ? 'bg-blue-600 text-white' : 'bg-white text-blue-600 border border-blue-200'}`}
-                            >
-                              {t.name}
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-                    )}
+                  <AnimatePresence>
+                    {isExpanded && (
+                      <motion.div
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: 'auto', opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        transition={{ duration: 0.3, ease: 'easeInOut' }}
+                      >
+                        <div className="p-8 md:p-10 border-t border-slate-100">
+                          {isEditing && (
+                            <div className="mb-8 p-6 bg-blue-50 rounded-3xl border border-blue-100">
+                              <label className="block text-[10px] font-black text-blue-400 uppercase tracking-widest mb-3">Reassign Academic Oversight</label>
+                              <div className="flex flex-wrap gap-3">
+                                <button 
+                                  onClick={() => setEditForm({...editForm, teacherId: user.id})}
+                                  className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${editForm.teacherId === user.id ? 'bg-blue-600 text-white' : 'bg-white text-blue-600 border border-blue-200'}`}
+                                >
+                                  Assign to Me
+                                </button>
+                                {institutionTeachers.filter(t => t.id !== user.id).map(t => (
+                                  <button 
+                                    key={t.id}
+                                    onClick={() => setEditForm({...editForm, teacherId: t.id})}
+                                    className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${editForm.teacherId === t.id ? 'bg-blue-600 text-white' : 'bg-white text-blue-600 border border-blue-200'}`}
+                                  >
+                                    {t.name}
+                                  </button>
+                                ))}
+                              </div>
+                            </div>
+                          )}
                     <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
                       {/* Academic Performance */}
                       <div className="lg:col-span-12">
@@ -1456,12 +1681,15 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({ user }) => {
                       </div>
                     </div>
                   </div>
-                </div>
-              );
-            })
-          )}
-        </div>
-        )}
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+        );
+      })
+    )}
+  </div>
+  )}
 
         {/* Resources Exchange Tab */}
         {activeTab === 'resources' && (
@@ -1565,9 +1793,14 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({ user }) => {
                            <span className="text-[10px] font-black text-blue-600 uppercase">Free Community Resource</span>
                          )}
                        </div>
-                       <button className="flex items-center gap-2 text-indigo-600 bg-indigo-50 hover:bg-indigo-600 hover:text-white px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-colors">
-                         <Download className="w-4 h-4" /> {resource.price > 0 ? 'Buy' : 'Get'}
-                       </button>
+                       <button 
+                          onClick={() => handlePurchase(resource as AcademicResource)}
+                          disabled={isPurchasing === resource.id}
+                          className="flex items-center gap-2 text-indigo-600 bg-indigo-50 hover:bg-indigo-600 hover:text-white px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-colors disabled:opacity-50"
+                        >
+                          {isPurchasing === resource.id ? <Loader2 className="w-4 h-4 animate-spin" /> : (resource.price > 0 ? <ShoppingBag className="w-4 h-4" /> : <Download className="w-4 h-4" />)}
+                          {isPurchasing === resource.id ? 'Processing...' : (resource.price > 0 ? 'Buy' : 'Get')}
+                        </button>
                     </div>
                  </div>
                ))}
@@ -1662,13 +1895,37 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({ user }) => {
                       </div>
                     </div>
 
-                    <div className="p-8 border-2 border-dashed border-slate-200 rounded-2xl flex flex-col items-center justify-center bg-slate-50 group hover:border-indigo-400 transition-colors">
-                      <UploadCloud className="w-10 h-10 text-slate-300 mb-2 group-hover:text-indigo-500 transition-colors" />
-                      <p className="text-[10px] font-black text-slate-400 uppercase">Select File (PDF, DOCX)</p>
+                    <div 
+                      onClick={() => resourceInputRef.current?.click()}
+                      className="p-8 border-2 border-dashed border-slate-200 rounded-2xl flex flex-col items-center justify-center bg-slate-50 group hover:border-indigo-400 transition-colors cursor-pointer overflow-hidden relative"
+                    >
+                      <input 
+                        type="file" 
+                        className="hidden" 
+                        ref={resourceInputRef} 
+                        onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
+                      />
+                      {selectedFile ? (
+                        <div className="text-center">
+                          <FileText className="w-10 h-10 text-indigo-500 mx-auto mb-2" />
+                          <p className="text-[10px] font-black text-slate-900 uppercase">{selectedFile.name}</p>
+                          <p className="text-[8px] text-slate-400 font-bold">{(selectedFile.size / 1024).toFixed(1)} KB</p>
+                        </div>
+                      ) : (
+                        <>
+                          <UploadCloud className="w-10 h-10 text-slate-300 mb-2 group-hover:text-indigo-500 transition-colors" />
+                          <p className="text-[10px] font-black text-slate-400 uppercase">Select File (PDF, DOCX)</p>
+                        </>
+                      )}
                     </div>
 
-                    <button className="w-full py-4 bg-indigo-600 text-white rounded-2xl font-black uppercase tracking-widest text-[10px] shadow-xl hover:bg-indigo-700 transition-all">
-                      Finalize & Publish
+                    <button 
+                      type="submit"
+                      disabled={isUploadingResource || !selectedFile}
+                      className="w-full py-4 bg-indigo-600 disabled:bg-slate-300 text-white rounded-2xl font-black uppercase tracking-widest text-[10px] shadow-xl hover:bg-indigo-700 transition-all flex items-center justify-center gap-3"
+                    >
+                      {isUploadingResource && <Loader2 className="w-4 h-4 animate-spin text-white" />}
+                      {isUploadingResource ? 'Uploading...' : 'Finalize & Publish'}
                     </button>
                   </form>
                 </motion.div>
@@ -1813,7 +2070,7 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({ user }) => {
                   <div className="lg:col-span-2 space-y-8">
                      <div className="p-12 bg-emerald-900 rounded-[56px] text-white relative overflow-hidden">
                         <div className="absolute top-0 right-0 p-12 opacity-10">
-                           <Video className="w-48 h-48" />
+                           <VideoIcon className="w-48 h-48" />
                         </div>
                         <div className="relative z-10 space-y-6">
                            <span className="px-4 py-2 bg-emerald-500/20 text-emerald-400 rounded-full text-[10px] font-black uppercase tracking-widest border border-emerald-500/30">

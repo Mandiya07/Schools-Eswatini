@@ -22,7 +22,25 @@ const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({ institutions,
   const [perfStats, setPerfStats] = useState<any>(null);
   
   const [showAddModal, setShowAddModal] = useState(false);
+  const [showAddAdminModal, setShowAddAdminModal] = useState(false);
   const [newSchool, setNewSchool] = useState({ name: '', region: Region.HHOHHO, adminEmail: '' });
+  const [newAdmin, setNewAdmin] = useState({ name: '', email: '', role: 'Institution Admin' as any, inst: '' });
+
+  const [users, setUsers] = useState([
+    { name: 'Sipho Mamba', email: 'sipho@uneswa.ac.sz', role: 'Institution Admin', inst: 'University of Eswatini', lastActive: '2 mins ago', status: 'Active' },
+    { name: 'Jane Dlamini', email: 'jane@waterford.sz', role: 'Institution Admin', inst: 'Waterford Kamhlaba', lastActive: '1 hour ago', status: 'Active' },
+    { name: 'Thabo Simelane', email: 'thabo@stmarks.sz', role: 'Content Editor', inst: "St. Mark's High", lastActive: 'Yesterday', status: 'Inactive' },
+  ]);
+
+  const handleAddAdmin = () => {
+    if (!newAdmin.name || !newAdmin.email) return;
+    setUsers([
+      { ...newAdmin, lastActive: 'Never', status: 'Active' },
+      ...users
+    ]);
+    setShowAddAdminModal(false);
+    setNewAdmin({ name: '', email: '', role: 'Institution Admin', inst: '' });
+  };
 
   useEffect(() => {
     fetch('/api/stats')
@@ -261,7 +279,12 @@ const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({ institutions,
           </div>
 
           <div className="bg-white p-10 rounded-[48px] border border-slate-100 shadow-sm mb-10 overflow-hidden">
-             <h3 className="text-sm font-black text-slate-900 uppercase tracking-widest mb-10">Security Activity Feed</h3>
+             <div className="flex items-center justify-between mb-10">
+               <h3 className="text-sm font-black text-slate-900 uppercase tracking-widest">Security Activity Feed</h3>
+               <button onClick={() => window.location.href = '/security'} className="text-[10px] bg-slate-100 hover:bg-slate-200 text-slate-600 px-4 py-2 rounded-xl font-black uppercase tracking-widest transition-colors">
+                 View All Logs
+               </button>
+             </div>
              <div className="space-y-6">
                 {securityLogs.map(log => (
                   <div key={log.id} className="flex items-center justify-between p-6 bg-slate-50 rounded-3xl group hover:bg-slate-100 transition-colors">
@@ -490,7 +513,12 @@ const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({ institutions,
         <div className="bg-white p-10 rounded-[48px] border border-slate-100 shadow-sm">
           <div className="flex justify-between items-center mb-10">
             <h3 className="text-sm font-black text-slate-900 uppercase tracking-widest">User Management</h3>
-            <button className="bg-slate-900 text-white px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest">Add New Admin</button>
+            <button 
+              onClick={() => setShowAddAdminModal(true)}
+              className="bg-slate-900 text-white px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all"
+            >
+              Add New Admin
+            </button>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
@@ -504,11 +532,7 @@ const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({ institutions,
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-50">
-                {[
-                  { name: 'Sipho Mamba', email: 'sipho@uneswa.ac.sz', role: 'Institution Admin', inst: 'University of Eswatini', lastActive: '2 mins ago', status: 'Active' },
-                  { name: 'Jane Dlamini', email: 'jane@waterford.sz', role: 'Institution Admin', inst: 'Waterford Kamhlaba', lastActive: '1 hour ago', status: 'Active' },
-                  { name: 'Thabo Simelane', email: 'thabo@stmarks.sz', role: 'Content Editor', inst: "St. Mark's High", lastActive: 'Yesterday', status: 'Inactive' },
-                ].map((u, idx) => (
+                {users.map((u, idx) => (
                   <tr key={idx} className="group hover:bg-slate-50 transition-colors">
                     <td className="py-6">
                       <div className="flex items-center gap-4">
@@ -725,6 +749,79 @@ const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({ institutions,
             >
               Provision School Account
             </button>
+          </div>
+        </div>
+      )}
+
+      {showAddAdminModal && (
+        <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+          <div className="bg-white rounded-[40px] max-w-lg w-full p-10 shadow-2xl animate-in zoom-in-95">
+            <div className="flex justify-between items-center mb-8">
+              <h3 className="text-2xl font-black text-slate-900 tracking-tight">Add New Administrator</h3>
+              <button 
+                onClick={() => setShowAddAdminModal(false)}
+                className="w-10 h-10 bg-slate-100 hover:bg-rose-100 hover:text-rose-600 rounded-full flex items-center justify-center transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            
+            <div className="space-y-6">
+              <div>
+                <label className="block text-[10px] font-black uppercase text-slate-400 tracking-widest mb-2">Full Name</label>
+                <input 
+                  type="text" 
+                  value={newAdmin.name}
+                  onChange={(e) => setNewAdmin({...newAdmin, name: e.target.value})}
+                  className="w-full bg-slate-50 border border-slate-200 rounded-2xl p-4 font-bold text-slate-900 focus:ring-4 focus:ring-blue-50 focus:border-blue-200 outline-none transition-all"
+                  placeholder="e.g. John Dlamini"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[10px] font-black uppercase text-slate-400 tracking-widest mb-2">Email Address</label>
+                <input 
+                  type="email" 
+                  value={newAdmin.email}
+                  onChange={(e) => setNewAdmin({...newAdmin, email: e.target.value})}
+                  className="w-full bg-slate-50 border border-slate-200 rounded-2xl p-4 font-bold text-slate-900 focus:ring-4 focus:ring-blue-50 focus:border-blue-200 outline-none transition-all"
+                  placeholder="admin@school.sz"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-[10px] font-black uppercase text-slate-400 tracking-widest mb-2">Role</label>
+                <select 
+                  value={newAdmin.role}
+                  onChange={(e) => setNewAdmin({...newAdmin, role: e.target.value as any})}
+                  className="w-full bg-slate-50 border border-slate-200 rounded-2xl p-4 font-bold text-slate-900 focus:ring-4 focus:ring-blue-50 focus:border-blue-200 outline-none transition-all"
+                >
+                  <option value="Institution Admin">Institution Admin</option>
+                  <option value="Super Admin">Super Admin</option>
+                  <option value="Content Editor">Content Editor</option>
+                  <option value="Regional Moderator">Regional Moderator</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-[10px] font-black uppercase text-slate-400 tracking-widest mb-2">Institution (Optional)</label>
+                <input 
+                  type="text" 
+                  value={newAdmin.inst}
+                  onChange={(e) => setNewAdmin({...newAdmin, inst: e.target.value})}
+                  className="w-full bg-slate-50 border border-slate-200 rounded-2xl p-4 font-bold text-slate-900 focus:ring-4 focus:ring-blue-50 focus:border-blue-200 outline-none transition-all"
+                  placeholder="e.g. Waterford Kamhlaba"
+                />
+              </div>
+
+              <button 
+                onClick={handleAddAdmin}
+                disabled={!newAdmin.name || !newAdmin.email}
+                className="w-full bg-slate-900 text-white rounded-2xl py-5 font-black uppercase tracking-[0.2em] text-xs shadow-xl shadow-slate-200 hover:-translate-y-1 hover:shadow-2xl transition-all disabled:opacity-50"
+              >
+                Create Account
+              </button>
+            </div>
           </div>
         </div>
       )}

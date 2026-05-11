@@ -1,6 +1,7 @@
 import { initializeApp } from 'firebase/app';
 import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from 'firebase/auth';
 import { getFirestore, enableMultiTabIndexedDbPersistence, doc, getDoc, setDoc, updateDoc, deleteDoc, collection, query, where, onSnapshot, getDocs, orderBy, limit, addDoc, serverTimestamp, getDocFromServer } from 'firebase/firestore';
+import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
 import firebaseConfig from '../../firebase-applet-config.json';
 
 // Initialize Firebase
@@ -8,6 +9,7 @@ const app = initializeApp(firebaseConfig);
 const databaseId = (firebaseConfig as any).firestoreDatabaseId || '(default)';
 
 export const db = getFirestore(app, databaseId);
+export const storage = getStorage(app);
 
 // Enable Persistence
 if (typeof window !== 'undefined') {
@@ -48,7 +50,7 @@ export async function getDocWithRetry(docRef: any, maxRetries = 3, delay = 1500)
     try {
       return await getDoc(docRef);
     } catch (error: any) {
-      const isOffline = error instanceof Error && (error.message.includes('offline') || error.code === 'unavailable');
+      const isOffline = error instanceof Error && (error.message.includes('offline') || (error as any).code === 'unavailable');
       if (isOffline) {
         if (i < maxRetries - 1) {
           console.warn(`Fetch failed (offline/unavailable), retrying in ${delay}ms... (Attempt ${i + 1}/${maxRetries})`);
@@ -67,7 +69,7 @@ export async function getDocsWithRetry(q: any, maxRetries = 3, delay = 1500) {
     try {
       return await getDocs(q);
     } catch (error: any) {
-      const isOffline = error instanceof Error && (error.message.includes('offline') || error.code === 'unavailable');
+      const isOffline = error instanceof Error && (error.message.includes('offline') || (error as any).code === 'unavailable');
       if (isOffline) {
         if (i < maxRetries - 1) {
           console.warn(`Fetch docs failed (offline/unavailable), retrying in ${delay}ms... (Attempt ${i + 1}/${maxRetries})`);
@@ -155,5 +157,9 @@ export {
   orderBy,
   limit,
   addDoc,
-  serverTimestamp
+  serverTimestamp,
+  ref,
+  uploadBytes,
+  getDownloadURL,
+  deleteObject
 };

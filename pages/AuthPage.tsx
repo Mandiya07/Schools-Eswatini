@@ -1,8 +1,9 @@
-
 import React, { useState, useEffect } from 'react';
-import { useSearchParams, useNavigate } from 'react-router-dom';
+import { useSearchParams, useNavigate, Link } from 'react-router-dom';
 import { User, UserRole } from '../types';
-import { auth, googleProvider, signInWithPopup, db, doc, getDoc, setDoc, getDocWithRetry } from '../src/lib/firebase';
+import { auth, googleProvider, signInWithPopup, db, doc, setDoc, getDocWithRetry } from '../src/lib/firebase';
+import { signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
+import { Mail, Lock, User as UserIcon, Loader2, ArrowRight, ShieldCheck } from 'lucide-react';
 
 const AuthPage: React.FC = () => {
   const [searchParams] = useSearchParams();
@@ -12,10 +13,71 @@ const AuthPage: React.FC = () => {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
+  // Form State
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [name, setName] = useState('');
+
   useEffect(() => {
     const tab = searchParams.get('tab');
     if (tab === 'register') setActiveTab('register');
+    
+    // Pre-fill email from URL if present
+    const emailParam = searchParams.get('email');
+    if (emailParam) setEmail(emailParam);
   }, [searchParams]);
+
+  const handleEmailAuth = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+    
+    if (!email || !password) {
+      setError('Please provide a valid email and password');
+      return;
+    }
+
+    if (activeTab === 'register' && !name) {
+      setError('Please provide your full name');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      if (activeTab === 'login') {
+        await signInWithEmailAndPassword(auth, email, password);
+      } else {
+        const result = await createUserWithEmailAndPassword(auth, email, password);
+        const firebaseUser = result.user;
+        
+        await updateProfile(firebaseUser, { displayName: name });
+
+        // Create user profile in Firestore
+        const newUser: User = {
+          id: firebaseUser.uid,
+          email: firebaseUser.email || '',
+          name: name,
+          role: selectedRole,
+          isVerified: false,
+          twoFactorEnabled: false,
+          aiCredits: 3,
+          isAiPro: false
+        };
+        await setDoc(doc(db, 'users', firebaseUser.uid), newUser);
+      }
+      navigate('/dashboard');
+    } catch (err: any) {
+      console.error("Auth error", err);
+      let message = 'Authentication failed';
+      if (err.code === 'auth/user-not-found') message = 'User not found';
+      else if (err.code === 'auth/wrong-password') message = 'Incorrect password';
+      else if (err.code === 'auth/email-already-in-use') message = 'Email already in use';
+      else if (err.code === 'auth/weak-password') message = 'Password is too weak';
+      else if (err.code === 'auth/invalid-email') message = 'Invalid email address';
+      setError(message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleGoogleLogin = async () => {
     setLoading(true);
@@ -24,10 +86,8 @@ const AuthPage: React.FC = () => {
       const result = await signInWithPopup(auth, googleProvider);
       const firebaseUser = result.user;
       
-      // Check if user exists in Firestore
       const userDoc = await getDocWithRetry(doc(db, 'users', firebaseUser.uid));
       if (!userDoc || !userDoc.exists()) {
-        // Create new user profile if it doesn't exist
         const newUser: User = {
           id: firebaseUser.uid,
           email: firebaseUser.email || '',
@@ -50,100 +110,172 @@ const AuthPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-[calc(100vh-64px)] flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 bg-slate-50">
-      <div className="max-w-md w-full space-y-8 bg-white p-10 rounded-3xl shadow-xl border border-slate-100">
-        <div className="text-center">
-          <h2 className="mt-6 text-3xl font-extrabold text-slate-900">
-            {activeTab === 'login' ? 'Welcome back' : 'Create an account'}
+    <div className="min-h-[calc(100vh-64px)] flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 bg-slate-50 relative overflow-hidden">
+      <div className="absolute top-0 left-0 w-full h-full opacity-[0.03] pointer-events-none">
+        <div className="absolute top-20 left-20 w-96 h-96 bg-blue-600 rounded-full blur-[120px]" />
+        <div className="absolute bottom-20 right-20 w-96 h-96 bg-indigo-600 rounded-full blur-[120px]" />
+      </div>
+
+      <div className="max-w-xl w-full space-y-8 bg-white p-8 md:p-12 rounded-[40px] shadow-2xl border border-slate-100 relative z-10">
+        <div className="text-center space-y-4">
+          <div className="inline-flex items-center justify-center w-20 h-20 bg-blue-50 rounded-3xl mb-4">
+            <ShieldCheck className="w-10 h-10 text-blue-600" />
+          </div>
+          <h2 className="text-4xl font-black text-slate-900 tracking-tight">
+            {activeTab === 'login' ? 'Welcome Back' : 'Join the Network'}
           </h2>
-          <p className="mt-2 text-sm text-slate-500">
+          <p className="text-slate-500 font-medium text-lg">
             {activeTab === 'login' 
               ? 'Access your unified education dashboard' 
-              : 'Join the Eswatini education ecosystem'}
+              : 'Join the national education ecosystem'}
           </p>
         </div>
 
-        {activeTab === 'register' && (
-          <div className="bg-slate-50 p-4 rounded-2xl space-y-3">
-            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest text-center mb-2">Select Your Role</p>
-            <div className="grid grid-cols-2 gap-3">
-              {[
-                { role: UserRole.PARENT, label: 'Parent / Guardian' },
-                { role: UserRole.TEACHER, label: 'Teacher / Educator' },
-              ].map((item) => (
-                <button
-                  key={item.role}
-                  onClick={() => setSelectedRole(item.role)}
-                  className={`py-3 px-4 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
-                    selectedRole === item.role 
-                      ? 'bg-blue-600 text-white shadow-lg shadow-blue-200' 
-                      : 'bg-white text-slate-500 border border-slate-200 hover:border-blue-300'
-                  }`}
-                >
-                  {item.label}
-                </button>
-              ))}
-            </div>
-            <p className="text-[9px] text-slate-400 text-center italic">Institutional admins are verified automatically via school email.</p>
-          </div>
-        )}
-
-        <div className="mt-8 space-y-6">
-          {error && <div className="p-3 text-sm text-rose-600 bg-rose-50 rounded-lg border border-rose-100">{error}</div>}
-          
-          <button
-            onClick={handleGoogleLogin}
-            disabled={loading}
-            className="w-full flex items-center justify-center gap-3 py-4 px-4 border border-slate-200 text-sm font-bold rounded-xl text-slate-700 bg-white hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 shadow-sm transition-all disabled:opacity-50"
+        <div className="flex bg-slate-50 p-1.5 rounded-2xl">
+          <button 
+            onClick={() => { setActiveTab('login'); setError(''); }}
+            className={`flex-1 py-3 px-4 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${activeTab === 'login' ? 'bg-white text-slate-900 shadow-lg' : 'text-slate-400 hover:text-slate-600'}`}
           >
-            <svg className="w-5 h-5" viewBox="0 0 24 24">
-              <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
-              <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
-              <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/>
-              <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
-            </svg>
-            {loading ? 'Connecting...' : `Sign in with Google`}
+            Login
           </button>
-
-          <div className="relative">
-            <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-slate-100"></div>
-            </div>
-            <div className="relative flex justify-center text-sm">
-              <span className="px-2 bg-white text-slate-400">Secure Authentication</span>
-            </div>
-          </div>
-
-          <div className="pt-4 border-t border-slate-100 mt-6 grid grid-cols-2 gap-3">
-            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest text-center mb-4 col-span-2">Development Access</p>
-            <button
-              onClick={() => {
-                setLoading(true);
-                localStorage.setItem('se_dev_admin', 'true');
-                localStorage.removeItem('se_dev_teacher');
-                window.location.href = '/dashboard';
-              }}
-              className="w-full py-3 px-4 bg-slate-50 text-slate-500 text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-slate-900 hover:text-white transition-all text-center"
-            >
-              Super Admin
-            </button>
-            <button
-              onClick={() => {
-                setLoading(true);
-                localStorage.setItem('se_dev_teacher', 'true');
-                localStorage.removeItem('se_dev_admin');
-                window.location.href = '/teacher/dashboard';
-              }}
-              className="w-full py-3 px-4 bg-slate-50 text-slate-500 text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-blue-600 hover:text-white transition-all text-center"
-            >
-              Teacher (St. Mark's)
-            </button>
-          </div>
-
-          <p className="text-center text-xs text-slate-400">
-            By signing in, you agree to our Terms of Service and Privacy Policy.
-          </p>
+          <button 
+            onClick={() => { setActiveTab('register'); setError(''); }}
+            className={`flex-1 py-3 px-4 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${activeTab === 'register' ? 'bg-white text-slate-900 shadow-lg' : 'text-slate-400 hover:text-slate-600'}`}
+          >
+            Register
+          </button>
         </div>
+
+        <form onSubmit={handleEmailAuth} className="mt-8 space-y-6">
+          {error && (
+            <div className="p-4 bg-rose-50 border border-rose-100 text-rose-600 rounded-2xl text-sm font-bold flex items-center gap-3 animate-in fade-in slide-in-from-top-2">
+              <span className="w-6 h-6 bg-rose-100 rounded-full flex items-center justify-center shrink-0">!</span>
+              {error}
+            </div>
+          )}
+
+          <div className="space-y-4">
+            {activeTab === 'register' && (
+              <div className="space-y-2">
+                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-4">Full Name</label>
+                <div className="relative">
+                  <UserIcon className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+                  <input
+                    type="text"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    className="w-full bg-slate-50 border-none rounded-2xl pl-14 pr-6 py-4 text-slate-900 font-bold focus:ring-2 focus:ring-blue-600 transition-all placeholder:text-slate-300"
+                    placeholder="Enter your name"
+                  />
+                </div>
+              </div>
+            )}
+
+            <div className="space-y-2">
+              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-4">Email Address</label>
+              <div className="relative">
+                <Mail className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="w-full bg-slate-50 border-none rounded-2xl pl-14 pr-6 py-4 text-slate-900 font-bold focus:ring-2 focus:ring-blue-600 transition-all placeholder:text-slate-300"
+                  placeholder="name@example.com"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-4">Password</label>
+              <div className="relative">
+                <Lock className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+                <input
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="w-full bg-slate-50 border-none rounded-2xl pl-14 pr-6 py-4 text-slate-900 font-bold focus:ring-2 focus:ring-blue-600 transition-all placeholder:text-slate-300"
+                  placeholder="••••••••"
+                />
+              </div>
+            </div>
+          </div>
+
+          {activeTab === 'register' && (
+            <div className="bg-slate-50 p-6 rounded-3xl space-y-4">
+              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest text-center">Account Role</p>
+              <div className="flex gap-3">
+                {[UserRole.VISITOR, UserRole.PARENT, UserRole.TEACHER].map(role => (
+                  <button
+                    key={role}
+                    type="button"
+                    onClick={() => setSelectedRole(role)}
+                    className={`flex-1 py-3 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all ${selectedRole === role ? 'bg-blue-600 text-white shadow-lg' : 'bg-white text-slate-500 border border-slate-200'}`}
+                  >
+                    {role}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full bg-slate-900 text-white py-5 rounded-2xl font-black uppercase tracking-[0.2em] text-[11px] hover:bg-blue-600 transition-all shadow-xl shadow-slate-200 flex items-center justify-center gap-3 disabled:opacity-50"
+          >
+            {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : activeTab === 'login' ? 'Sign In' : 'Create Account'}
+            {!loading && <ArrowRight className="w-4 h-4" />}
+          </button>
+        </form>
+
+        <div className="relative my-10">
+          <div className="absolute inset-0 flex items-center">
+            <div className="w-full border-t border-slate-100"></div>
+          </div>
+          <div className="relative flex justify-center text-[10px] uppercase font-black tracking-[0.3em] text-slate-300">
+            <span className="bg-white px-6">Social Auth</span>
+          </div>
+        </div>
+
+        <button
+          onClick={handleGoogleLogin}
+          disabled={loading}
+          className="w-full flex items-center justify-center gap-4 py-4 px-6 border-2 border-slate-100 rounded-2xl text-slate-700 font-bold hover:bg-slate-50 transition-all disabled:opacity-50"
+        >
+          <img src="https://www.google.com/favicon.ico" alt="Google" className="w-5 h-5" />
+          Continue with Google
+        </button>
+
+        <div className="pt-8 border-t border-slate-50 mt-8">
+           <p className="text-center text-[10px] font-black text-slate-400 uppercase tracking-widest mb-6">Development Shortcuts</p>
+           <div className="grid grid-cols-2 gap-3">
+              <button
+                onClick={() => {
+                  setLoading(true);
+                  localStorage.setItem('se_dev_admin', 'true');
+                  window.location.href = '/dashboard';
+                }}
+                className="py-3 px-4 bg-slate-50 text-slate-500 text-[9px] font-black uppercase tracking-widest rounded-xl hover:bg-slate-900 hover:text-white transition-all text-center"
+              >
+                Super Admin
+              </button>
+              <button
+                onClick={() => {
+                  setLoading(true);
+                  localStorage.setItem('se_dev_teacher', 'true');
+                  window.location.href = '/teacher/dashboard';
+                }}
+                className="py-3 px-4 bg-slate-50 text-slate-500 text-[9px] font-black uppercase tracking-widest rounded-xl hover:bg-blue-600 hover:text-white transition-all text-center"
+              >
+                Teacher Demo
+              </button>
+           </div>
+        </div>
+
+        <p className="text-center text-[10px] text-slate-400 font-medium leading-relaxed opacity-60">
+          By continuing, you agree to the Schools Eswatini <br />
+          <Link to="/terms" className="underline hover:text-blue-600">Terms of Service</Link> and <Link to="/privacy" className="underline hover:text-blue-600">Privacy Policy</Link>.
+        </p>
       </div>
     </div>
   );

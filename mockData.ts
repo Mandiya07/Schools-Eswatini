@@ -763,9 +763,9 @@ export const MOCK_INSTITUTIONS: Institution[] = [
           }
         ],
         gallery: [
-          { url: 'https://picsum.photos/seed/g1/800/600', caption: 'Inter-house Sports Day 2023', type: 'photo' },
-          { url: 'https://picsum.photos/seed/g2/800/600', caption: 'Science Fair Winners', type: 'photo' },
-          { url: 'https://picsum.photos/seed/g3/800/600', caption: 'Drama Production: Hamlet', type: 'photo' }
+          { id: 'gal-1', url: 'https://picsum.photos/seed/g1/800/600', title: 'Inter-house Sports Day 2023', type: 'image', createdAt: new Date().toISOString() },
+          { id: 'gal-2', url: 'https://picsum.photos/seed/g2/800/600', title: 'Science Fair Winners', type: 'image', createdAt: new Date().toISOString() },
+          { id: 'gal-3', url: 'https://picsum.photos/seed/g3/800/600', title: 'Drama Production: Hamlet', type: 'image', createdAt: new Date().toISOString() }
         ],
         newsletterCta: 'Stay Updated with Our Latest News'
       },

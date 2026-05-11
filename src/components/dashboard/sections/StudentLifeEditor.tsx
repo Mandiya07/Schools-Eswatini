@@ -33,8 +33,8 @@ const StudentLifeEditor: React.FC<StudentLifeEditorProps> = ({ institution, onUp
             <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Section Headline</label>
             <input 
               className="w-full bg-slate-50 border-2 border-transparent focus:border-blue-500 focus:bg-white rounded-2xl px-6 py-4 font-bold transition-all outline-none" 
-              value={studentLife.headline} 
-              onChange={e => updateField('headline', e.target.value)} 
+              value={studentLife.overview.headline} 
+              onChange={e => updateField('overview', { ...studentLife.overview, headline: e.target.value })} 
             />
           </div>
 
@@ -43,8 +43,8 @@ const StudentLifeEditor: React.FC<StudentLifeEditorProps> = ({ institution, onUp
             <textarea 
               rows={4} 
               className="w-full bg-slate-50 border-2 border-transparent focus:border-blue-500 focus:bg-white rounded-2xl px-6 py-4 font-medium transition-all outline-none resize-none" 
-              value={studentLife.overview} 
-              onChange={e => updateField('overview', e.target.value)}
+              value={studentLife.overview.introduction} 
+              onChange={e => updateField('overview', { ...studentLife.overview, introduction: e.target.value })}
             />
           </div>
 
@@ -153,8 +153,8 @@ const StudentLifeEditor: React.FC<StudentLifeEditorProps> = ({ institution, onUp
         <div className="sticky top-8 space-y-6">
           <div className="bg-white p-10 rounded-[40px] border border-slate-100 shadow-sm space-y-8">
             <div className="space-y-4">
-              <h4 className="text-2xl font-black text-slate-900 tracking-tight">{studentLife.headline}</h4>
-              <p className="text-slate-500 font-medium text-sm leading-relaxed">{studentLife.overview}</p>
+              <h4 className="text-2xl font-black text-slate-900 tracking-tight">{studentLife.overview.headline}</h4>
+              <p className="text-slate-500 font-medium text-sm leading-relaxed">{studentLife.overview.introduction}</p>
             </div>
 
             <div className="grid grid-cols-2 gap-4">

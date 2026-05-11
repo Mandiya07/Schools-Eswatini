@@ -6,7 +6,7 @@ import { Target, CheckCircle2, BookOpen, Users, Lightbulb, Heart, ShieldCheck } 
 interface MissionSectionProps {
   mission: {
     statement: string;
-    description: string;
+    description?: string;
     pillars?: {
       title: string;
       description: string;

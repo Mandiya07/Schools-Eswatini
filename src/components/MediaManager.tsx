@@ -1,7 +1,8 @@
 
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { Institution } from '../../types';
-import { Image as ImageIcon, Video, Trash2, Upload, Plus, ExternalLink } from 'lucide-react';
+import { Image as ImageIcon, Video, Trash2, Upload, Plus, ExternalLink, Loader2 } from 'lucide-react';
+import { uploadFile } from '../services/storageService';
 
 interface MediaManagerProps {
   institution: Institution;
@@ -12,6 +13,44 @@ const MediaManager: React.FC<MediaManagerProps> = ({ institution, onUpdate }) =>
   const [activeTab, setActiveTab] = useState<'images' | 'videos'>('images');
   const [newMediaUrl, setNewMediaUrl] = useState('');
   const [newMediaTitle, setNewMediaTitle] = useState('');
+  const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsUploading(true);
+    try {
+      const path = `institutions/${institution.id}/gallery/${Date.now()}_${file.name}`;
+      const url = await uploadFile(path, file);
+      
+      const updatedGallery = [...(institution.sections.news.gallery || [])];
+      updatedGallery.push({
+        id: crypto.randomUUID(),
+        url: url,
+        title: file.name.split('.')[0],
+        type: 'image',
+        createdAt: new Date().toISOString()
+      });
+
+      onUpdate({
+        ...institution,
+        sections: {
+          ...institution.sections,
+          news: {
+            ...institution.sections.news,
+            gallery: updatedGallery
+          }
+        }
+      });
+    } catch (error) {
+      console.error("Gallery upload failed", error);
+      alert("Failed to upload image. Please try again.");
+    } finally {
+      setIsUploading(false);
+    }
+  };
 
   const handleAddMedia = () => {
     if (!newMediaUrl) return;
@@ -84,33 +123,101 @@ const MediaManager: React.FC<MediaManagerProps> = ({ institution, onUpdate }) =>
 
       <div className="bg-slate-50 p-8 rounded-[32px] border border-slate-100">
         <h4 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-6">Add New {activeTab === 'images' ? 'Image' : 'Video'}</h4>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-          <div>
-            <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">{activeTab === 'images' ? 'Image' : 'Video'} URL</label>
-            <input 
-              className="w-full bg-white border rounded-xl px-4 py-3 font-bold" 
-              placeholder="https://..."
-              value={newMediaUrl}
-              onChange={e => setNewMediaUrl(e.target.value)}
-            />
+        
+        {activeTab === 'images' ? (
+          <div className="space-y-6">
+            <div 
+              onClick={() => fileInputRef.current?.click()}
+              className="p-12 border-2 border-dashed border-slate-200 rounded-[32px] bg-white flex flex-col items-center justify-center cursor-pointer hover:border-blue-400 hover:bg-blue-50/30 transition-all group overflow-hidden relative"
+            >
+              <input 
+                type="file" 
+                className="hidden" 
+                ref={fileInputRef}
+                onChange={handleFileUpload}
+                accept="image/*"
+              />
+              {isUploading ? (
+                <div className="flex flex-col items-center gap-3">
+                  <Loader2 className="w-10 h-10 text-blue-600 animate-spin" />
+                  <p className="text-[10px] font-black text-slate-900 uppercase tracking-widest">Uploading to Gallery...</p>
+                </div>
+              ) : (
+                <>
+                  <Upload className="w-10 h-10 text-slate-300 mb-2 group-hover:text-blue-500 transition-colors" />
+                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Click to Upload Image</p>
+                  <p className="text-[9px] text-slate-400 font-bold mt-1">Direct upload to Firebase Storage</p>
+                </>
+              )}
+            </div>
+            
+            <div className="relative flex items-center gap-4">
+              <div className="h-px flex-1 bg-slate-200" />
+              <span className="text-[10px] font-black text-slate-300 uppercase tracking-widest">OR USE URL</span>
+              <div className="h-px flex-1 bg-slate-200" />
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Image URL</label>
+                <input 
+                  className="w-full bg-white border rounded-xl px-4 py-3 font-bold text-sm" 
+                  placeholder="https://..."
+                  value={newMediaUrl}
+                  onChange={e => setNewMediaUrl(e.target.value)}
+                />
+              </div>
+              <div>
+                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Title / Caption</label>
+                <input 
+                  className="w-full bg-white border rounded-xl px-4 py-3 font-bold text-sm" 
+                  placeholder="e.g. Science Lab 2024"
+                  value={newMediaTitle}
+                  onChange={e => setNewMediaTitle(e.target.value)}
+                />
+              </div>
+            </div>
+            <button 
+              onClick={handleAddMedia}
+              disabled={!newMediaUrl}
+              className="bg-slate-900 disabled:bg-slate-200 text-white px-8 py-4 rounded-2xl font-black uppercase tracking-widest text-[10px] shadow-xl hover:bg-blue-600 transition-all flex items-center gap-2"
+            >
+              <Plus className="w-4 h-4" />
+              Add via URL
+            </button>
           </div>
-          <div>
-            <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Title / Caption</label>
-            <input 
-              className="w-full bg-white border rounded-xl px-4 py-3 font-bold" 
-              placeholder="e.g. Science Lab 2024"
-              value={newMediaTitle}
-              onChange={e => setNewMediaTitle(e.target.value)}
-            />
+        ) : (
+          <div className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Video URL (YouTube/Vimeo)</label>
+                <input 
+                  className="w-full bg-white border rounded-xl px-4 py-3 font-bold text-sm" 
+                  placeholder="https://..."
+                  value={newMediaUrl}
+                  onChange={e => setNewMediaUrl(e.target.value)}
+                />
+              </div>
+              <div>
+                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Video Title</label>
+                <input 
+                  className="w-full bg-white border rounded-xl px-4 py-3 font-bold text-sm" 
+                  placeholder="e.g. Sports Day Highlights"
+                  value={newMediaTitle}
+                  onChange={e => setNewMediaTitle(e.target.value)}
+                />
+              </div>
+            </div>
+            <button 
+              onClick={handleAddMedia}
+              disabled={!newMediaUrl}
+              className="bg-slate-900 disabled:bg-slate-200 text-white px-8 py-4 rounded-2xl font-black uppercase tracking-widest text-[10px] shadow-xl hover:bg-blue-600 transition-all flex items-center gap-2"
+            >
+              <Plus className="w-4 h-4" />
+              Add Video
+            </button>
           </div>
-        </div>
-        <button 
-          onClick={handleAddMedia}
-          className="bg-slate-900 text-white px-8 py-4 rounded-2xl font-black uppercase tracking-widest text-[10px] shadow-xl hover:bg-blue-600 transition-all flex items-center gap-2"
-        >
-          <Plus className="w-4 h-4" />
-          Add to Gallery
-        </button>
+        )}
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">

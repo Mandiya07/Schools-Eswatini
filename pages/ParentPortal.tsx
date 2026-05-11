@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { User, UserRole, StudentProgress } from '../types';
+import { User, UserRole, StudentProgress, Institution, InstitutionType } from '../types';
 import { db, collection, query, where, getDocs, setDoc, doc, getDoc, OperationType, handleFirestoreError, getDocWithRetry, getDocsWithRetry } from '../src/lib/firebase';
 import { BookOpen, Activity, Users, Save, Edit2, CheckCircle, AlertCircle, Bot, Sparkles, Loader2, Wallet, CreditCard, Receipt, GraduationCap, Building, ChevronRight, FileText, Download, ShieldCheck, BusFront, MapPin, Vote, FileSignature, Clock, ClipboardCheck, ThumbsUp, XCircle, Upload } from 'lucide-react';
 import { GoogleGenAI } from "@google/genai";
@@ -148,8 +148,9 @@ const ParentPortal: React.FC<ParentPortalProps> = ({ user }) => {
         if (finalData.length > 0 && finalData[0].institutionId) {
           try {
              const docSnap = await getDocWithRetry(doc(db, 'institutions', finalData[0].institutionId));
-             if (docSnap && docSnap.exists() && docSnap.data().type?.length > 0) {
-               setInstitutionType(docSnap.data().type[0]);
+             const data = docSnap?.data() as Institution | undefined;
+             if (data && data.type && data.type.length > 0) {
+               setInstitutionType(data.type[0]);
              }
           } catch(err) {
              console.warn("Failed to fetch institution type for parent portal (likely offline)");
@@ -241,7 +242,7 @@ const ParentPortal: React.FC<ParentPortalProps> = ({ user }) => {
       let foundInstId = '';
 
       for (const instDoc of instSnapshot.docs) {
-        const instData = instDoc.data();
+        const instData = instDoc.data() as Institution;
         const students = instData.metadata?.students || [];
         const student = students.find((s: any) => s.studentId === searchId);
         if (student) {
@@ -280,31 +281,68 @@ const ParentPortal: React.FC<ParentPortalProps> = ({ user }) => {
 
   if (!isTeacher && !isParent) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-50">
-        <div className="text-center space-y-8 max-w-md mx-auto p-10 bg-white rounded-[40px] shadow-xl border border-slate-100">
-          <AlertCircle className="w-16 h-16 text-rose-500 mx-auto" />
-          <div>
-            <h2 className="text-2xl font-black text-slate-900">Access Restricted</h2>
-            <p className="text-slate-500 mt-2">You must be a Parent or Teacher to view this portal.</p>
-          </div>
-          
-          <div className="pt-8 border-t border-slate-100 space-y-4">
-            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Demo Mode (Testing Only)</p>
-            <div className="flex gap-4 justify-center">
-              <button 
-                onClick={() => setSimulatedRole(UserRole.TEACHER)}
-                className="px-6 py-3 bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white rounded-xl font-black uppercase tracking-widest text-[10px] transition-colors"
-              >
-                Simulate Teacher
-              </button>
-              <button 
-                onClick={() => setSimulatedRole(UserRole.PARENT)}
-                className="px-6 py-3 bg-emerald-50 text-emerald-600 hover:bg-emerald-600 hover:text-white rounded-xl font-black uppercase tracking-widest text-[10px] transition-colors"
-              >
-                Simulate Parent
-              </button>
-            </div>
-          </div>
+      <div className="min-h-[calc(100vh-4rem)] flex flex-col pt-12 items-center bg-slate-50 px-6">
+        <div className="w-full max-w-4xl space-y-12 mb-12">
+           <div className="text-center space-y-4">
+             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-100 text-blue-700 text-[10px] font-black uppercase tracking-widest mb-4">
+               <Sparkles className="w-3 h-3" /> Eswatini Digital Schools
+             </div>
+             <h2 className="text-4xl md:text-5xl font-black text-slate-900 tracking-tight">Welcome to the Portal</h2>
+             <p className="text-slate-500 font-medium max-w-xl mx-auto text-lg">
+               Choose your role to access personalized dashboards, financial ledgers, and academic insights.
+             </p>
+           </div>
+           
+           <div className="grid md:grid-cols-2 gap-8">
+             <div 
+               onClick={() => setSimulatedRole(UserRole.PARENT)}
+               className="group cursor-pointer bg-white p-10 rounded-[40px] shadow-sm border border-slate-200 hover:shadow-xl hover:border-emerald-200 transition-all duration-300 relative overflow-hidden"
+             >
+               <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-100/50 rounded-full blur-3xl -mr-20 -mt-20 group-hover:bg-emerald-200/50 transition-colors" />
+               <div className="relative z-10 space-y-6">
+                 <div className="w-16 h-16 bg-emerald-50 text-emerald-600 rounded-3xl flex items-center justify-center group-hover:bg-emerald-500 group-hover:text-white transition-colors duration-300">
+                    <Users className="w-8 h-8" />
+                 </div>
+                 <div>
+                   <h3 className="text-2xl font-black text-slate-900 mb-2">Simulate Parent</h3>
+                   <p className="text-slate-500 font-medium leading-relaxed">
+                     View academic progress, manage school fees via Mobile Money, sign digital consent forms, and track daily attendance.
+                   </p>
+                 </div>
+                 <div className="pt-4 flex items-center gap-2 text-emerald-600 font-bold text-sm">
+                   Enter Parent Portal <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                 </div>
+               </div>
+             </div>
+
+             <div 
+               onClick={() => setSimulatedRole(UserRole.TEACHER)}
+               className="group cursor-pointer bg-white p-10 rounded-[40px] shadow-sm border border-slate-200 hover:shadow-xl hover:border-blue-200 transition-all duration-300 relative overflow-hidden"
+             >
+               <div className="absolute top-0 right-0 w-64 h-64 bg-blue-100/50 rounded-full blur-3xl -mr-20 -mt-20 group-hover:bg-blue-200/50 transition-colors" />
+               <div className="relative z-10 space-y-6">
+                 <div className="w-16 h-16 bg-blue-50 text-blue-600 rounded-3xl flex items-center justify-center group-hover:bg-blue-600 group-hover:text-white transition-colors duration-300">
+                    <BookOpen className="w-8 h-8" />
+                 </div>
+                 <div>
+                   <h3 className="text-2xl font-black text-slate-900 mb-2">Simulate Teacher</h3>
+                   <p className="text-slate-500 font-medium leading-relaxed">
+                     Update student records, input grades, log behavior points, and communicate directly with parents and guardians.
+                   </p>
+                 </div>
+                 <div className="pt-4 flex items-center gap-2 text-blue-600 font-bold text-sm">
+                   Enter Teacher Portal <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                 </div>
+               </div>
+             </div>
+           </div>
+           
+           <div className="bg-amber-50 border border-amber-100 rounded-3xl p-6 flex items-start gap-4 text-amber-800">
+             <AlertCircle className="w-6 h-6 shrink-0" />
+             <div className="text-sm font-medium">
+               <strong>Demo Mode Active:</strong> You are currently logged in with a role that does not have a default portal assigned. Use the options above to simulate a specific user role for testing purposes.
+             </div>
+           </div>
         </div>
       </div>
     );
@@ -320,6 +358,14 @@ const ParentPortal: React.FC<ParentPortalProps> = ({ user }) => {
           <p className="text-slate-500 font-medium mt-2">
             {isTeacher ? 'Update student progress and performance.' : 'View your child\'s academic progress and behavior.'}
           </p>
+          {simulatedRole && (
+             <button 
+               onClick={() => setSimulatedRole(null)} 
+               className="mt-4 px-4 py-2 bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 rounded-xl font-black uppercase tracking-widest text-[10px] transition-colors flex items-center gap-2"
+             >
+               <XCircle className="w-4 h-4" /> Exit Simulated Mode
+             </button>
+          )}
         </div>
         <div className="flex items-center gap-4">
           <select 

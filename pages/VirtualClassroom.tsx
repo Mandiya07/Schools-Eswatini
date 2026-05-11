@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
-  Video, Mic, MicOff, MonitorUp, PhoneOff, MessageSquare, 
+  Video as VideoIcon, Mic, MicOff, MonitorUp, PhoneOff, MessageSquare, 
   Files, BrainCircuit, Play, Clock, Download, ChevronLeft,
   Paperclip, Send, PenTool, Eraser, Type, MousePointer2, 
   StopCircle, LayoutDashboard, Circle, Square, VideoOff,
@@ -12,8 +12,6 @@ import io from 'socket.io-client';
 import { GoogleGenAI } from '@google/genai';
 
 const socket = io('/'); // connects to the same origin port 3000
-
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
 const VirtualClassroom: React.FC = () => {
   const navigate = useNavigate();
@@ -266,6 +264,7 @@ const VirtualClassroom: React.FC = () => {
     setAiSummary("Generating...");
     
     try {
+      const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
       const transcript = chatMessages.map(m => `${m.sender}: ${m.text}`).join("\n");
       const prompt = `Based on the following virtual classroom transcript, provide a concise summary of the key takeaways and any action items/homework. Transcript:\n${transcript}`;
       
@@ -494,7 +493,7 @@ const VirtualClassroom: React.FC = () => {
                   onClick={() => setIsVideoOff(!isVideoOff)}
                   className={`w-14 h-14 rounded-full flex items-center justify-center transition-all ${isVideoOff ? 'bg-rose-500/20 text-rose-400' : 'bg-slate-800 text-white hover:bg-slate-700'}`}
                 >
-                  {isVideoOff ? <VideoOff className="w-6 h-6" /> : <Video className="w-6 h-6" />}
+                  {isVideoOff ? <VideoOff className="w-6 h-6" /> : <VideoIcon className="w-6 h-6" />}
                 </button>
                 <button 
                   onClick={() => setViewMode(viewMode === 'video' ? 'whiteboard' : 'video')}

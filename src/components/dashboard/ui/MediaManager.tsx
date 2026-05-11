@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Image, Video, Plus, Trash2, Link as LinkIcon, X } from 'lucide-react';
+import { Image, Video as VideoIcon, Plus, Trash2, Link as LinkIcon, X } from 'lucide-react';
 
 interface MediaItem {
   url: string;
@@ -54,7 +54,7 @@ const MediaManager: React.FC<MediaManagerProps> = ({ media = [], onChange, label
               onClick={() => setNewItem({ ...newItem, type: 'video' })}
               className={`flex-1 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 transition-all ${newItem.type === 'video' ? 'bg-rose-600 text-white' : 'bg-slate-50 text-slate-500'}`}
             >
-              <Video className="w-3 h-3" /> Video
+              <VideoIcon className="w-3 h-3" /> Video
             </button>
           </div>
           <div className="space-y-2">
@@ -91,7 +91,7 @@ const MediaManager: React.FC<MediaManagerProps> = ({ media = [], onChange, label
               <img src={item.url} className="w-full h-full object-cover" alt={item.caption} />
             ) : (
               <div className="w-full h-full flex items-center justify-center bg-slate-800 text-white">
-                <Video className="w-6 h-6" />
+                <VideoIcon className="w-6 h-6" />
               </div>
             )}
             <button 

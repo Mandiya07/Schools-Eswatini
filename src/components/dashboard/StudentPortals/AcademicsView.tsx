@@ -1,15 +1,16 @@
 
 import React from 'react';
-import { InstitutionType } from '../../../../types';
+import { InstitutionType, User } from '../../../../types';
 import { PrimaryStudentDashboard } from './PrimaryStudentDashboard';
 import { HighSchoolStudentDashboard } from './HighSchoolStudentDashboard';
 import { TertiaryStudentDashboard } from './TertiaryStudentDashboard';
 
 interface AcademicsViewProps {
   institutionType: InstitutionType | null;
+  user?: User | null;
 }
 
-export const AcademicsView: React.FC<AcademicsViewProps> = ({ institutionType }) => {
+export const AcademicsView: React.FC<AcademicsViewProps> = ({ institutionType, user }) => {
     switch (institutionType) {
         case InstitutionType.PRIMARY:
             return <PrimaryStudentDashboard />;
@@ -17,6 +18,6 @@ export const AcademicsView: React.FC<AcademicsViewProps> = ({ institutionType })
             return <TertiaryStudentDashboard />;
         case InstitutionType.HIGH_SCHOOL:
         default:
-            return <HighSchoolStudentDashboard />;
+            return <HighSchoolStudentDashboard user={user} />;
     }
 };

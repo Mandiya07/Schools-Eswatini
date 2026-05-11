@@ -22,7 +22,7 @@ import {
   CheckCircle2,
   Rocket,
   ArrowRight,
-  Video,
+  Video as VideoIcon,
   History,
   Play,
   Clock
@@ -512,7 +512,7 @@ const AcademicsSection: React.FC<AcademicsSectionProps> = ({ academics, primaryC
                     <h4 className="text-xl font-black text-slate-900">{f.name}</h4>
                     <p className="text-sm font-bold text-blue-600 uppercase tracking-widest">{f.title}</p>
                     <p className="text-xs font-bold text-slate-500">{f.qualifications}</p>
-                    <p className="text-sm text-slate-600">{f.bio}</p>
+                    <p className="text-sm text-slate-600">{f.description}</p>
                   </div>
                 ))}
               </div>
@@ -539,7 +539,7 @@ const AcademicsSection: React.FC<AcademicsSectionProps> = ({ academics, primaryC
                       className="group relative px-10 py-5 bg-emerald-600 text-white rounded-[32px] font-black uppercase tracking-widest text-[10px] flex items-center gap-3 hover:bg-slate-900 transition-all shadow-2xl shadow-emerald-200"
                     >
                       <div className="w-8 h-8 bg-white/20 rounded-xl flex items-center justify-center group-hover:bg-emerald-500 transition-colors">
-                        <Video className="w-4 h-4" />
+                        <VideoIcon className="w-4 h-4" />
                       </div>
                       Enter Live Demo Classroom
                       <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />

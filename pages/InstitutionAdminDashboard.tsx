@@ -1,16 +1,17 @@
 
-import React, { useState, useRef } from 'react';
-import { Institution, User, Region, SubscriptionPlan, AcademicDepartment, AcademicProgram, BannerAd as BannerAdType, BlogPost, EventItem, InstitutionType } from '../types';
+import React, { useState, useRef, useEffect } from 'react';
+import { Institution, User, Region, SubscriptionPlan, AcademicDepartment, AcademicProgram, BannerAd as BannerAdType, BlogPost, EventItem, InstitutionType, UserRole } from '../types';
 import { GoogleGenAI } from "@google/genai";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, LineChart, Line, CartesianGrid } from 'recharts';
 import SubscriptionPlans from '../src/components/SubscriptionPlans';
-import { Search, Globe, Share2, Award, Zap, Shield, ShieldAlert, Star, Layout, CreditCard, Lock, CheckCircle, AlertCircle, Sparkles, TrendingUp, Image as ImageIcon, Eye, Users, FileText, ClipboardList, Package, QrCode, Trash2, Plus, Calendar, Stethoscope, GraduationCap, Send, Bus, BarChart2, Megaphone, Newspaper, MapPin, Tag, Image as GalleryIcon, DollarSign, Download, ExternalLink, Mail, Leaf } from 'lucide-react';
+import { Search, Globe, Share2, Award, Zap, Shield, ShieldAlert, Star, Layout, CreditCard, Lock, CheckCircle, AlertCircle, Sparkles, TrendingUp, Image as ImageIcon, Eye, Users, FileText, ClipboardList, Package, QrCode, Trash2, Plus, Calendar, Stethoscope, GraduationCap, Send, Bus, BarChart2, Megaphone, Newspaper, MapPin, Tag, Image as GalleryIcon, DollarSign, Download, ExternalLink, Mail, Leaf, Loader2 } from 'lucide-react';
 import AIContentAssistant from '../src/components/AIContentAssistant';
 import MonetizationHub from '../src/components/dashboard/sections/MonetizationHub';
 import SectionManager from '../src/components/dashboard/sections/SectionManager';
 import AcademicsEditor from '../src/components/dashboard/sections/AcademicsEditor';
 import MediaManager from '../src/components/MediaManager';
 import { useWorkflow } from '../src/context/WorkflowContext';
+import { uploadFile } from '../src/services/storageService';
 
 import InboxManager from '../src/components/dashboard/sections/InboxManager';
 import PaperlessHubEditor from '../src/components/dashboard/sections/PaperlessHubEditor';
@@ -27,10 +28,11 @@ interface InstitutionAdminDashboardProps {
 const InstitutionAdminDashboard: React.FC<InstitutionAdminDashboardProps> = ({ user, institutions, onUpdate, onAdd }) => {
   const inst = institutions.find(i => i.id === (user.institutionId || institutions.find(i => i.adminId === user.id)?.id));
   const { tasks, notifications, markNotificationAsRead } = useWorkflow();
-  const [activeTab, setActiveTab] = useState<'basics' | 'identity' | 'theme' | 'sections' | 'media' | 'seo' | 'plan' | 'security' | 'analytics' | 'compliance' | 'academic' | 'academicsContent' | 'finance' | 'ai' | 'workflows' | 'staff' | 'inventory' | 'timetabling' | 'health' | 'alumni' | 'logistics' | 'benchmarking' | 'marketing' | 'news' | 'monetization' | 'applications' | 'inbox' | 'downloads' | 'paperless'>('basics');
+  const [activeTab, setActiveTab] = useState<'basics' | 'identity' | 'theme' | 'sections' | 'media' | 'seo' | 'plan' | 'security' | 'analytics' | 'compliance' | 'academic' | 'academicsContent' | 'finance' | 'ai' | 'workflows' | 'staff' | 'inventory' | 'timetabling' | 'health' | 'alumni' | 'logistics' | 'benchmarking' | 'marketing' | 'news' | 'monetization' | 'applications' | 'inbox' | 'downloads' | 'paperless' | 'students' | 'users' | 'teacherManagement' | 'studentProgress' | 'resourceMarketplace'>('basics');
   const [showPreview, setShowPreview] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
 
+  const [isUploading, setIsUploading] = useState(false);
   const logoInputRef = useRef<HTMLInputElement>(null);
   const coverInputRef = useRef<HTMLInputElement>(null);
 
@@ -65,32 +67,44 @@ const InstitutionAdminDashboard: React.FC<InstitutionAdminDashboardProps> = ({ u
     updateSectionField('about', field, updatedAbout[field]);
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, type: 'logo' | 'cover') => {
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>, type: 'logo' | 'cover') => {
     const file = e.target.files?.[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
+      setIsUploading(true);
+      try {
+        const path = `institutions/${inst.id}/${type}_${Date.now()}_${file.name}`;
+        const url = await uploadFile(path, file);
         handleUpdate({ 
           ...inst, 
-          [type === 'logo' ? 'logo' : 'coverImage']: reader.result as string 
+          [type === 'logo' ? 'logo' : 'coverImage']: url 
         });
-      };
-      reader.readAsDataURL(file);
+      } catch (error) {
+        console.error("Upload failed", error);
+        alert("Failed to upload image. Please try again.");
+      } finally {
+        setIsUploading(false);
+      }
     }
   };
 
-  const handleVerificationDocUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleVerificationDocUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file && file.type === 'application/pdf') {
-      const reader = new FileReader();
-      reader.onloadend = () => {
+      setIsUploading(true);
+      try {
+        const path = `institutions/${inst.id}/verification/${Date.now()}_${file.name}`;
+        const url = await uploadFile(path, file);
         handleUpdate({ 
           ...inst, 
-          verificationDocuments: [...(inst.verificationDocuments || []), reader.result as string],
+          verificationDocuments: [...(inst.verificationDocuments || []), url],
           verificationStatus: 'pending'
         });
-      };
-      reader.readAsDataURL(file);
+      } catch (error) {
+        console.error("Upload failed", error);
+        alert("Failed to upload document. Please try again.");
+      } finally {
+        setIsUploading(false);
+      }
     } else if (file) {
       alert("Please upload a PDF document.");
     }
@@ -98,6 +112,8 @@ const InstitutionAdminDashboard: React.FC<InstitutionAdminDashboardProps> = ({ u
 
   const isTertiary = inst.type.includes(InstitutionType.TERTIARY);
   const isPrimary = inst.type.includes(InstitutionType.PRIMARY);
+
+  const isAdmin = user.role === UserRole.INSTITUTION_ADMIN || user.role === UserRole.SUPER_ADMIN;
 
   const tabs = [
     { id: 'basics', label: 'Basic Details', icon: '📋' },
@@ -118,6 +134,9 @@ const InstitutionAdminDashboard: React.FC<InstitutionAdminDashboardProps> = ({ u
     { id: 'benchmarking', label: 'Peer Benchmarking', icon: <BarChart2 className="w-5 h-5" /> },
     { id: 'alumni', label: isTertiary ? 'Alumni Network' : 'Alumni Portal', icon: <GraduationCap className="w-5 h-5" /> },
     { id: 'students', label: isTertiary ? 'Student Enrollment' : isPrimary ? 'Pupil Registry' : 'Student Records', icon: <Users className="w-5 h-5 text-indigo-600" /> },
+    { id: 'studentProgress', label: 'Student Progress Tracking', icon: <TrendingUp className="w-5 h-5 text-blue-500" /> },
+    { id: 'teacherManagement', label: 'Teacher Management', icon: <Users className="w-5 h-5 text-emerald-500" /> },
+    { id: 'resourceMarketplace', label: 'Resource Marketplace', icon: <Package className="w-5 h-5 text-amber-500" /> },
     { id: 'news', label: 'News & Media', icon: <Newspaper className="w-5 h-5" /> },
     { id: 'marketing', label: 'Marketing Hub', icon: <Megaphone className="w-5 h-5" /> },
     { id: 'finance', label: 'Finance Hub', icon: '💳' },
@@ -128,8 +147,36 @@ const InstitutionAdminDashboard: React.FC<InstitutionAdminDashboardProps> = ({ u
     { id: 'monetization', label: 'Revenue & Billing', icon: <DollarSign className="w-5 h-5 text-emerald-500" /> },
     { id: 'inbox', label: 'Portal Inbox', icon: <Mail className="w-5 h-5 text-blue-600" /> },
     { id: 'applications', label: 'Applications', icon: <FileText className="w-5 h-5" /> },
+    { id: 'users', label: 'Users & Permissions', icon: <Lock className="w-5 h-5 text-amber-500" /> },
     { id: 'security', label: 'Security', icon: <Lock className="w-5 h-5" /> }
   ];
+
+  const filteredTabs = tabs.filter(tab => {
+    if (isAdmin) return true;
+    if (!user.permissions) return false;
+
+    switch (tab.id) {
+      case 'news': return user.permissions.canEditNews;
+      case 'media': return user.permissions.canEditNews;
+      case 'sections': return user.permissions.canEditStudentLife || user.permissions.canEditAdmissions || user.permissions.canEditAcademics;
+      case 'academicsContent': return user.permissions.canEditAcademics;
+      case 'academic': return user.permissions.canEditAcademics;
+      case 'finance': return user.permissions.canManageFinance;
+      case 'monetization': return user.permissions.canManageFinance;
+      case 'staff': return user.permissions.canManageStaff;
+      case 'students': return user.permissions.canManageStudents;
+      case 'inventory': return user.permissions.canManageInventory;
+      case 'inbox': return user.permissions.canManagePortal;
+      case 'applications': return user.permissions.canEditAdmissions;
+      default: return false;
+    }
+  });
+
+  useEffect(() => {
+    if (!isAdmin && filteredTabs.length > 0 && !filteredTabs.find(t => t.id === activeTab)) {
+      setActiveTab(filteredTabs[0].id as any);
+    }
+  }, [isAdmin, filteredTabs, activeTab]);
 
 
   return (
@@ -176,7 +223,7 @@ const InstitutionAdminDashboard: React.FC<InstitutionAdminDashboardProps> = ({ u
 
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-12">
          <aside className="lg:col-span-1 space-y-2">
-            {tabs.map(t => (
+            {filteredTabs.map(t => (
                <button 
                  key={t.id} 
                  onClick={() => setActiveTab(t.id as any)}
@@ -369,7 +416,7 @@ const InstitutionAdminDashboard: React.FC<InstitutionAdminDashboardProps> = ({ u
                     <div className="flex items-center gap-4 mb-4">
                       <label className="cursor-pointer bg-white border border-slate-200 px-6 py-3 rounded-xl font-black uppercase tracking-widest text-[10px] shadow-sm hover:bg-slate-50 flex items-center gap-2">
                         <Plus className="w-4 h-4" /> Upload PDF
-                        <input type="file" accept="application/pdf" className="hidden" onChange={handleDocumentUpload} />
+                        <input type="file" accept="application/pdf" className="hidden" onChange={handleVerificationDocUpload} />
                       </label>
                     </div>
 
@@ -642,6 +689,7 @@ const InstitutionAdminDashboard: React.FC<InstitutionAdminDashboardProps> = ({ u
             {activeTab === 'sections' && (
               <SectionManager 
                 institution={inst} 
+                user={user}
                 onUpdate={handleUpdate} 
               />
             )}
@@ -1306,6 +1354,48 @@ const InstitutionAdminDashboard: React.FC<InstitutionAdminDashboardProps> = ({ u
               </div>
             )}
 
+            {activeTab === 'teacherManagement' && (
+              <div className="space-y-12 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                <header>
+                  <h2 className="text-3xl font-black text-slate-900 tracking-tight">Teacher Management</h2>
+                  <p className="text-slate-500 font-medium mt-1">Manage teacher profiles, assignments, and evaluations.</p>
+                </header>
+                <div className="bg-white p-10 rounded-[48px] shadow-sm border border-slate-200 text-center">
+                  <Users className="w-16 h-16 text-slate-300 mx-auto mb-4" />
+                  <h3 className="text-lg font-bold text-slate-900 mb-2">Teacher Management System</h3>
+                  <p className="text-slate-500">The central hub for assigning classes and tracking teacher performance metrics will be available here.</p>
+                </div>
+              </div>
+            )}
+
+            {activeTab === 'studentProgress' && (
+              <div className="space-y-12 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                <header>
+                  <h2 className="text-3xl font-black text-slate-900 tracking-tight">Student Progress Tracking</h2>
+                  <p className="text-slate-500 font-medium mt-1">Monitor grades, attendance, and overall performance.</p>
+                </header>
+                <div className="bg-white p-10 rounded-[48px] shadow-sm border border-slate-200 text-center">
+                  <TrendingUp className="w-16 h-16 text-slate-300 mx-auto mb-4" />
+                  <h3 className="text-lg font-bold text-slate-900 mb-2">Progress Analytics Dashboard</h3>
+                  <p className="text-slate-500">Detailed insights and cohort tracking features are being configured.</p>
+                </div>
+              </div>
+            )}
+
+            {activeTab === 'resourceMarketplace' && (
+              <div className="space-y-12 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                <header>
+                  <h2 className="text-3xl font-black text-slate-900 tracking-tight">Resource Marketplace</h2>
+                  <p className="text-slate-500 font-medium mt-1">Curate and manage digital resources available to parents and students.</p>
+                </header>
+                <div className="bg-white p-10 rounded-[48px] shadow-sm border border-slate-200 text-center">
+                  <Package className="w-16 h-16 text-slate-300 mx-auto mb-4" />
+                  <h3 className="text-lg font-bold text-slate-900 mb-2">Institution Marketplace</h3>
+                  <p className="text-slate-500">Manage premium resources, set prices, and view sales analytics here.</p>
+                </div>
+              </div>
+            )}
+
             {activeTab === 'workflows' && (
               <div className="space-y-12 animate-in fade-in slide-in-from-bottom-4 duration-500">
                 <header>
@@ -1734,13 +1824,13 @@ const InstitutionAdminDashboard: React.FC<InstitutionAdminDashboardProps> = ({ u
                         <div className="absolute inset-0 bg-slate-900/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center p-4">
                           <input 
                             className="bg-white/10 text-white border border-white/20 rounded-lg px-2 py-1 text-[8px] font-black uppercase w-full mb-2 text-center focus:ring-0"
-                            value={item.caption}
+                            value={item.title}
                             onChange={(e) => {
                               const newGallery = [...inst.sections.news.gallery];
-                              newGallery[index] = { ...item, caption: e.target.value };
+                              newGallery[index] = { ...item, title: e.target.value };
                               updateSectionField('news', 'gallery', newGallery);
                             }}
-                            placeholder="Caption..."
+                            placeholder="Title..."
                           />
                           <button 
                             onClick={() => {
@@ -2160,6 +2250,64 @@ const InstitutionAdminDashboard: React.FC<InstitutionAdminDashboardProps> = ({ u
                         </div>
                       </div>
                     </div>
+                  </div>
+                </section>
+              </div>
+            )}
+
+            {activeTab === 'users' && (
+              <div className="bg-white p-10 rounded-[40px] border border-slate-100 shadow-sm space-y-12 animate-in fade-in">
+                <section>
+                  <div className="flex justify-between items-center mb-8">
+                    <div>
+                      <h3 className="text-xl font-black text-slate-900 flex items-center gap-3">🔐 Users & Granular Permissions</h3>
+                      <p className="text-sm text-slate-500 mt-1">Delegate content management to staff and students. This allows specific roles to update sections like News or Student Life.</p>
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-6">
+                    {[
+                      { name: 'Thabo Khumalo', role: 'Teacher', email: 'thabo.k@school.sz', permissions: { canEditNews: true, canEditAcademics: true } },
+                      { name: 'Sihle Dlamini', role: 'Student (Head Boy)', email: 'sihle.d@school.sz', permissions: { canEditNews: true, canEditStudentLife: true } },
+                      { name: 'Bonsile Maseko', role: 'Bursar', email: 'bonsile.m@school.sz', permissions: { canManageFinance: true } }
+                    ].map((u, i) => (
+                      <div key={i} className="p-8 bg-slate-50 rounded-[40px] border border-slate-100">
+                        <div className="flex justify-between items-center mb-8">
+                          <div className="flex items-center gap-4">
+                            <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center font-black text-slate-900 shadow-sm border border-slate-100">{u.name[0]}</div>
+                            <div>
+                              <h4 className="font-black text-slate-900">{u.name}</h4>
+                              <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">{u.role} — {u.email}</p>
+                            </div>
+                          </div>
+                          <button className="text-[10px] font-black uppercase text-rose-500 tracking-widest px-4 py-2 bg-rose-50 rounded-xl hover:bg-rose-100 transition-colors">Revoke All</button>
+                        </div>
+                        
+                        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                          {[
+                            { key: 'canEditNews', label: 'Edit News & Media' },
+                            { key: 'canEditStudentLife', label: 'Edit Student Life' },
+                            { key: 'canEditAcademics', label: 'Edit Academics' },
+                            { key: 'canEditAdmissions', label: 'Manage Admissions' },
+                            { key: 'canManageFinance', label: 'Finance Access' },
+                            { key: 'canManageStaff', label: 'Staff Records' },
+                            { key: 'canManageStudents', label: 'Student Records' },
+                          ].map(p => (
+                            <label key={p.key} className="flex items-center gap-3 bg-white p-4 rounded-2xl border border-slate-100 cursor-pointer hover:border-indigo-200 transition-all">
+                              <input 
+                                type="checkbox" 
+                                className="w-4 h-4 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500"
+                                checked={(u.permissions as any)?.[p.key] || false}
+                                onChange={() => {
+                                  alert(`Permission ${p.label} updated for ${u.name}. In a real system, this would update the user's document in the DB.`);
+                                }}
+                              />
+                              <span className="text-[9px] font-black uppercase text-slate-600 tracking-widest">{p.label}</span>
+                            </label>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 </section>
               </div>

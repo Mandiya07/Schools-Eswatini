@@ -360,14 +360,14 @@ const NewsEventsSection: React.FC<NewsEventsSectionProps> = ({ news, primaryColo
                 idx === 0 ? 'col-span-2 row-span-2 h-[600px]' : 'h-[288px]'
               }`}
             >
-              <img src={item.url || undefined} alt={item.caption} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
+              <img src={item.url || undefined} alt={item.title} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
               <div className="absolute inset-0 bg-gradient-to-t from-slate-900/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
               <div className="absolute bottom-0 left-0 w-full p-8 translate-y-4 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-500">
                 <div className="flex items-center gap-3 mb-2">
-                  {item.type === 'photo' ? <ImageIcon className="w-4 h-4 text-white" /> : <PlayCircle className="w-4 h-4 text-white" />}
+                  {item.type === 'image' ? <ImageIcon className="w-4 h-4 text-white" /> : <PlayCircle className="w-4 h-4 text-white" />}
                   <span className="text-[9px] font-black text-white uppercase tracking-widest">{item.type}</span>
                 </div>
-                <p className="text-lg font-bold text-white leading-snug">{item.caption}</p>
+                <p className="text-lg font-bold text-white leading-snug">{item.title}</p>
               </div>
             </motion.div>
           ))}

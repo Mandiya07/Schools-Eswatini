@@ -10,13 +10,20 @@ interface MonetizationHubProps {
 }
 
 const MonetizationHub: React.FC<MonetizationHubProps> = ({ institution, onUpdate, onPlanUpdate }) => {
-  const { monetization = {}, plan, subscription } = institution;
+  const monetization = institution.monetization || {
+    isEnabled: false,
+    feesEnabled: false,
+    scholarshipPremiumEnabled: false,
+    alumniDonationsEnabled: false,
+    premiumContentEnabled: false
+  };
+  const { plan, subscription } = institution;
 
-  const updateField = (field: keyof Institution['monetization'] & string, value: any) => {
+  const updateField = (field: string, value: any) => {
     onUpdate({
       ...monetization,
       [field]: value
-    });
+    } as any);
   };
 
   const plans = [
@@ -124,8 +131,8 @@ const MonetizationHub: React.FC<MonetizationHubProps> = ({ institution, onUpdate
                   </div>
                 </div>
                 <div>
-                  <h5 className="font-black text-xl leading-tight">Native MoMo Fees Gateway</h5>
-                  <p className="text-slate-400 text-xs font-medium mt-2">Allow parents to pay fees via MTN MoMo with automated reconciliation.</p>
+                  <h5 className="font-black text-xl leading-tight">Omni-Channel Payment Gateways</h5>
+                  <p className="text-slate-400 text-xs font-medium mt-2">Accept payments via MTN MoMo, Eswatini Mobile eMali, Visa/Mastercard, and Electronic Funds Transfer (EFT).</p>
                 </div>
                 <div className="space-y-4">
                   <label className="block text-[9px] font-black text-slate-500 uppercase tracking-widest">Eswatini Merchant ID</label>
@@ -212,7 +219,7 @@ const MonetizationHub: React.FC<MonetizationHubProps> = ({ institution, onUpdate
                <TrendingUp className="w-5 h-5" />
             </div>
             <p className="text-4xl font-black tracking-tight leading-none">E12,450</p>
-            <p className="text-xs font-medium opacity-60">Projected fee collection for next 30 days via MoMo Gateway.</p>
+            <p className="text-xs font-medium opacity-60">Projected fee collection for next 30 days via digital payment gateways.</p>
             <div className="h-2 bg-white/10 rounded-full overflow-hidden">
                <div className="w-[65%] h-full bg-white" />
             </div>

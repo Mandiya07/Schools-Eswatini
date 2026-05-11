@@ -1,6 +1,6 @@
 
-import React, { useState } from 'react';
-import { Institution } from '../../../../types';
+import React, { useState, useEffect } from 'react';
+import { Institution, InstitutionType, User, UserRole } from '../../../../types';
 import HomepageEditor from './HomepageEditor';
 import AboutEditor from './AboutEditor';
 import AdmissionsEditor from './AdmissionsEditor';
@@ -15,16 +15,17 @@ import { Layout, Info, UserPlus, GraduationCap, Newspaper, Users, Globe, Setting
 
 interface SectionManagerProps {
   institution: Institution;
+  user: User;
   onUpdate: (updatedInst: Institution) => void;
 }
 
-const SectionManager: React.FC<SectionManagerProps> = ({ institution, onUpdate }) => {
-  const [activeSection, setActiveSection] = useState<keyof Institution['sections'] | 'visibility'>('visibility');
+const SectionManager: React.FC<SectionManagerProps> = ({ institution, user, onUpdate }) => {
+  const isAdmin = user.role === UserRole.INSTITUTION_ADMIN || user.role === UserRole.SUPER_ADMIN;
 
-  const isTertiary = institution.type.includes('Tertiary');
-  const isPrimary = institution.type.includes('Primary');
+  const isTertiary = institution.type.includes(InstitutionType.TERTIARY);
+  const isPrimary = institution.type.includes(InstitutionType.PRIMARY);
 
-  const sections = [
+  const allSections: { id: any; label: string; icon: React.ReactNode }[] = [
     { id: 'visibility', label: 'Visibility', icon: <Settings className="w-4 h-4" /> },
     { id: 'homepage', label: 'Landing Page', icon: <Layout className="w-4 h-4" /> },
     { id: 'about', label: 'Identity', icon: <Info className="w-4 h-4" /> },
@@ -36,6 +37,30 @@ const SectionManager: React.FC<SectionManagerProps> = ({ institution, onUpdate }
     { id: 'portal', label: 'Gateway', icon: <Globe className="w-4 h-4" /> },
     { id: 'contactUs', label: 'Contact Us', icon: <Mail className="w-4 h-4" /> }
   ];
+
+  const sections = allSections.filter(s => {
+    if (isAdmin) return true;
+    if (!user.permissions) return false;
+
+    switch (s.id) {
+      case 'news': return user.permissions.canEditNews;
+      case 'studentLife': return user.permissions.canEditStudentLife;
+      case 'admissions': return user.permissions.canEditAdmissions;
+      case 'academics': return user.permissions.canEditAcademics;
+      case 'programs': return user.permissions.canEditAcademics;
+      default: return false; 
+    }
+  });
+
+  const [activeSection, setActiveSection] = useState<keyof Institution['sections'] | 'visibility' | 'programs'>(
+    isAdmin ? 'visibility' : (sections[0]?.id as any) || 'visibility'
+  );
+
+  useEffect(() => {
+    if (!isAdmin && sections.length > 0 && !sections.find(s => s.id === activeSection)) {
+      setActiveSection(sections[0].id as any);
+    }
+  }, [isAdmin, sections, activeSection]);
 
   const updateSection = (updatedSections: Institution['sections']) => {
     onUpdate({
@@ -56,7 +81,7 @@ const SectionManager: React.FC<SectionManagerProps> = ({ institution, onUpdate }
       case 'academics': return <AcademicsEditor institution={institution} onUpdate={updateSection} />;
       case 'news': return <NewsEditor institution={institution} onUpdate={updateSection} />;
       case 'studentLife': return <StudentLifeEditor institution={institution} onUpdate={updateSection} />;
-      case 'programs': return <ProgramsEditor institution={institution} onUpdate={updateSection} />;
+      case 'programs': return <ProgramsEditor institution={institution} onUpdate={onUpdate as any} />;
       case 'portal': return <PortalEditor institution={institution} onUpdate={updateSection} />;
       case 'contactUs': return <ContactUsEditor institution={institution} onUpdate={onUpdate} />;
       default: return null;

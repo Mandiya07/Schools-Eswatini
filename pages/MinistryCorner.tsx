@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { motion } from 'motion/react';
+import { useNavigate } from 'react-router-dom';
 import { BookOpen, FileText, Bell, AlertTriangle, TrendingUp, BarChart3, GraduationCap, Download, Filter, Search, ChevronRight, ExternalLink, Calendar, MapPin, Award } from 'lucide-react';
 import { ExamResult, SchoolPerformance, PolicyAnnouncement } from '../types';
 
@@ -122,6 +123,17 @@ const MinistryCorner: React.FC = () => {
     }
   ];
 
+  const [newsletterEmail, setNewsletterEmail] = useState('');
+  const navigate = useNavigate();
+
+  const handleSubscribe = () => {
+    if (newsletterEmail) {
+      navigate(`/auth?tab=register&email=${encodeURIComponent(newsletterEmail)}`);
+    } else {
+      navigate('/auth?tab=register');
+    }
+  };
+
   const filteredAnnouncements = activeCategory === 'all' 
     ? announcements 
     : announcements.filter(a => a.category === activeCategory);
@@ -236,7 +248,7 @@ const MinistryCorner: React.FC = () => {
                     ].map((item, i) => (
                       <div key={i} className="flex gap-4 p-6 bg-white/5 border border-white/10 rounded-[32px] hover:bg-white/10 transition-all">
                         <div className="w-12 h-12 bg-white/10 rounded-2xl flex items-center justify-center text-blue-400 flex-shrink-0">
-                          {React.cloneElement(item.icon as React.ReactElement, { className: "w-6 h-6" })}
+                          {React.cloneElement(item.icon as React.ReactElement<any>, { className: "w-6 h-6" })}
                         </div>
                         <div>
                           <h4 className="font-bold text-base mb-1">{item.title}</h4>
@@ -360,10 +372,15 @@ const MinistryCorner: React.FC = () => {
             <div className="flex flex-col md:flex-row gap-4 justify-center items-center">
               <input 
                 type="email" 
+                value={newsletterEmail}
+                onChange={(e) => setNewsletterEmail(e.target.value)}
                 placeholder="official@school.ac.sz" 
                 className="w-full md:w-80 px-8 py-5 rounded-[24px] bg-white text-slate-900 font-bold border-none focus:ring-4 focus:ring-blue-400 outline-none" 
               />
-              <button className="w-full md:w-auto bg-slate-900 px-12 py-5 rounded-[24px] font-black uppercase tracking-widest text-xs hover:bg-slate-800 transition-all shadow-xl">
+              <button 
+                onClick={handleSubscribe}
+                className="w-full md:w-auto bg-slate-900 px-12 py-5 rounded-[24px] font-black uppercase tracking-widest text-xs hover:bg-slate-800 transition-all shadow-xl"
+              >
                 Subscribe Now
               </button>
             </div>

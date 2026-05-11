@@ -45,6 +45,7 @@ import PaymentCheckoutPage from './pages/PaymentCheckoutPage';
 import TermsOfService from './pages/TermsOfService';
 import PrivacyPolicy from './pages/PrivacyPolicy';
 import VirtualClassroom from './pages/VirtualClassroom';
+import SecurityLogsPage from './pages/SecurityLogsPage';
 
 // Components
 import Navbar from './components/Navbar';
@@ -474,6 +475,15 @@ const App: React.FC = () => {
             <Route 
               path="/ministry" 
               element={<MinistryPortal user={user} institutions={institutions} />} 
+            />
+
+            <Route 
+              path="/security" 
+              element={
+                !user ? <Navigate to="/auth" /> : 
+                user.role === UserRole.SUPER_ADMIN ? <SecurityLogsPage /> : 
+                <Navigate to="/dashboard" />
+              } 
             />
 
             <Route path="*" element={<Navigate to="/" />} />

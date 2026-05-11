@@ -157,10 +157,10 @@ const AboutEditor: React.FC<AboutEditorProps> = ({ institution, onUpdate }) => {
                       <label className="block text-[8px] font-black text-slate-400 uppercase tracking-widest mb-2">Value Title</label>
                       <input 
                         className="w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 font-bold text-slate-900 outline-none focus:ring-2 focus:ring-blue-500 transition-all" 
-                        value={val.title} 
+                        value={val.name} 
                         onChange={e => {
                           const newValues = [...about.coreValues];
-                          newValues[idx].title = e.target.value;
+                          newValues[idx].name = e.target.value;
                           updateField('coreValues', newValues);
                         }} 
                         placeholder="e.g. Integrity" 

@@ -242,7 +242,7 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ mode, in
                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
                        <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#64748b', fontWeight: 800 }} />
                        <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#64748b', fontWeight: 800 }} />
-                       <Tooltip contentStyle={{ borderRadius: '24px', border: 'none', shadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }} />
+                       <Tooltip contentStyle={{ borderRadius: '24px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }} />
                        <Area type="monotone" dataKey="Hhohho" stackId="1" stroke="#6366f1" fill="#6366f1" fillOpacity={0.6} />
                        <Area type="monotone" dataKey="Manzini" stackId="1" stroke="#10b981" fill="#10b981" fillOpacity={0.6} />
                        <Area type="monotone" dataKey="Lubombo" stackId="1" stroke="#f59e0b" fill="#f59e0b" fillOpacity={0.6} />

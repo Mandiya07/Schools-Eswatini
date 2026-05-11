@@ -1,6 +1,6 @@
 import React from 'react';
 import { useOutletContext } from 'react-router-dom';
-import { Institution, InstitutionType } from '../../types';
+import { Institution, InstitutionType, SubscriptionPlan } from '../../types';
 import { getOptimizedImageUrl } from '../../src/services/performanceService';
 import { InquiryForm } from '../../components/EngagementFeatures';
 import PaperlessInitiative from '../../src/components/PaperlessInitiative';
@@ -151,7 +151,7 @@ export const InstitutionHome: React.FC = () => {
       )}
 
       {/* 5. PREMIUM FEATURES: Virtual Tour */}
-      {(inst.plan === 'Premium' || inst.plan === 'Pro Suite' || inst.plan === 'Enterprise') && (
+      {(inst.plan === SubscriptionPlan.PREMIUM_B2B || inst.plan === SubscriptionPlan.ENTERPRISE_B2B) && (
         <section className="space-y-16 py-12 px-8 md:px-16 bg-slate-900 rounded-[64px] text-white overflow-hidden relative mt-16">
           <div className="absolute -top-32 -right-32 w-96 h-96 bg-fuchsia-600 rounded-full mix-blend-multiply filter blur-3xl opacity-20" />
           <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 mb-10 relative z-10">

@@ -181,7 +181,7 @@ const StudentLifeSection: React.FC<StudentLifeSectionProps> = ({ life, primaryCo
             <h4 className="text-3xl font-black text-slate-900 tracking-tight uppercase tracking-widest">Campus Facilities</h4>
           </div>
           <p className="text-lg text-slate-500 font-medium leading-relaxed">
-            {life.facilities.description}
+            Discover our world-class facilities designed to support student growth and excellence.
           </p>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {life.facilities.map((fac, idx) => (
