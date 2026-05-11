@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { Institution, User, Region, SubscriptionPlan, InstitutionType, GenderType, UserRole } from '../types';
 import InstitutionAdminDashboard from './InstitutionAdminDashboard';
+import { hasPermission } from '../src/lib/permissions';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, BarChart, Bar, XAxis, YAxis, CartesianGrid, LineChart, Line, AreaChart, Area, Legend } from 'recharts';
 import SecurityDashboard from '../components/SecurityDashboard';
 import { AnalyticsDashboard } from '../src/components/dashboard/sections/AnalyticsDashboard';
@@ -9,6 +10,7 @@ import { Plus, X, ArrowLeft, Layout } from 'lucide-react';
 import { MOCK_INSTITUTIONS } from '../mockData';
 
 interface SuperAdminDashboardProps {
+  user: User;
   institutions: Institution[];
   onUpdate: (inst: Institution) => void;
   onDelete: (id: string) => void;
@@ -16,8 +18,8 @@ interface SuperAdminDashboardProps {
   onAdd?: (inst: Institution) => void;
 }
 
-const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({ institutions, onUpdate, onDelete, onSeed, onAdd }) => {
-  const [activeTab, setActiveTab] = useState<'overview' | 'institutions' | 'verification' | 'analytics' | 'security' | 'monetization' | 'users' | 'moderation' | 'forecasting'>('overview');
+const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({ user, institutions, onUpdate, onDelete, onSeed, onAdd }) => {
+  const [activeTab, setActiveTab] = useState<string>('overview');
   const [adminProxy, setAdminProxy] = useState<User | null>(null);
   const [perfStats, setPerfStats] = useState<any>(null);
   
@@ -134,6 +136,41 @@ const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({ institutions,
     { year: 'Year 3', 'National Utility License (MoET)': 3000000, 'Convenience Fees': 18000000, 'Marketplace Share': 2500000, Total: 23500000 },
   ];
 
+  const tabs = [
+    { id: 'overview', label: 'Overview' },
+    { id: 'institutions', label: `Institutions (${institutions.length})` },
+    { id: 'verification', label: `Verification (${institutions.filter(i => i.verificationStatus === 'pending').length})` },
+    { id: 'analytics', label: 'Analytics' },
+    { id: 'security', label: 'Security' },
+    { id: 'monetization', label: 'Revenue & Ads' },
+    { id: 'users', label: 'Users' },
+    { id: 'moderation', label: 'Moderation' },
+    { id: 'forecasting', label: 'Forecasting (Projections)' }
+  ];
+
+  const filteredTabs = tabs.filter(tab => {
+    if (user.role === UserRole.SUPER_ADMIN) return true;
+    
+    switch (tab.id) {
+      case 'overview': return true;
+      case 'institutions': return true; // MoET can view directory
+      case 'verification': return hasPermission(user, 'canManageVerification');
+      case 'analytics': return hasPermission(user, 'canViewAnalytics');
+      case 'security': return hasPermission(user, 'canViewSecurityLogs');
+      case 'monetization': return hasPermission(user, 'canManageFinance');
+      case 'users': return hasPermission(user, 'canManageUsers');
+      case 'moderation': return hasPermission(user, 'canManageContent');
+      case 'forecasting': return hasPermission(user, 'canViewAnalytics');
+      default: return false;
+    }
+  });
+
+  useEffect(() => {
+    if (!filteredTabs.find(t => t.id === activeTab)) {
+      setActiveTab(filteredTabs[0]?.id || 'overview');
+    }
+  }, [filteredTabs, activeTab]);
+
   return (
     <div className="max-w-7xl mx-auto px-6 lg:px-8 py-12">
       <div className="flex flex-col md:flex-row justify-between items-center mb-16 gap-8">
@@ -158,60 +195,15 @@ const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({ institutions,
       </div>
 
       <div className="flex gap-4 mb-10 border-b border-slate-100 overflow-x-auto">
-        <button 
-          onClick={() => setActiveTab('overview')}
-          className={`pb-4 text-[10px] font-black uppercase tracking-widest transition-all border-b-2 whitespace-nowrap ${activeTab === 'overview' ? 'border-blue-600 text-blue-600' : 'border-transparent text-slate-400'}`}
-        >
-          Overview
-        </button>
-        <button 
-          onClick={() => setActiveTab('institutions')}
-          className={`pb-4 text-[10px] font-black uppercase tracking-widest transition-all border-b-2 whitespace-nowrap ${activeTab === 'institutions' ? 'border-blue-600 text-blue-600' : 'border-transparent text-slate-400'}`}
-        >
-          Institutions ({institutions.length})
-        </button>
-        <button 
-          onClick={() => setActiveTab('verification')}
-          className={`pb-4 text-[10px] font-black uppercase tracking-widest transition-all border-b-2 whitespace-nowrap ${activeTab === 'verification' ? 'border-blue-600 text-blue-600' : 'border-transparent text-slate-400'}`}
-        >
-          Verification ({institutions.filter(i => i.verificationStatus === 'pending').length})
-        </button>
-        <button 
-          onClick={() => setActiveTab('analytics')}
-          className={`pb-4 text-[10px] font-black uppercase tracking-widest transition-all border-b-2 whitespace-nowrap ${activeTab === 'analytics' ? 'border-blue-600 text-blue-600' : 'border-transparent text-slate-400'}`}
-        >
-          Analytics
-        </button>
-        <button 
-          onClick={() => setActiveTab('security')}
-          className={`pb-4 text-[10px] font-black uppercase tracking-widest transition-all border-b-2 whitespace-nowrap ${activeTab === 'security' ? 'border-blue-600 text-blue-600' : 'border-transparent text-slate-400'}`}
-        >
-          Security
-        </button>
-        <button 
-          onClick={() => setActiveTab('monetization')}
-          className={`pb-4 text-[10px] font-black uppercase tracking-widest transition-all border-b-2 whitespace-nowrap ${activeTab === 'monetization' ? 'border-emerald-500 text-emerald-500' : 'border-transparent text-slate-400'}`}
-        >
-          Revenue & Ads
-        </button>
-        <button 
-          onClick={() => setActiveTab('users')}
-          className={`pb-4 text-[10px] font-black uppercase tracking-widest transition-all border-b-2 whitespace-nowrap ${activeTab === 'users' ? 'border-blue-600 text-blue-600' : 'border-transparent text-slate-400'}`}
-        >
-          Users
-        </button>
-        <button 
-          onClick={() => setActiveTab('moderation')}
-          className={`pb-4 text-[10px] font-black uppercase tracking-widest transition-all border-b-2 whitespace-nowrap ${activeTab === 'moderation' ? 'border-blue-600 text-blue-600' : 'border-transparent text-slate-400'}`}
-        >
-          Moderation
-        </button>
-        <button 
-          onClick={() => setActiveTab('forecasting')}
-          className={`pb-4 text-[10px] font-black uppercase tracking-widest transition-all border-b-2 whitespace-nowrap ${activeTab === 'forecasting' ? 'border-amber-500 text-amber-500' : 'border-transparent text-slate-400'}`}
-        >
-          Forecasting (Projections)
-        </button>
+        {filteredTabs.map(tab => (
+          <button 
+            key={tab.id}
+            onClick={() => setActiveTab(tab.id as any)}
+            className={`pb-4 text-[10px] font-black uppercase tracking-widest transition-all border-b-2 whitespace-nowrap ${activeTab === tab.id ? 'border-blue-600 text-blue-600' : 'border-transparent text-slate-400'}`}
+          >
+            {tab.label}
+          </button>
+        ))}
       </div>
 
       {activeTab === 'overview' ? (

@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { User, UserRole } from '../types';
 import { Menu, X } from 'lucide-react';
+import { hasRole } from '../src/lib/permissions';
 
 interface NavbarProps {
   user: User | null;
@@ -37,17 +38,19 @@ const Navbar: React.FC<NavbarProps> = ({ user, onLogout, compareCount = 0 }) => 
 
   const UserLinks = () => (
     <>
-      <Link to="/student" onClick={closeMobileMenu} className="text-slate-600 hover:text-blue-600 font-medium text-[13px] px-1.5 py-1 transition-colors">Student</Link>
-      {user?.role !== UserRole.TEACHER && (
+      {hasRole(user, UserRole.STUDENT) && (
+        <Link to="/student" onClick={closeMobileMenu} className="text-slate-600 hover:text-blue-600 font-medium text-[13px] px-1.5 py-1 transition-colors">Student</Link>
+      )}
+      {hasRole(user, [UserRole.PARENT, UserRole.SUPER_ADMIN]) && (
         <Link to="/portal" onClick={closeMobileMenu} className="text-slate-600 hover:text-blue-600 font-medium text-[13px] px-1.5 py-1 transition-colors">Portal</Link>
       )}
-      {(user?.role === UserRole.SUPER_ADMIN || user?.role === UserRole.INSTITUTION_ADMIN) && (
+      {hasRole(user, [UserRole.SUPER_ADMIN, UserRole.INSTITUTION_ADMIN]) && (
         <Link to="/dashboard" onClick={closeMobileMenu} className="text-slate-600 hover:text-blue-600 font-medium text-[13px] px-1.5 py-1 transition-colors">Dashboard</Link>
       )}
-      {(user?.role === UserRole.MOET_OFFICIAL || user?.role === UserRole.SUPER_ADMIN) && (
+      {hasRole(user, [UserRole.MOET_OFFICIAL, UserRole.SUPER_ADMIN]) && (
         <Link to="/ministry" onClick={closeMobileMenu} className="text-slate-600 hover:text-blue-600 font-medium text-[13px] px-1.5 py-1 transition-colors">Ministry Dashboard</Link>
       )}
-      {(user?.role === UserRole.TEACHER || user?.role === UserRole.SUPER_ADMIN || user?.role === UserRole.INSTITUTION_ADMIN) && (
+      {hasRole(user, [UserRole.TEACHER, UserRole.SUPER_ADMIN, UserRole.INSTITUTION_ADMIN]) && (
         <Link to="/teacher/dashboard" onClick={closeMobileMenu} className="text-blue-600 border-b-2 border-blue-600 font-black text-[13px] px-1.5 py-1 transition-all">Teacher Portal</Link>
       )}
       <button 

@@ -367,7 +367,7 @@ const BrowsePage: React.FC<BrowsePageProps> = ({
               <>
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-2 gap-8">
                   {paginatedInstitutions.map(inst => (
-                      <div key={inst.id} className="bg-white rounded-[40px] overflow-hidden border border-slate-100 transition-all hover:shadow-2xl flex flex-col group relative">
+                      <div key={inst.id} className="institution-card bg-white rounded-[40px] overflow-hidden border border-slate-100 transition-all hover:shadow-2xl flex flex-col group relative">
                         {inst.isFeatured && (
                           <div className="absolute top-6 left-6 z-20 bg-blue-600 text-white px-4 py-1.5 rounded-full text-[8px] font-black uppercase tracking-[0.15em] shadow-xl flex items-center gap-2">
                               <span className="animate-pulse w-1.5 h-1.5 bg-white rounded-full" />
@@ -378,9 +378,9 @@ const BrowsePage: React.FC<BrowsePageProps> = ({
                         <div className="absolute top-6 right-6 z-20 flex flex-col gap-2">
                           <button 
                             onClick={() => onToggleCompare(inst.id)}
-                            className={`w-10 h-10 rounded-xl flex items-center justify-center text-lg transition-all shadow-xl ${compareList.includes(inst.id) ? 'bg-blue-600 text-white' : 'bg-white/80 backdrop-blur-md text-slate-900 hover:bg-white'}`}
+                            className={`px-4 py-2 rounded-xl flex items-center justify-center text-[10px] font-black uppercase tracking-widest transition-all shadow-xl ${compareList.includes(inst.id) ? 'bg-blue-600 text-white' : 'bg-white/80 backdrop-blur-md text-slate-900 hover:bg-white'}`}
                           >
-                            {compareList.includes(inst.id) ? '✓' : '+'}
+                            {compareList.includes(inst.id) ? 'Selected' : 'Compare'}
                           </button>
                         </div>
 

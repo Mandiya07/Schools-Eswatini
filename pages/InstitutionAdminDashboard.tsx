@@ -1,6 +1,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { Institution, User, Region, SubscriptionPlan, AcademicDepartment, AcademicProgram, BannerAd as BannerAdType, BlogPost, EventItem, InstitutionType, UserRole } from '../types';
+import { hasPermission } from '../src/lib/permissions';
 import { GoogleGenAI } from "@google/genai";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, LineChart, Line, CartesianGrid } from 'recharts';
 import SubscriptionPlans from '../src/components/SubscriptionPlans';
@@ -153,21 +154,22 @@ const InstitutionAdminDashboard: React.FC<InstitutionAdminDashboardProps> = ({ u
 
   const filteredTabs = tabs.filter(tab => {
     if (isAdmin) return true;
-    if (!user.permissions) return false;
-
+    
     switch (tab.id) {
-      case 'news': return user.permissions.canEditNews;
-      case 'media': return user.permissions.canEditNews;
-      case 'sections': return user.permissions.canEditStudentLife || user.permissions.canEditAdmissions || user.permissions.canEditAcademics;
-      case 'academicsContent': return user.permissions.canEditAcademics;
-      case 'academic': return user.permissions.canEditAcademics;
-      case 'finance': return user.permissions.canManageFinance;
-      case 'monetization': return user.permissions.canManageFinance;
-      case 'staff': return user.permissions.canManageStaff;
-      case 'students': return user.permissions.canManageStudents;
-      case 'inventory': return user.permissions.canManageInventory;
-      case 'inbox': return user.permissions.canManagePortal;
-      case 'applications': return user.permissions.canEditAdmissions;
+      case 'news': return hasPermission(user, 'canEditNews');
+      case 'media': return hasPermission(user, 'canEditNews');
+      case 'sections': return hasPermission(user, 'canEditStudentLife') || hasPermission(user, 'canEditAdmissions') || hasPermission(user, 'canEditAcademics');
+      case 'academicsContent': return hasPermission(user, 'canEditAcademics');
+      case 'academic': return hasPermission(user, 'canEditAcademics');
+      case 'finance': return hasPermission(user, 'canManageFinance');
+      case 'monetization': return hasPermission(user, 'canManageFinance');
+      case 'staff': return hasPermission(user, 'canManageStaff');
+      case 'students': return hasPermission(user, 'canManageStudents');
+      case 'inventory': return hasPermission(user, 'canManageInventory');
+      case 'inbox': return hasPermission(user, 'canManagePortal');
+      case 'applications': return hasPermission(user, 'canEditAdmissions');
+      case 'workflow': return hasPermission(user, 'canManagePortal');
+      case 'settings': return hasPermission(user, 'canManagePortal');
       default: return false;
     }
   });

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { User, UserRole, StudentProgress, Institution, InstitutionType } from '../types';
+import { isDev, hasRole } from '../src/lib/permissions';
 import { db, collection, query, where, getDocs, setDoc, doc, getDoc, OperationType, handleFirestoreError, getDocWithRetry, getDocsWithRetry } from '../src/lib/firebase';
 import { BookOpen, Activity, Users, Save, Edit2, CheckCircle, AlertCircle, Bot, Sparkles, Loader2, Wallet, CreditCard, Receipt, GraduationCap, Building, ChevronRight, FileText, Download, ShieldCheck, BusFront, MapPin, Vote, FileSignature, Clock, ClipboardCheck, ThumbsUp, XCircle, Upload } from 'lucide-react';
 import { GoogleGenAI } from "@google/genai";
@@ -92,6 +93,8 @@ const ParentPortal: React.FC<ParentPortalProps> = ({ user }) => {
 
   const isTeacher = simulatedRole === UserRole.TEACHER || user.role === UserRole.TEACHER;
   const isParent = simulatedRole === UserRole.PARENT || user.role === UserRole.PARENT;
+
+  const canSimulate = isDev() || hasRole(user, UserRole.SUPER_ADMIN);
 
   useEffect(() => {
     if (institutionType === 'Tertiary' && activeView !== 'finance') {
@@ -280,6 +283,17 @@ const ParentPortal: React.FC<ParentPortalProps> = ({ user }) => {
   };
 
   if (!isTeacher && !isParent) {
+    if (!canSimulate) {
+       return (
+         <div className="min-h-[calc(100vh-4rem)] flex flex-col pt-12 items-center bg-slate-50 px-6">
+           <div className="bg-rose-50 border border-rose-100 rounded-3xl p-8 max-w-xl text-center">
+             <ShieldAlert className="w-12 h-12 text-rose-600 mx-auto mb-4" />
+             <h2 className="text-2xl font-black text-slate-900 mb-2">Access Restricted</h2>
+             <p className="text-slate-600 font-medium">Please sign in as a Parent or Teacher to access this portal.</p>
+           </div>
+         </div>
+       );
+    }
     return (
       <div className="min-h-[calc(100vh-4rem)] flex flex-col pt-12 items-center bg-slate-50 px-6">
         <div className="w-full max-w-4xl space-y-12 mb-12">

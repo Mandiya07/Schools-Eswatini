@@ -53,6 +53,7 @@ import Footer from './components/Footer';
 import AccessibilityToolbar from './components/AccessibilityToolbar';
 import SchoolComparison from './src/components/SchoolComparison';
 import { WorkflowProvider } from './src/context/WorkflowContext';
+import { RoleGuard } from './src/components/RoleGuard';
 
 const App: React.FC = () => {
   const navigate = useNavigate();
@@ -394,8 +395,16 @@ const App: React.FC = () => {
             <Route path="/campus-life" element={<CommunityHub />} />
             <Route path="/governance" element={<GovernancePage />} />
             <Route path="/ministry-corner" element={<MinistryCorner />} />
-            <Route path="/ai-tutor" element={<AIStudyAssistant user={user} />} />
-            <Route path="/student" element={<StudentDashboard user={user} />} />
+            <Route path="/ai-tutor" element={
+              <RoleGuard user={user} redirectTo="/auth">
+                <AIStudyAssistant user={user!} />
+              </RoleGuard>
+            } />
+            <Route path="/student" element={
+              <RoleGuard user={user} allowedRoles={[UserRole.STUDENT, UserRole.SUPER_ADMIN]} redirectTo="/auth">
+                <StudentDashboard user={user!} />
+              </RoleGuard>
+            } />
             <Route 
               path="/school/:slug" 
               element={
@@ -423,9 +432,9 @@ const App: React.FC = () => {
             <Route 
               path="/portal" 
               element={
-                !user ? <Navigate to="/auth" /> : 
-                user.role === UserRole.TEACHER ? <Navigate to="/teacher/dashboard" /> :
-                <ParentPortal user={user} />
+                <RoleGuard user={user} redirectTo="/auth">
+                  {user?.role === UserRole.TEACHER ? <Navigate to="/teacher/dashboard" /> : <ParentPortal user={user!} />}
+                </RoleGuard>
               } 
             />
             <Route path="/auth" element={user ? <Navigate to="/dashboard" /> : <AuthPage />} />
@@ -433,34 +442,44 @@ const App: React.FC = () => {
             <Route 
               path="/dashboard" 
               element={
-                !user ? <Navigate to="/auth" /> : 
-                user.role === UserRole.SUPER_ADMIN ? 
-                  <SuperAdminDashboard 
-                    institutions={institutions} 
-                    onUpdate={updateInstitution} 
-                    onDelete={deleteInstitution} 
-                    onSeed={seedDatabase}
-                    onAdd={addInstitution}
-                  /> : 
-                user.role === UserRole.INSTITUTION_ADMIN ?
-                  <InstitutionAdminDashboard 
-                    user={user} 
-                    institutions={institutions} 
-                    onUpdate={updateInstitution} 
-                    onAdd={addInstitution}
-                  /> :
-                user.role === UserRole.TEACHER ?
-                  <Navigate to="/teacher/dashboard" /> :
-                  <Navigate to="/portal" />
+                <RoleGuard user={user} redirectTo="/auth">
+                  {user?.role === UserRole.SUPER_ADMIN ? (
+                    <SuperAdminDashboard 
+                      user={user!}
+                      institutions={institutions} 
+                      onUpdate={updateInstitution} 
+                      onDelete={deleteInstitution} 
+                      onSeed={seedDatabase}
+                      onAdd={addInstitution}
+                    />
+                  ) : user?.role === UserRole.INSTITUTION_ADMIN ? (
+                    <InstitutionAdminDashboard 
+                      user={user!} 
+                      institutions={institutions} 
+                      onUpdate={updateInstitution} 
+                      onAdd={addInstitution}
+                    />
+                  ) : user?.role === UserRole.TEACHER ? (
+                    <Navigate to="/teacher/dashboard" />
+                  ) : user?.role === UserRole.MOET_OFFICIAL ? (
+                    <Navigate to="/ministry" />
+                  ) : (
+                    <Navigate to="/portal" />
+                  )}
+                </RoleGuard>
               } 
             />
 
             <Route 
               path="/teacher/dashboard" 
               element={
-                !user || (user.role !== UserRole.TEACHER && user.role !== UserRole.SUPER_ADMIN && user.role !== UserRole.INSTITUTION_ADMIN) ? 
-                  <Navigate to="/auth" /> : 
-                  <TeacherDashboard user={user} />
+                <RoleGuard 
+                  user={user} 
+                  allowedRoles={[UserRole.TEACHER, UserRole.SUPER_ADMIN, UserRole.INSTITUTION_ADMIN]} 
+                  redirectTo="/auth"
+                >
+                  <TeacherDashboard user={user!} />
+                </RoleGuard>
               } 
             />
 
@@ -474,15 +493,19 @@ const App: React.FC = () => {
 
             <Route 
               path="/ministry" 
-              element={<MinistryPortal user={user} institutions={institutions} />} 
+              element={
+                <RoleGuard user={user} allowedRoles={[UserRole.MOET_OFFICIAL, UserRole.SUPER_ADMIN]} redirectTo="/auth">
+                  <MinistryPortal user={user!} institutions={institutions} />
+                </RoleGuard>
+              } 
             />
 
             <Route 
               path="/security" 
               element={
-                !user ? <Navigate to="/auth" /> : 
-                user.role === UserRole.SUPER_ADMIN ? <SecurityLogsPage /> : 
-                <Navigate to="/dashboard" />
+                <RoleGuard user={user} allowedRoles={UserRole.SUPER_ADMIN} redirectTo="/dashboard">
+                  <SecurityLogsPage />
+                </RoleGuard>
               } 
             />
 

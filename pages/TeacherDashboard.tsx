@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { User, UserRole, StudentProgress, AcademicResource, InstitutionType, BehaviorLog, HomeworkTask } from '../types';
+import { hasPermission } from '../src/lib/permissions';
 import { db, collection, query, where, getDocs, setDoc, doc, getDoc, OperationType, handleFirestoreError, getDocWithRetry, getDocsWithRetry } from '../src/lib/firebase';
 import { BookOpen, Activity, Users, Save, Edit2, CheckCircle, GraduationCap, ClipboardList, TrendingUp, Search, Plus, X, FolderOpen, FileText, Download, UploadCloud, FileArchive, Lightbulb, Star, Bot, Sparkles, Loader2, CalendarCheck, BellRing, UserCheck, UserX, Award, ShieldAlert, MessageSquare, Briefcase, ChevronRight, ChevronDown, History, ClipboardCheck, Info, ArrowUpDown, Video as VideoIcon, Clock, ArrowRight, ShoppingBag } from 'lucide-react';
 import { GoogleGenAI } from "@google/genai";
@@ -48,7 +49,7 @@ const MOCK_VACANCIES = [
 ];
 
 const TeacherDashboard: React.FC<TeacherDashboardProps> = ({ user }) => {
-  const [activeTab, setActiveTab] = useState<'classroom' | 'resources' | 'ai_assistant' | 'management' | 'cpd' | 'marketplace' | 'colleagues' | 'virtual_sessions'>('classroom');
+  const [activeTab, setActiveTab] = useState<string>('classroom');
   const [resourceFilter, setResourceFilter] = useState('all');
   const [cpdFilter, setCpdFilter] = useState<'forums' | 'vacancies'>('forums');
 
@@ -122,6 +123,40 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({ user }) => {
     contactEmail: user.email,
     bio: ''
   });
+
+  const tabs = [
+    { id: 'classroom', label: 'Classroom' },
+    { id: 'resources', label: 'Resources' },
+    { id: 'ai_assistant', label: 'AI Assistant' },
+    { id: 'management', label: 'Management' },
+    { id: 'cpd', label: 'CPD' },
+    { id: 'marketplace', label: 'Marketplace' },
+    { id: 'colleagues', label: 'Colleagues' },
+    { id: 'virtual_sessions', label: 'Virtual Sessions' }
+  ];
+
+  const filteredTabs = tabs.filter(tab => {
+    // Teachers usually have core access, but AI or Marketplace might be restricted
+    if (user.role === UserRole.SUPER_ADMIN || user.role === UserRole.INSTITUTION_ADMIN) return true;
+    
+    switch (tab.id) {
+      case 'classroom': return true;
+      case 'resources': return true;
+      case 'ai_assistant': return hasPermission(user, 'canUseAI');
+      case 'management': return true;
+      case 'cpd': return true;
+      case 'marketplace': return true;
+      case 'colleagues': return true;
+      case 'virtual_sessions': return true;
+      default: return false;
+    }
+  });
+
+  useEffect(() => {
+    if (!filteredTabs.find(t => t.id === activeTab)) {
+      setActiveTab(filteredTabs[0]?.id || 'classroom');
+    }
+  }, [filteredTabs, activeTab]);
 
   // Behavior & Homework States
   const [behaviorLogs, setBehaviorLogs] = useState<BehaviorLog[]>([]);
@@ -872,58 +907,35 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({ user }) => {
 
       {/* Global Tabs */}
       <div className="flex flex-wrap gap-4 mb-8">
-        {user.institutionId && (
-          <>
-            <button 
-              onClick={() => setActiveTab('classroom')}
-              className={`px-6 py-4 rounded-full text-[10px] font-black uppercase tracking-widest flex items-center gap-3 transition-all ${activeTab === 'classroom' ? 'bg-blue-600 text-white shadow-xl shadow-blue-600/20' : 'bg-white text-slate-500 hover:bg-slate-100 border border-slate-200'}`}
-            >
-              <BookOpen className="w-4 h-4" /> Reports
-            </button>
-            <button 
-              onClick={() => setActiveTab('virtual_sessions')}
-              className={`px-6 py-4 rounded-full text-[10px] font-black uppercase tracking-widest flex items-center gap-3 transition-all ${activeTab === 'virtual_sessions' ? 'bg-emerald-600 text-white shadow-xl shadow-emerald-600/20' : 'bg-white text-slate-500 hover:bg-slate-100 border border-slate-200'}`}
-            >
-              <VideoIcon className="w-4 h-4" /> Virtual Sessions
-            </button>
-            <button 
-              onClick={() => setActiveTab('management')}
-              className={`px-6 py-4 rounded-full text-[10px] font-black uppercase tracking-widest flex items-center gap-3 transition-all ${activeTab === 'management' ? 'bg-rose-600 text-white shadow-xl shadow-rose-600/20' : 'bg-white text-slate-500 hover:bg-slate-100 border border-slate-200'}`}
-            >
-              <Users className="w-4 h-4" /> Classroom Management
-            </button>
-            <button 
-              onClick={() => setActiveTab('colleagues')}
-              className={`px-6 py-4 rounded-full text-[10px] font-black uppercase tracking-widest flex items-center gap-3 transition-all ${activeTab === 'colleagues' ? 'bg-teal-600 text-white shadow-xl shadow-teal-600/20' : 'bg-white text-slate-500 hover:bg-slate-100 border border-slate-200'}`}
-            >
-              <UserCheck className="w-4 h-4" /> Staff Directory
-            </button>
-          </>
-        )}
-        <button 
-          onClick={() => setActiveTab('resources')}
-          className={`px-6 py-4 rounded-full text-[10px] font-black uppercase tracking-widest flex items-center gap-3 transition-all ${activeTab === 'resources' ? 'bg-indigo-600 text-white shadow-xl shadow-indigo-600/20' : 'bg-white text-slate-500 hover:bg-slate-100 border border-slate-200'}`}
-        >
-          <FolderOpen className="w-4 h-4" /> Resource Exchange
-        </button>
-        <button 
-          onClick={() => setActiveTab('ai_assistant')}
-          className={`px-6 py-4 rounded-full text-[10px] font-black uppercase tracking-widest flex items-center gap-3 transition-all ${activeTab === 'ai_assistant' ? 'bg-fuchsia-600 text-white shadow-xl shadow-fuchsia-600/20' : 'bg-white text-slate-500 hover:bg-slate-100 border border-slate-200'}`}
-        >
-          <Bot className="w-4 h-4" /> AI Co-Teacher
-        </button>
-        <button 
-          onClick={() => setActiveTab('cpd')}
-          className={`px-6 py-4 rounded-full text-[10px] font-black uppercase tracking-widest flex items-center gap-3 transition-all ${activeTab === 'cpd' ? 'bg-emerald-600 text-white shadow-xl shadow-emerald-600/20' : 'bg-white text-slate-500 hover:bg-slate-100 border border-slate-200'}`}
-        >
-          <Award className="w-4 h-4" /> Professional Dev (CPD)
-        </button>
-        <button 
-          onClick={() => setActiveTab('marketplace')}
-          className={`px-6 py-4 rounded-full text-[10px] font-black uppercase tracking-widest flex items-center gap-3 transition-all ${activeTab === 'marketplace' ? 'bg-amber-600 text-white shadow-xl shadow-amber-600/20' : 'bg-white text-slate-500 hover:bg-slate-100 border border-slate-200'}`}
-        >
-          <Briefcase className="w-4 h-4" /> Marketplace
-        </button>
+        {filteredTabs.map(tab => (
+          <button 
+            key={tab.id}
+            onClick={() => setActiveTab(tab.id as any)}
+            className={`px-6 py-4 rounded-full text-[10px] font-black uppercase tracking-widest flex items-center gap-3 transition-all ${
+              activeTab === tab.id 
+                ? (tab.id === 'classroom' ? 'bg-blue-600 text-white shadow-xl shadow-blue-600/20' :
+                   tab.id === 'virtual_sessions' ? 'bg-emerald-600 text-white shadow-xl shadow-emerald-600/20' :
+                   tab.id === 'management' ? 'bg-rose-600 text-white shadow-xl shadow-rose-600/20' :
+                   tab.id === 'colleagues' ? 'bg-teal-600 text-white shadow-xl shadow-teal-600/20' :
+                   tab.id === 'resources' ? 'bg-indigo-600 text-white shadow-xl shadow-indigo-600/20' :
+                   tab.id === 'ai_assistant' ? 'bg-fuchsia-600 text-white shadow-xl shadow-fuchsia-600/20' :
+                   tab.id === 'cpd' ? 'bg-orange-600 text-white shadow-xl shadow-orange-600/20' :
+                   tab.id === 'marketplace' ? 'bg-amber-600 text-white shadow-xl shadow-amber-600/20' :
+                   'bg-slate-900 text-white shadow-xl')
+                : 'bg-white text-slate-500 hover:bg-slate-100 border border-slate-200'
+            }`}
+          >
+            {tab.id === 'classroom' && <BookOpen className="w-4 h-4" />}
+            {tab.id === 'virtual_sessions' && <VideoIcon className="w-4 h-4" />}
+            {tab.id === 'management' && <Users className="w-4 h-4" />}
+            {tab.id === 'colleagues' && <UserCheck className="w-4 h-4" />}
+            {tab.id === 'resources' && <FolderOpen className="w-4 h-4" />}
+            {tab.id === 'ai_assistant' && <Bot className="w-4 h-4" />}
+            {tab.id === 'cpd' && <MessageSquare className="w-4 h-4" />}
+            {tab.id === 'marketplace' && <ShoppingBag className="w-4 h-4" />}
+            {tab.label}
+          </button>
+        ))}
       </div>
 
       {/* Independent Teacher Notice */}
