@@ -1,8 +1,10 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { SchoolApplicationForm } from '../src/components/SchoolApplicationForm';
 
 const Footer: React.FC = () => {
+  const [showAppForm, setShowAppForm] = useState(false);
   return (
     <footer className="bg-slate-900 text-white py-12">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -34,7 +36,7 @@ const Footer: React.FC = () => {
             <ul className="space-y-2 text-slate-400 text-sm">
               <li><Link to="/governance" className="hover:text-blue-400">Governance</Link></li>
               <li><Link to="/ministry-corner" className="hover:text-blue-400">Ministry Corner</Link></li>
-              <li><Link to="/ministry" className="hover:text-blue-400">Add School</Link></li>
+              <li><button onClick={() => setShowAppForm(true)} className="hover:text-blue-400">Add School</button></li>
               <li><Link to="/terms" className="hover:text-blue-400">Terms of Service</Link></li>
               <li><Link to="/privacy" className="hover:text-blue-400">Privacy Policy</Link></li>
               <li><Link to="/advertising" className="hover:text-blue-400">Advertising</Link></li>
@@ -52,6 +54,7 @@ const Footer: React.FC = () => {
           </div>
         </div>
       </div>
+      {showAppForm && <SchoolApplicationForm onClose={() => setShowAppForm(false)} />}
     </footer>
   );
 };

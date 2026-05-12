@@ -121,10 +121,24 @@
         "description": { "type": "string" },
         "goalAmount": { "type": "number" },
         "currentAmount": { "type": "number" },
-        "deadline": { "type": "string", "format": "date-time" },
-        "createdAt": { "type": "string", "format": "date-time" }
+        "deadline": { "type": "string" },
+        "createdAt": { "type": "string" }
       },
       "required": ["id", "institutionId", "title", "description", "goalAmount", "currentAmount", "createdAt"]
+    },
+    "SchoolApplication": {
+      "title": "School Application",
+      "description": "Pending school registration application",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "institutionName": { "type": "string" },
+        "email": { "type": "string" },
+        "status": { "type": "string", "enum": ["pending", "reviewed", "approved", "rejected"] },
+        "documentUrls": { "type": "array", "items": { "type": "string" } },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["id", "institutionName", "email", "status", "createdAt"]
     },
     "AuditLog": {
       "title": "Audit Log",
@@ -238,6 +252,10 @@
     "/activity_history/{historyId}": {
       "schema": "ActivityHistory",
       "description": "User activity history"
+    },
+    "/school_applications/{applicationId}": {
+      "schema": "SchoolApplication",
+      "description": "Pending school registration applications"
     }
   }
 }

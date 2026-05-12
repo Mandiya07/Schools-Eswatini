@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { User, UserRole, StudentProgress, Institution, InstitutionType } from '../types';
 import { isDev, hasRole } from '../src/lib/permissions';
 import { db, collection, query, where, getDocs, setDoc, doc, getDoc, OperationType, handleFirestoreError, getDocWithRetry, getDocsWithRetry } from '../src/lib/firebase';
-import { BookOpen, Activity, Users, Save, Edit2, CheckCircle, AlertCircle, Bot, Sparkles, Loader2, Wallet, CreditCard, Receipt, GraduationCap, Building, ChevronRight, FileText, Download, ShieldCheck, BusFront, MapPin, Vote, FileSignature, Clock, ClipboardCheck, ThumbsUp, XCircle, Upload } from 'lucide-react';
+import { BookOpen, Activity, Users, Save, Edit2, CheckCircle, AlertCircle, Bot, Sparkles, Loader2, Wallet, CreditCard, Receipt, GraduationCap, Building, ChevronRight, FileText, Download, ShieldCheck, BusFront, MapPin, Vote, FileSignature, Clock, ClipboardCheck, ThumbsUp, XCircle, Upload, ShieldAlert } from 'lucide-react';
 import { GoogleGenAI } from "@google/genai";
 
 interface ParentPortalProps {
@@ -158,7 +158,7 @@ const ParentPortal: React.FC<ParentPortalProps> = ({ user }) => {
           ];
           setProgressData(finalData);
         } else {
-          setProgressData(data);
+          setProgressData(finalData);
         }
 
         if (finalData.length > 0 && finalData[0].institutionId) {

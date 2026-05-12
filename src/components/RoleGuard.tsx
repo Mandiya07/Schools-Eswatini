@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { User, UserRole } from '../types';
+import { User, UserRole } from '../../types';
 import { hasRole, hasPermission } from '../lib/permissions';
 import { Navigate } from 'react-router-dom';
 

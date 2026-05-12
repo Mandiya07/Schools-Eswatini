@@ -8,6 +8,8 @@ import SecurityDashboard from '../components/SecurityDashboard';
 import { AnalyticsDashboard } from '../src/components/dashboard/sections/AnalyticsDashboard';
 import { Plus, X, ArrowLeft, Layout } from 'lucide-react';
 import { MOCK_INSTITUTIONS } from '../mockData';
+import { collection, query, where, getDocs, updateDoc, doc, addDoc } from 'firebase/firestore';
+import { db } from '../src/lib/firebase';
 
 interface SuperAdminDashboardProps {
   user: User;
@@ -22,6 +24,7 @@ const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({ user, institu
   const [activeTab, setActiveTab] = useState<string>('overview');
   const [adminProxy, setAdminProxy] = useState<User | null>(null);
   const [perfStats, setPerfStats] = useState<any>(null);
+  const [applications, setApplications] = useState<any[]>([]);
   
   const [showAddModal, setShowAddModal] = useState(false);
   const [showAddAdminModal, setShowAddAdminModal] = useState(false);
@@ -49,6 +52,15 @@ const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({ user, institu
       .then(res => res.json())
       .then(data => setPerfStats(data))
       .catch(err => console.error("Failed to fetch perf stats", err));
+    
+    // Fetch applications
+    const fetchApplications = async () => {
+      const q = query(collection(db, 'school_applications'), where('status', '==', 'pending'));
+      const querySnapshot = await getDocs(q);
+      const apps = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      setApplications(apps);
+    };
+    fetchApplications();
   }, []);
 
   if (adminProxy) {
@@ -390,34 +402,45 @@ const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({ user, institu
         <div className="bg-white p-10 rounded-[48px] border border-slate-100 shadow-sm">
           <h3 className="text-sm font-black text-slate-900 uppercase tracking-widest mb-10">Verification Requests</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {institutions.filter(i => i.verificationStatus === 'pending').map(inst => (
-              <div key={inst.id} className="border border-slate-100 p-6 rounded-3xl shadow-sm">
-                <div className="flex items-center gap-4 mb-4">
-                  <img src={inst.logo || undefined} className="w-12 h-12 rounded-xl object-contain border bg-white p-1" />
-                  <div>
-                    <h4 className="font-black text-slate-900">{inst.name}</h4>
-                    <p className="text-[10px] uppercase tracking-widest text-slate-500">{inst.moetRegistration}</p>
-                  </div>
+            {applications.map(app => (
+              <div key={app.id} className="border border-slate-100 p-6 rounded-3xl shadow-sm">
+                <div className="mb-4">
+                  <h4 className="font-black text-slate-900">{app.institutionName}</h4>
+                  <p className="text-[10px] uppercase tracking-widest text-slate-500">{app.email}</p>
                 </div>
                 <div className="mb-6">
                   <p className="text-xs font-bold text-slate-700 mb-2">Submitted Documents:</p>
                   <ul className="space-y-2">
-                    {inst.verificationDocuments?.map((doc, idx) => (
+                    {app.documentUrls?.map((url: string, idx: number) => (
                       <li key={idx} className="text-xs text-blue-600 hover:underline cursor-pointer flex items-center gap-2">
-                        📄 Document {idx + 1}
+                        📄 <a href={url} target="_blank" rel="noreferrer">Document {idx + 1}</a>
                       </li>
                     )) || <li className="text-xs text-slate-400">No documents uploaded</li>}
                   </ul>
                 </div>
                 <div className="flex gap-4">
                   <button 
-                    onClick={() => onUpdate({ ...inst, verificationStatus: 'verified', isVerified: true, trustScore: 100 })}
+                    onClick={async () => {
+                      // Promote to main institutions
+                      await addDoc(collection(db, 'institutions'), {
+                        name: app.institutionName,
+                        slug: app.institutionName.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
+                        status: 'published',
+                        isVerified: true,
+                        createdAt: new Date().toISOString()
+                      });
+                      await updateDoc(doc(db, 'school_applications', app.id), { status: 'approved' });
+                      setApplications(applications.filter(a => a.id !== app.id));
+                    }}
                     className="flex-1 bg-emerald-500 text-white py-3 rounded-xl font-black uppercase tracking-widest text-[10px] hover:bg-emerald-600 transition-all"
                   >
                     Approve
                   </button>
                   <button 
-                    onClick={() => onUpdate({ ...inst, verificationStatus: 'rejected', isVerified: false, trustScore: 0 })}
+                    onClick={async () => {
+                      await updateDoc(doc(db, 'school_applications', app.id), { status: 'rejected' });
+                      setApplications(applications.filter(a => a.id !== app.id));
+                    }}
                     className="flex-1 bg-rose-500 text-white py-3 rounded-xl font-black uppercase tracking-widest text-[10px] hover:bg-rose-600 transition-all"
                   >
                     Reject
@@ -425,7 +448,7 @@ const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({ user, institu
                 </div>
               </div>
             ))}
-            {institutions.filter(i => i.verificationStatus === 'pending').length === 0 && (
+            {applications.length === 0 && (
               <div className="col-span-full text-center py-12 text-slate-400 font-medium">
                 No pending verification requests.
               </div>

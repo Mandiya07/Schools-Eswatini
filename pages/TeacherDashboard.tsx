@@ -1,7 +1,8 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { User, UserRole, StudentProgress, AcademicResource, InstitutionType, BehaviorLog, HomeworkTask } from '../types';
+import { User, UserRole, StudentProgress, AcademicResource, InstitutionType, BehaviorLog, HomeworkTask, Institution } from '../types';
+import { StudentsManager } from '../src/components/dashboard/sections/StudentsManager';
 import { hasPermission } from '../src/lib/permissions';
 import { db, collection, query, where, getDocs, setDoc, doc, getDoc, OperationType, handleFirestoreError, getDocWithRetry, getDocsWithRetry } from '../src/lib/firebase';
 import { BookOpen, Activity, Users, Save, Edit2, CheckCircle, GraduationCap, ClipboardList, TrendingUp, Search, Plus, X, FolderOpen, FileText, Download, UploadCloud, FileArchive, Lightbulb, Star, Bot, Sparkles, Loader2, CalendarCheck, BellRing, UserCheck, UserX, Award, ShieldAlert, MessageSquare, Briefcase, ChevronRight, ChevronDown, History, ClipboardCheck, Info, ArrowUpDown, Video as VideoIcon, Clock, ArrowRight, ShoppingBag } from 'lucide-react';
@@ -66,6 +67,7 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({ user }) => {
 
   const [progressData, setProgressData] = useState<StudentProgress[]>([]);
   const [institutionTeachers, setInstitutionTeachers] = useState<User[]>([]);
+  const [institution, setInstitution] = useState<Institution | null>(null);
   const [loading, setLoading] = useState(true);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editForm, setEditForm] = useState<Partial<StudentProgress>>({});
@@ -161,7 +163,7 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({ user }) => {
   // Behavior & Homework States
   const [behaviorLogs, setBehaviorLogs] = useState<BehaviorLog[]>([]);
   const [homeworkTasks, setHomeworkTasks] = useState<HomeworkTask[]>([]);
-  const [managementSubTab, setManagementSubTab] = useState<'attendance' | 'behavior' | 'homework'>('attendance');
+  const [managementSubTab, setManagementSubTab] = useState<'attendance' | 'behavior' | 'homework' | 'students'>('attendance');
   const [selectedStudentForLog, setSelectedStudentForLog] = useState<string>('');
   const [logDescription, setLogDescription] = useState('');
   const [isCreatingHomework, setIsCreatingHomework] = useState(false);
@@ -307,7 +309,8 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({ user }) => {
           try {
             const instDoc = await getDocWithRetry(doc(db, 'institutions', user.institutionId));
             if (instDoc && instDoc.exists()) {
-              const instData = instDoc.data() as any;
+              const instData = instDoc.data() as Institution;
+              setInstitution(instData);
               if (instData.type && instData.type.length > 0) {
                 setInstitutionType(instData.type[0]);
               }
@@ -2233,6 +2236,12 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({ user }) => {
                         className={`px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all ${managementSubTab === 'homework' ? 'bg-white text-rose-900 shadow-xl' : 'text-rose-100 hover:bg-white/10'}`}
                       >
                         Homework
+                      </button>
+                      <button 
+                        onClick={() => setManagementSubTab('students')}
+                        className={`px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all ${managementSubTab === 'students' ? 'bg-white text-rose-900 shadow-xl' : 'text-rose-100 hover:bg-white/10'}`}
+                      >
+                        Students
                       </button>
                    </div>
                  </div>

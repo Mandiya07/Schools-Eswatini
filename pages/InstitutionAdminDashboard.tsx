@@ -18,6 +18,7 @@ import InboxManager from '../src/components/dashboard/sections/InboxManager';
 import PaperlessHubEditor from '../src/components/dashboard/sections/PaperlessHubEditor';
 import { StudentsManager } from '../src/components/dashboard/sections/StudentsManager';
 import { AnalyticsDashboard } from '../src/components/dashboard/sections/AnalyticsDashboard';
+import { TeacherManagementTab } from '../src/components/TeacherManagementTab';
 import { StudentProgressManager } from '../src/components/dashboard/sections/StudentProgressManager';
 
 interface InstitutionAdminDashboardProps {
@@ -850,6 +851,7 @@ const InstitutionAdminDashboard: React.FC<InstitutionAdminDashboardProps> = ({ u
               />
             )}
 
+            {activeTab === 'teacherManagement' && <TeacherManagementTab institution={inst} onUpdate={handleUpdate} />}
             {activeTab === 'staff' && (
               <div className="bg-white p-10 rounded-[40px] border border-slate-100 shadow-sm space-y-12 animate-in fade-in">
                 <section>

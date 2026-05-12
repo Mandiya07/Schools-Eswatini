@@ -201,6 +201,24 @@ export interface FundraisingCampaign {
   createdAt: string;
 }
 
+export interface Teacher {
+  id: string;
+  name: string;
+  email: string;
+  subjects: string[];
+  userId?: string;
+  createdAt: string;
+}
+
+export interface SchoolApplication {
+  id: string;
+  institutionName: string;
+  email: string;
+  status: 'pending' | 'reviewed' | 'approved' | 'rejected';
+  documentUrls: string[];
+  createdAt: string;
+}
+
 export interface ScholarshipDetail {
   name: string;
   amount: string;
@@ -350,6 +368,7 @@ export interface BannerAd {
 export interface Institution {
   id: string;
   name: string;
+  subjects: string[];
   downloads?: { label: string; url: string }[];
   slug: string;
   subdomain?: string;
@@ -1064,6 +1083,12 @@ export interface User {
     canManageInventory?: boolean;
     canManageStudents?: boolean;
     canManageStaff?: boolean;
+    canManageVerification?: boolean;
+    canViewAnalytics?: boolean;
+    canViewSecurityLogs?: boolean;
+    canManageUsers?: boolean;
+    canManageContent?: boolean;
+    canUseAI?: boolean;
   };
 }
 
