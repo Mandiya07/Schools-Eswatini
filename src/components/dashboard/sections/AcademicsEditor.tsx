@@ -9,16 +9,18 @@ interface AcademicsEditorProps {
   onUpdate: (updatedSections: Institution['sections']) => void;
 }
 
+import SectionBaseFields from './SectionBaseFields';
+
 const AcademicsEditor: React.FC<AcademicsEditorProps> = ({ institution, onUpdate }) => {
   const { academics } = institution.sections;
-  const [activeSubTab, setActiveSubTab] = useState<'overview' | 'departments' | 'programs' | 'calendar' | 'performance' | 'elearning' | 'portal' | 'faculty' | 'guidance'>('overview');
+  const [activeSubTab, setActiveSubTab] = useState<'overview' | 'departments' | 'programs' | 'calendar' | 'performance' | 'elearning' | 'portal' | 'faculty' | 'guidance' | 'research'>('overview');
 
   const isTertiary = institution.type.includes(InstitutionType.TERTIARY);
   const isPrimary = institution.type.includes(InstitutionType.PRIMARY);
   const isHighSchool = institution.type.includes(InstitutionType.HIGH_SCHOOL);
 
   const subTabs = ['overview', 'departments', 'programs', 'calendar', 'performance', 'elearning', 'portal', 'faculty'] as const;
-  const currentSubTabs = isHighSchool ? [...subTabs, 'guidance'] : subTabs;
+  const currentSubTabs = isHighSchool ? [...subTabs, 'guidance'] : isTertiary ? [...subTabs, 'research'] : subTabs;
 
   const getTabLabel = (tab: string) => {
     switch(tab) {
@@ -28,6 +30,7 @@ const AcademicsEditor: React.FC<AcademicsEditorProps> = ({ institution, onUpdate
       case 'elearning': return 'E-learning';
       case 'portal': return 'Student Portal';
       case 'guidance': return 'Career Guidance';
+      case 'research': return 'Research Focus';
       default: return tab.charAt(0).toUpperCase() + tab.slice(1); // overview, calendar
     }
   };
@@ -37,38 +40,60 @@ const AcademicsEditor: React.FC<AcademicsEditorProps> = ({ institution, onUpdate
       ...institution.sections,
       academics: {
         ...academics,
-        [field]: value
+        [field]: value,
+        lastUpdated: new Date().toISOString()
       }
     });
   };
 
   return (
-    <div className="space-y-10 animate-in fade-in slide-in-from-right-4">
-      <header className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-        <div>
-          <h3 className="text-xl font-black text-slate-900 uppercase tracking-tight">
-            {isTertiary ? 'Institutional Academic Builder' : isPrimary ? 'Foundation Phase Builder' : 'Academic Portal Builder'}
-          </h3>
-          <p className="text-sm text-slate-500 font-medium">
-            {isTertiary ? 'Manage faculties, degrees, and faculty research settings.' : isPrimary ? 'Manage grades, learning areas, and simple schedules.' : 'Manage departments, programs, and academic standards'}
-          </p>
-        </div>
-        <div className="flex bg-slate-100 p-1.5 rounded-2xl overflow-x-auto no-scrollbar">
-          {currentSubTabs.map(tab => (
-            <button 
-              key={tab} 
-              onClick={() => setActiveSubTab(tab as any)}
-              className={`px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${activeSubTab === tab ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
-            >
-              {getTabLabel(tab)}
-            </button>
-          ))}
-        </div>
-      </header>
+    <div className="space-y-12">
+      <SectionBaseFields 
+        section={academics} 
+        onUpdate={updateField} 
+        label="Academics" 
+      />
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-        <div className="space-y-8">
-          {activeSubTab === 'overview' && (
+      <div className="space-y-10 animate-in fade-in slide-in-from-right-4">
+        <header className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+          <div>
+            <h3 className="text-xl font-black text-slate-900 uppercase tracking-tight">
+              {isTertiary ? 'Institutional Academic Builder' : isPrimary ? 'Foundation Phase Builder' : 'Academic Portal Builder'}
+            </h3>
+            <p className="text-sm text-slate-500 font-medium">
+              {isTertiary ? 'Manage faculties, degrees, and faculty research settings.' : isPrimary ? 'Manage grades, learning areas, and simple schedules.' : 'Manage departments, programs, and academic standards'}
+            </p>
+          </div>
+          <div className="flex bg-slate-100 p-1.5 rounded-2xl overflow-x-auto no-scrollbar">
+            {currentSubTabs.map(tab => (
+              <button 
+                key={tab} 
+                onClick={() => setActiveSubTab(tab as any)}
+                className={`px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${activeSubTab === tab ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
+              >
+                {getTabLabel(tab)}
+              </button>
+            ))}
+          </div>
+        </header>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+          <div className="space-y-8">
+            {activeSubTab === 'research' && (
+              <div className="space-y-8 animate-in slide-in-from-left-4">
+                <div className="group">
+                  <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Primary Research Focus</label>
+                  <textarea 
+                    rows={4}
+                    className="w-full bg-slate-50 border-2 border-transparent focus:border-blue-500 focus:bg-white rounded-2xl px-6 py-4 font-medium transition-all outline-none resize-none" 
+                    placeholder="Describe the main research priorities of the institution..."
+                    value={academics.researchFocus || ''} 
+                    onChange={e => updateField('researchFocus', e.target.value)} 
+                  />
+                </div>
+              </div>
+            )}
+            {activeSubTab === 'overview' && (
             <div className="space-y-8 animate-in slide-in-from-left-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 <div className="group">
@@ -985,6 +1010,7 @@ const AcademicsEditor: React.FC<AcademicsEditorProps> = ({ institution, onUpdate
             </div>
           </div>
         </div>
+      </div>
       </div>
     </div>
   );

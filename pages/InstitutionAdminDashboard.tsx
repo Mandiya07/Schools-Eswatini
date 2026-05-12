@@ -18,6 +18,7 @@ import InboxManager from '../src/components/dashboard/sections/InboxManager';
 import PaperlessHubEditor from '../src/components/dashboard/sections/PaperlessHubEditor';
 import { StudentsManager } from '../src/components/dashboard/sections/StudentsManager';
 import { AnalyticsDashboard } from '../src/components/dashboard/sections/AnalyticsDashboard';
+import { StudentProgressManager } from '../src/components/dashboard/sections/StudentProgressManager';
 
 interface InstitutionAdminDashboardProps {
   user: User;
@@ -1371,17 +1372,7 @@ const InstitutionAdminDashboard: React.FC<InstitutionAdminDashboardProps> = ({ u
             )}
 
             {activeTab === 'studentProgress' && (
-              <div className="space-y-12 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                <header>
-                  <h2 className="text-3xl font-black text-slate-900 tracking-tight">Student Progress Tracking</h2>
-                  <p className="text-slate-500 font-medium mt-1">Monitor grades, attendance, and overall performance.</p>
-                </header>
-                <div className="bg-white p-10 rounded-[48px] shadow-sm border border-slate-200 text-center">
-                  <TrendingUp className="w-16 h-16 text-slate-300 mx-auto mb-4" />
-                  <h3 className="text-lg font-bold text-slate-900 mb-2">Progress Analytics Dashboard</h3>
-                  <p className="text-slate-500">Detailed insights and cohort tracking features are being configured.</p>
-                </div>
-              </div>
+              <StudentProgressManager institution={inst} />
             )}
 
             {activeTab === 'resourceMarketplace' && (

@@ -174,6 +174,24 @@
         "createdAt": { "type": "string", "format": "date-time" }
       },
       "required": ["id", "institutionId", "name", "studentId", "parentEmails"]
+    },
+    "StudentProgress": {
+      "title": "Student Progress",
+      "description": "Academic progress records for students",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "studentId": { "type": "string" },
+        "studentName": { "type": "string" },
+        "institutionId": { "type": "string" },
+        "term": { "type": "string" },
+        "year": { "type": "number" },
+        "academics": { "type": "array", "items": { "type": "object" } },
+        "behavior": { "type": "object" },
+        "participation": { "type": "object" },
+        "lastUpdated": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "studentId", "institutionId", "term", "year"]
     }
   },
   "firestore": {
@@ -188,6 +206,10 @@
     "/students/{studentId}": {
       "schema": "Student",
       "description": "Student records"
+    },
+    "/student_progress/{progressId}": {
+      "schema": "StudentProgress",
+      "description": "Academic progress reports"
     },
     "/reviews/{reviewId}": {
       "schema": "Review",

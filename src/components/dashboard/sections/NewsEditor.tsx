@@ -9,6 +9,8 @@ interface NewsEditorProps {
   onUpdate: (updatedSections: Institution['sections']) => void;
 }
 
+import SectionBaseFields from './SectionBaseFields';
+
 const NewsEditor: React.FC<NewsEditorProps> = ({ institution, onUpdate }) => {
   const { news } = institution.sections;
 
@@ -17,7 +19,8 @@ const NewsEditor: React.FC<NewsEditorProps> = ({ institution, onUpdate }) => {
       ...institution.sections,
       news: {
         ...news,
-        [field]: value
+        [field]: value,
+        lastUpdated: new Date().toISOString()
       }
     });
   };
@@ -35,6 +38,7 @@ const NewsEditor: React.FC<NewsEditorProps> = ({ institution, onUpdate }) => {
       author: 'Admin'
     };
     updateField('posts', [newPost, ...news.posts]);
+    updateField('blogPosts', [newPost, ...news.posts]);
   };
 
   const addEvent = () => {
@@ -51,48 +55,76 @@ const NewsEditor: React.FC<NewsEditorProps> = ({ institution, onUpdate }) => {
       media: []
     };
     updateField('events', [newEvent, ...news.events]);
+    updateField('eventCalendar', [newEvent, ...news.events]);
+  };
+
+  const syncSpecificFields = (field: 'posts' | 'events' | 'gallery') => {
+    if (field === 'posts') {
+      updateField('blogPosts', news.posts);
+    } else if (field === 'events') {
+      updateField('eventCalendar', news.events);
+    } else if (field === 'gallery') {
+      updateField('photoGallery', news.gallery.filter(m => m.type === 'image'));
+      updateField('videoUploads', news.gallery.filter(m => m.type === 'video'));
+    }
   };
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 animate-in fade-in slide-in-from-right-4">
-      <div className="space-y-10 pb-20">
-        <header>
-          <h3 className="text-xl font-black text-slate-900 uppercase tracking-tight">News & Media Module</h3>
-          <p className="text-sm text-slate-500 font-medium">Keep your community informed with the latest updates and events</p>
-        </header>
+    <div className="space-y-12">
+      <SectionBaseFields 
+        section={news} 
+        onUpdate={updateField} 
+        label="News & Media" 
+      />
 
-        <div className="space-y-12">
-          {/* Latest News / Posts */}
-          <div className="space-y-6">
-            <div className="flex items-center justify-between">
-              <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Latest Articles</h4>
-              <button 
-                onClick={addPost}
-                className="text-[10px] font-black text-blue-600 uppercase tracking-widest hover:underline"
-              >
-                + Add Article
-              </button>
-            </div>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 animate-in fade-in slide-in-from-right-4">
+        <div className="space-y-10 pb-20">
+          <header>
+            <h3 className="text-xl font-black text-slate-900 uppercase tracking-tight">News & Media Module</h3>
+            <p className="text-sm text-slate-500 font-medium">Keep your community informed with the latest updates and events</p>
+          </header>
+
+          <div className="space-y-12">
+            {/* Latest News / Posts */}
             <div className="space-y-6">
-              {news.posts.map((post, idx) => (
-                <div key={post.id} className="bg-slate-50 p-8 rounded-[32px] border border-slate-100 space-y-6">
-                  <div className="flex justify-between items-center">
-                    <input 
-                      className="bg-transparent border-none font-black text-slate-900 p-0 focus:ring-0 text-sm flex-1" 
-                      value={post.title} 
-                      onChange={e => {
-                        const newPosts = [...news.posts];
-                        newPosts[idx].title = e.target.value;
-                        updateField('posts', newPosts);
-                      }}
-                    />
-                    <button 
-                      onClick={() => updateField('posts', news.posts.filter((_, i) => i !== idx))}
-                      className="text-rose-500 hover:text-rose-700 ml-4"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                  </div>
+              <div className="flex items-center justify-between">
+                <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Latest Articles</h4>
+                <button 
+                  onClick={() => {
+                    addPost();
+                    syncSpecificFields('posts');
+                  }}
+                  className="text-[10px] font-black text-blue-600 uppercase tracking-widest hover:underline"
+                >
+                  + Add Article
+                </button>
+              </div>
+              <div className="space-y-6">
+                {news.posts.map((post, idx) => (
+                  <div key={post.id} className="bg-slate-50 p-8 rounded-[32px] border border-slate-100 space-y-6">
+                    <div className="flex justify-between items-center">
+                      <input 
+                        className="bg-transparent border-none font-black text-slate-900 p-0 focus:ring-0 text-sm flex-1" 
+                        value={post.title} 
+                        onChange={e => {
+                          const newPosts = [...news.posts];
+                          newPosts[idx].title = e.target.value;
+                          updateField('posts', newPosts);
+                          updateField('blogPosts', newPosts);
+                        }}
+                      />
+                      <button 
+                        onClick={() => {
+                          const next = news.posts.filter((_, i) => i !== idx);
+                          updateField('posts', next);
+                          updateField('blogPosts', next);
+                        }}
+                        className="text-rose-500 hover:text-rose-700 ml-4"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                    {/* ... post details ... */}
                   <div className="grid grid-cols-2 gap-4">
                     <input 
                       className="bg-white border rounded-xl px-4 py-2 text-[10px] font-bold" 
@@ -353,6 +385,7 @@ const NewsEditor: React.FC<NewsEditorProps> = ({ institution, onUpdate }) => {
              </div>
           </div>
         </div>
+      </div>
       </div>
     </div>
   );

@@ -7,6 +7,8 @@ interface AboutEditorProps {
   onUpdate: (updatedSections: Institution['sections']) => void;
 }
 
+import SectionBaseFields from './SectionBaseFields';
+
 const AboutEditor: React.FC<AboutEditorProps> = ({ institution, onUpdate }) => {
   const { about } = institution.sections;
 
@@ -15,7 +17,8 @@ const AboutEditor: React.FC<AboutEditorProps> = ({ institution, onUpdate }) => {
       ...institution.sections,
       about: {
         ...about,
-        [field]: value
+        [field]: value,
+        lastUpdated: new Date().toISOString()
       }
     });
   };
@@ -28,7 +31,15 @@ const AboutEditor: React.FC<AboutEditorProps> = ({ institution, onUpdate }) => {
   };
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 animate-in fade-in slide-in-from-right-4">
+    <div className="space-y-12">
+      <SectionBaseFields 
+        section={about} 
+        onUpdate={updateField} 
+        label="About US" 
+      />
+      
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 animate-in fade-in slide-in-from-right-4">
+        {/* The rest of the original AboutEditor UI */}
       <div className="space-y-10">
         <header>
           <h3 className="text-xl font-black text-slate-900 uppercase tracking-tight">About Module Editor</h3>
@@ -438,6 +449,7 @@ const AboutEditor: React.FC<AboutEditorProps> = ({ institution, onUpdate }) => {
             </div>
           </div>
         </div>
+      </div>
       </div>
     </div>
   );

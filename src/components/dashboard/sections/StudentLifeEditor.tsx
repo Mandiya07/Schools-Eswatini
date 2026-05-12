@@ -7,6 +7,8 @@ interface StudentLifeEditorProps {
   onUpdate: (updatedSections: Institution['sections']) => void;
 }
 
+import SectionBaseFields from './SectionBaseFields';
+
 const StudentLifeEditor: React.FC<StudentLifeEditorProps> = ({ institution, onUpdate }) => {
   const { studentLife } = institution.sections;
 
@@ -15,18 +17,26 @@ const StudentLifeEditor: React.FC<StudentLifeEditorProps> = ({ institution, onUp
       ...institution.sections,
       studentLife: {
         ...studentLife,
-        [field]: value
+        [field]: value,
+        lastUpdated: new Date().toISOString()
       }
     });
   };
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 animate-in fade-in slide-in-from-right-4">
-      <div className="space-y-10">
-        <header>
-          <h3 className="text-xl font-black text-slate-900 uppercase tracking-tight">Student Life Editor</h3>
-          <p className="text-sm text-slate-500 font-medium">Showcase the vibrant culture beyond the classroom</p>
-        </header>
+    <div className="space-y-12">
+      <SectionBaseFields 
+        section={studentLife} 
+        onUpdate={updateField} 
+        label="Student Life" 
+      />
+      
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 animate-in fade-in slide-in-from-right-4">
+        <div className="space-y-10">
+          <header>
+            <h3 className="text-xl font-black text-slate-900 uppercase tracking-tight">Student Life Editor</h3>
+            <p className="text-sm text-slate-500 font-medium">Showcase the vibrant culture beyond the classroom</p>
+          </header>
 
         <div className="space-y-8">
           <div className="group">
@@ -176,6 +186,7 @@ const StudentLifeEditor: React.FC<StudentLifeEditorProps> = ({ institution, onUp
             </div>
           </div>
         </div>
+      </div>
       </div>
     </div>
   );

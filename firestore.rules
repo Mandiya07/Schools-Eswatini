@@ -96,6 +96,20 @@ service cloud.firestore {
              data.createdAt is string;
     }
 
+    function isValidStudentProgress(data) {
+      return data.keys().hasAll(['id', 'studentId', 'studentName', 'institutionId', 'term', 'year', 'academics', 'behavior', 'participation', 'lastUpdated']) &&
+             data.id is string && data.id.size() <= 128 &&
+             data.studentId is string && data.studentId.size() <= 128 &&
+             data.studentName is string && data.studentName.size() <= 150 &&
+             data.institutionId is string && data.institutionId.size() <= 128 &&
+             data.term is string && data.term.size() <= 50 &&
+             data.year is number &&
+             data.academics is list && (data.academics.size() == 0 || data.academics[0] is map) &&
+             data.behavior is map &&
+             data.participation is map &&
+             data.lastUpdated is string;
+    }
+
     // ===============================================================
     // RULES
     // ===============================================================
@@ -188,13 +202,22 @@ service cloud.firestore {
      match /student_progress/{progressId} {
       allow read: if isValidId(progressId) && 
                      isSignedIn() && 
-                     (resource.data.teacherId == request.auth.uid || 
-                      resource.data.parentId == request.auth.uid || 
-                      isInstitutionAdmin(resource.data.institutionId) || 
-                      isAdmin());
+                     (isInstitutionAdmin(resource.data.institutionId) || 
+                      isAdmin() || 
+                      (get(/databases/$(database)/documents/students/$(resource.data.studentId)).data.parentEmails.hasAny([request.auth.token.email])));
                       
-      allow create: if false; // Needs tight structure for Student Progress
-      allow update: if false; 
+      allow create: if isValidId(progressId) && 
+                       isSignedIn() && 
+                       isValidStudentProgress(incoming()) && 
+                       (isInstitutionAdmin(incoming().institutionId) || isAdmin());
+                       
+      allow update: if isValidId(progressId) && 
+                       isSignedIn() && 
+                       isValidStudentProgress(incoming()) && 
+                       (isInstitutionAdmin(existing().institutionId) || isAdmin()) &&
+                       incoming().diff(existing()).affectedKeys().hasOnly(['academics', 'behavior', 'participation', 'lastUpdated', 'term', 'year']);
+                       
+      allow delete: if isValidId(progressId) && (isInstitutionAdmin(existing().institutionId) || isAdmin());
     }
 
     match /students/{studentDocId} {

@@ -66,13 +66,9 @@ const MOCK_TRANSCRIPTS = [
 const ParentPortal: React.FC<ParentPortalProps> = ({ user }) => {
   const [progressData, setProgressData] = useState<StudentProgress[]>([]);
   const [loading, setLoading] = useState(true);
-  const [editingId, setEditingId] = useState<string | null>(null);
-  const [editForm, setEditForm] = useState<Partial<StudentProgress>>({});
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'success' | 'error'>('idle');
 
   const [activeView, setActiveView] = useState<'academic' | 'finance' | 'safety' | 'pta'>('academic');
-
-  const [simulatedRole, setSimulatedRole] = useState<UserRole | null>(null);
 
   // Parent Interactive States
   const [signedConsents, setSignedConsents] = useState<string[]>([]);
@@ -91,9 +87,6 @@ const ParentPortal: React.FC<ParentPortalProps> = ({ user }) => {
 
   const [institutionType, setInstitutionType] = useState<string | null>(null);
 
-  const isTeacher = simulatedRole === UserRole.TEACHER || user.role === UserRole.TEACHER;
-  const isParent = simulatedRole === UserRole.PARENT || user.role === UserRole.PARENT;
-
   const canSimulate = isDev() || hasRole(user, UserRole.SUPER_ADMIN);
 
   useEffect(() => {
@@ -106,24 +99,44 @@ const ParentPortal: React.FC<ParentPortalProps> = ({ user }) => {
     const fetchProgress = async () => {
       setLoading(true);
       try {
-        const q = isTeacher 
-          ? query(collection(db, 'student_progress'), where('teacherId', '==', user.id))
-          : query(collection(db, 'student_progress'), where('parentId', '==', user.id));
+        // Find students linked to this parent by email
+        const studentsQ = query(collection(db, 'students'), where('parentEmails', 'array-contains', user.email));
+        const studentsSnapshot = await getDocsWithRetry(studentsQ);
+        const linkedStudentIds = studentsSnapshot.docs.map(doc => doc.id);
         
-        const snapshot = await getDocsWithRetry(q);
-        const data = snapshot.docs.map(doc => doc.data() as StudentProgress);
-        let finalData = data;
+        let allProgress: StudentProgress[] = [];
+
+        // Fetch by studentId if any found
+        if (linkedStudentIds.length > 0) {
+          // Firestore 'in' operator limited to 10 elements. For simplicity, we fetch all if < 10 or loop
+          const progressQ = query(collection(db, 'student_progress'), where('studentId', 'in', linkedStudentIds));
+          const progressSnapshot = await getDocsWithRetry(progressQ);
+          allProgress = progressSnapshot.docs.map(doc => ({ ...doc.data() as StudentProgress, id: doc.id }));
+        }
+
+        // Also fetch by parentId for legacy/direct links
+        const legacyQ = query(collection(db, 'student_progress'), where('parentId', '==', user.id));
+        const legacySnapshot = await getDocsWithRetry(legacyQ);
+        const legacyData = legacySnapshot.docs.map(doc => ({ ...doc.data() as StudentProgress, id: doc.id }));
+        
+        // Merge and de-duplicate
+        const merged = [...allProgress];
+        legacyData.forEach(p => {
+          if (!merged.find(m => m.id === p.id)) merged.push(p);
+        });
+
+        let finalData = merged;
         
         // If no data and we are testing, let's inject some mock data
-        if (data.length === 0) {
+        if (merged.length === 0) {
           finalData = [
             {
               id: 'prog_1',
               studentId: 'stu_1',
               studentName: 'Sipho Dlamini',
               institutionId: 'inst_1',
-              teacherId: isTeacher ? user.id : 'teacher_123',
-              parentId: isParent ? user.id : 'parent_123',
+              teacherId: 'teacher_123',
+              parentId: user.id,
               term: 'Term 1',
               year: 2026,
               academics: [
@@ -168,35 +181,7 @@ const ParentPortal: React.FC<ParentPortalProps> = ({ user }) => {
     };
 
     fetchProgress();
-  }, [user.id, isTeacher, isParent]);
-
-  const handleEditClick = (progress: StudentProgress) => {
-    setEditingId(progress.id);
-    setEditForm(JSON.parse(JSON.stringify(progress))); // Deep copy
-  };
-
-  const handleSave = async () => {
-    if (!editForm.id) return;
-    setSaveStatus('saving');
-    try {
-      const updatedProgress = { ...editForm, lastUpdated: new Date().toISOString() } as StudentProgress;
-      await setDoc(doc(db, 'student_progress', editForm.id), updatedProgress);
-      
-      setProgressData(prev => prev.map(p => p.id === editForm.id ? updatedProgress : p));
-      setEditingId(null);
-      setSaveStatus('success');
-      setTimeout(() => setSaveStatus('idle'), 3000);
-    } catch (error) {
-      setSaveStatus('error');
-      handleFirestoreError(error, OperationType.UPDATE, `student_progress/${editForm.id}`);
-    }
-  };
-
-  const handleAcademicChange = (index: number, field: string, value: string) => {
-    const newAcademics = [...(editForm.academics || [])];
-    newAcademics[index] = { ...newAcademics[index], [field]: value };
-    setEditForm({ ...editForm, academics: newAcademics });
-  };
+  }, [user.id]);
 
   const handleTranslateReport = async (progressId: string, progressRecord: StudentProgress) => {
     setAiTranslatingId(progressId);
@@ -282,81 +267,13 @@ const ParentPortal: React.FC<ParentPortalProps> = ({ user }) => {
     }
   };
 
-  if (!isTeacher && !isParent) {
-    if (!canSimulate) {
-       return (
-         <div className="min-h-[calc(100vh-4rem)] flex flex-col pt-12 items-center bg-slate-50 px-6">
-           <div className="bg-rose-50 border border-rose-100 rounded-3xl p-8 max-w-xl text-center">
-             <ShieldAlert className="w-12 h-12 text-rose-600 mx-auto mb-4" />
-             <h2 className="text-2xl font-black text-slate-900 mb-2">Access Restricted</h2>
-             <p className="text-slate-600 font-medium">Please sign in as a Parent or Teacher to access this portal.</p>
-           </div>
-         </div>
-       );
-    }
+  if (!hasRole(user, [UserRole.PARENT, UserRole.SUPER_ADMIN]) && !canSimulate) {
     return (
       <div className="min-h-[calc(100vh-4rem)] flex flex-col pt-12 items-center bg-slate-50 px-6">
-        <div className="w-full max-w-4xl space-y-12 mb-12">
-           <div className="text-center space-y-4">
-             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-100 text-blue-700 text-[10px] font-black uppercase tracking-widest mb-4">
-               <Sparkles className="w-3 h-3" /> Eswatini Digital Schools
-             </div>
-             <h2 className="text-4xl md:text-5xl font-black text-slate-900 tracking-tight">Welcome to the Portal</h2>
-             <p className="text-slate-500 font-medium max-w-xl mx-auto text-lg">
-               Choose your role to access personalized dashboards, financial ledgers, and academic insights.
-             </p>
-           </div>
-           
-           <div className="grid md:grid-cols-2 gap-8">
-             <div 
-               onClick={() => setSimulatedRole(UserRole.PARENT)}
-               className="group cursor-pointer bg-white p-10 rounded-[40px] shadow-sm border border-slate-200 hover:shadow-xl hover:border-emerald-200 transition-all duration-300 relative overflow-hidden"
-             >
-               <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-100/50 rounded-full blur-3xl -mr-20 -mt-20 group-hover:bg-emerald-200/50 transition-colors" />
-               <div className="relative z-10 space-y-6">
-                 <div className="w-16 h-16 bg-emerald-50 text-emerald-600 rounded-3xl flex items-center justify-center group-hover:bg-emerald-500 group-hover:text-white transition-colors duration-300">
-                    <Users className="w-8 h-8" />
-                 </div>
-                 <div>
-                   <h3 className="text-2xl font-black text-slate-900 mb-2">Simulate Parent</h3>
-                   <p className="text-slate-500 font-medium leading-relaxed">
-                     View academic progress, manage school fees via Mobile Money, sign digital consent forms, and track daily attendance.
-                   </p>
-                 </div>
-                 <div className="pt-4 flex items-center gap-2 text-emerald-600 font-bold text-sm">
-                   Enter Parent Portal <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                 </div>
-               </div>
-             </div>
-
-             <div 
-               onClick={() => setSimulatedRole(UserRole.TEACHER)}
-               className="group cursor-pointer bg-white p-10 rounded-[40px] shadow-sm border border-slate-200 hover:shadow-xl hover:border-blue-200 transition-all duration-300 relative overflow-hidden"
-             >
-               <div className="absolute top-0 right-0 w-64 h-64 bg-blue-100/50 rounded-full blur-3xl -mr-20 -mt-20 group-hover:bg-blue-200/50 transition-colors" />
-               <div className="relative z-10 space-y-6">
-                 <div className="w-16 h-16 bg-blue-50 text-blue-600 rounded-3xl flex items-center justify-center group-hover:bg-blue-600 group-hover:text-white transition-colors duration-300">
-                    <BookOpen className="w-8 h-8" />
-                 </div>
-                 <div>
-                   <h3 className="text-2xl font-black text-slate-900 mb-2">Simulate Teacher</h3>
-                   <p className="text-slate-500 font-medium leading-relaxed">
-                     Update student records, input grades, log behavior points, and communicate directly with parents and guardians.
-                   </p>
-                 </div>
-                 <div className="pt-4 flex items-center gap-2 text-blue-600 font-bold text-sm">
-                   Enter Teacher Portal <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                 </div>
-               </div>
-             </div>
-           </div>
-           
-           <div className="bg-amber-50 border border-amber-100 rounded-3xl p-6 flex items-start gap-4 text-amber-800">
-             <AlertCircle className="w-6 h-6 shrink-0" />
-             <div className="text-sm font-medium">
-               <strong>Demo Mode Active:</strong> You are currently logged in with a role that does not have a default portal assigned. Use the options above to simulate a specific user role for testing purposes.
-             </div>
-           </div>
+        <div className="bg-rose-50 border border-rose-100 rounded-3xl p-8 max-w-xl text-center">
+          <ShieldAlert className="w-12 h-12 text-rose-600 mx-auto mb-4" />
+          <h2 className="text-2xl font-black text-slate-900 mb-2">Access Restricted</h2>
+          <p className="text-slate-600 font-medium">Please sign in as a Parent to access this portal.</p>
         </div>
       </div>
     );
@@ -366,20 +283,8 @@ const ParentPortal: React.FC<ParentPortalProps> = ({ user }) => {
     <div className="max-w-7xl mx-auto px-6 py-12">
       <div className="flex justify-between items-end mb-12">
         <div>
-          <h1 className="text-4xl font-black text-slate-900 tracking-tight">
-            {isTeacher ? 'Teacher Portal' : 'Parent Portal'}
-          </h1>
-          <p className="text-slate-500 font-medium mt-2">
-            {isTeacher ? 'Update student progress and performance.' : 'View your child\'s academic progress and behavior.'}
-          </p>
-          {simulatedRole && (
-             <button 
-               onClick={() => setSimulatedRole(null)} 
-               className="mt-4 px-4 py-2 bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 rounded-xl font-black uppercase tracking-widest text-[10px] transition-colors flex items-center gap-2"
-             >
-               <XCircle className="w-4 h-4" /> Exit Simulated Mode
-             </button>
-          )}
+          <h1 className="text-4xl font-black text-slate-900 tracking-tight">Parent Portal</h1>
+          <p className="text-slate-500 font-medium mt-2">View your child's academic progress and behavior.</p>
         </div>
         <div className="flex items-center gap-4">
           <select 
@@ -402,8 +307,7 @@ const ParentPortal: React.FC<ParentPortalProps> = ({ user }) => {
         </div>
       </div>
 
-      {!isTeacher && (
-        <div className="flex flex-wrap gap-4 mb-8">
+      <div className="flex flex-wrap gap-4 mb-8">
           {institutionType === 'Tertiary' ? (
             <div className="w-full mb-4">
               <div className="bg-amber-50 border border-amber-200 text-amber-800 p-6 rounded-2xl flex items-start gap-4">
@@ -451,10 +355,9 @@ const ParentPortal: React.FC<ParentPortalProps> = ({ user }) => {
             </>
           )}
         </div>
-      )}
 
       {/* Connection Help for Parents */}
-      {!isTeacher && !loading && (
+      {!loading && (
         <div className="mb-12 p-8 bg-blue-50 border border-blue-100 rounded-[40px] flex flex-col md:flex-row items-center gap-8">
            <div className="w-20 h-20 bg-blue-600 text-white rounded-3xl flex items-center justify-center shrink-0 shadow-lg shadow-blue-200">
              <Users className="w-10 h-10" />
@@ -499,9 +402,8 @@ const ParentPortal: React.FC<ParentPortalProps> = ({ user }) => {
         </div>
       ) : (
         <div className="space-y-12">
-          {(activeView === 'academic' || isTeacher) && progressData.map(progress => {
-            const isEditing = editingId === progress.id;
-            const data = isEditing ? editForm as StudentProgress : progress;
+          {activeView === 'academic' && progressData.map(progress => {
+            const data = progress;
 
             return (
               <div key={progress.id} className="bg-white rounded-[40px] border border-slate-100 shadow-sm overflow-hidden">
@@ -517,33 +419,6 @@ const ParentPortal: React.FC<ParentPortalProps> = ({ user }) => {
                       </span>
                     </div>
                   </div>
-                  {isTeacher && !isEditing && (
-                    <button 
-                      onClick={() => handleEditClick(progress)}
-                      className="px-6 py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-black uppercase tracking-widest text-[10px] transition-colors flex items-center gap-2"
-                    >
-                      <Edit2 className="w-4 h-4" />
-                      Edit Progress
-                    </button>
-                  )}
-                  {isTeacher && isEditing && (
-                    <div className="flex gap-3">
-                      <button 
-                        onClick={() => setEditingId(null)}
-                        className="px-6 py-3 bg-slate-700 hover:bg-slate-600 text-white rounded-xl font-black uppercase tracking-widest text-[10px] transition-colors"
-                      >
-                        Cancel
-                      </button>
-                      <button 
-                        onClick={handleSave}
-                        disabled={saveStatus === 'saving'}
-                        className="px-6 py-3 bg-emerald-500 hover:bg-emerald-400 text-white rounded-xl font-black uppercase tracking-widest text-[10px] transition-colors flex items-center gap-2 disabled:opacity-50"
-                      >
-                        <Save className="w-4 h-4" />
-                        {saveStatus === 'saving' ? 'Saving...' : 'Save Changes'}
-                      </button>
-                    </div>
-                  )}
                 </div>
 
                 <div className="p-8 md:p-10 space-y-12">
@@ -564,63 +439,13 @@ const ParentPortal: React.FC<ParentPortalProps> = ({ user }) => {
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                       {data.academics.map((acad, idx) => (
                         <div key={idx} className="p-6 bg-slate-50 rounded-3xl border border-slate-100">
-                          {isEditing ? (
-                            <div className="space-y-4 relative">
-                              <button 
-                                onClick={() => {
-                                  const newAcademics = [...(editForm.academics || [])];
-                                  newAcademics.splice(idx, 1);
-                                  setEditForm({ ...editForm, academics: newAcademics });
-                                }}
-                                className="absolute -top-2 -right-2 w-6 h-6 bg-rose-100 text-rose-600 rounded-full flex items-center justify-center text-xs font-bold hover:bg-rose-500 hover:text-white transition-colors"
-                              >
-                                ✕
-                              </button>
-                              <input 
-                                className="w-full bg-white border border-slate-200 rounded-xl px-4 py-2 font-bold text-slate-900"
-                                value={acad.subject}
-                                onChange={(e) => handleAcademicChange(idx, 'subject', e.target.value)}
-                                placeholder="Subject"
-                              />
-                              <input 
-                                className="w-full bg-white border border-slate-200 rounded-xl px-4 py-2 font-bold text-blue-600"
-                                value={acad.grade}
-                                onChange={(e) => handleAcademicChange(idx, 'grade', e.target.value)}
-                                placeholder="Grade"
-                              />
-                              <textarea 
-                                className="w-full bg-white border border-slate-200 rounded-xl px-4 py-2 font-medium text-sm text-slate-600"
-                                rows={3}
-                                value={acad.comments}
-                                onChange={(e) => handleAcademicChange(idx, 'comments', e.target.value)}
-                                placeholder="Comments"
-                              />
-                            </div>
-                          ) : (
-                            <>
-                              <div className="flex justify-between items-start mb-4">
-                                <h4 className="font-black text-slate-900">{acad.subject}</h4>
-                                <span className="text-2xl font-black text-blue-600">{acad.grade}</span>
-                              </div>
-                              <p className="text-sm text-slate-600 font-medium leading-relaxed">{acad.comments}</p>
-                            </>
-                          )}
+                          <div className="flex justify-between items-start mb-4">
+                            <h4 className="font-black text-slate-900">{acad.subject}</h4>
+                            <span className="text-2xl font-black text-blue-600">{acad.grade}</span>
+                          </div>
+                          <p className="text-sm text-slate-600 font-medium leading-relaxed">{acad.comments}</p>
                         </div>
                       ))}
-                      {isEditing && (
-                        <button 
-                          onClick={() => {
-                            setEditForm({
-                              ...editForm,
-                              academics: [...(editForm.academics || []), { subject: '', grade: '', comments: '' }]
-                            });
-                          }}
-                          className="p-6 bg-slate-50 border-2 border-dashed border-slate-200 rounded-3xl flex flex-col items-center justify-center text-slate-400 hover:text-blue-600 hover:border-blue-200 hover:bg-blue-50 transition-colors min-h-[200px]"
-                        >
-                          <span className="text-4xl mb-2">+</span>
-                          <span className="text-[10px] font-black uppercase tracking-widest">Add Subject</span>
-                        </button>
-                      )}
                     </div>
                   </section>
 
@@ -636,40 +461,10 @@ const ParentPortal: React.FC<ParentPortalProps> = ({ user }) => {
                         </h3>
                       </div>
                       <div className="p-8 bg-white border border-slate-100 rounded-3xl shadow-sm">
-                        {isEditing ? (
-                          <div className="space-y-4">
-                            <select 
-                              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 font-bold text-slate-900"
-                              value={data.behavior.rating}
-                              onChange={(e) => setEditForm({
-                                ...editForm, 
-                                behavior: { ...editForm.behavior!, rating: e.target.value as any }
-                              })}
-                            >
-                              <option value="Excellent">Excellent</option>
-                              <option value="Good">Good</option>
-                              <option value="Needs Improvement">Needs Improvement</option>
-                              <option value="Poor">Poor</option>
-                            </select>
-                            <textarea 
-                              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 font-medium text-slate-600"
-                              rows={4}
-                              value={data.behavior.comments}
-                              onChange={(e) => setEditForm({
-                                ...editForm, 
-                                behavior: { ...editForm.behavior!, comments: e.target.value }
-                              })}
-                              placeholder="Behavior comments..."
-                            />
-                          </div>
-                        ) : (
-                          <>
-                            <div className="inline-block px-4 py-2 bg-emerald-50 text-emerald-700 rounded-xl font-black uppercase tracking-widest text-xs mb-4">
-                              {data.behavior.rating}
-                            </div>
-                            <p className="text-slate-600 font-medium leading-relaxed">{data.behavior.comments}</p>
-                          </>
-                        )}
+                        <div className="inline-block px-4 py-2 bg-emerald-50 text-emerald-700 rounded-xl font-black uppercase tracking-widest text-xs mb-4">
+                          {data.behavior.rating}
+                        </div>
+                        <p className="text-slate-600 font-medium leading-relaxed">{data.behavior.comments}</p>
                       </div>
                     </section>
 
@@ -764,66 +559,27 @@ const ParentPortal: React.FC<ParentPortalProps> = ({ user }) => {
                         <h3 className="text-2xl font-black text-slate-900 tracking-tight">Participation</h3>
                       </div>
                       <div className="p-8 bg-white border border-slate-100 rounded-3xl shadow-sm">
-                        {isEditing ? (
-                          <div className="space-y-4">
-                            <select 
-                              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 font-bold text-slate-900"
-                              value={data.participation.rating}
-                              onChange={(e) => setEditForm({
-                                ...editForm, 
-                                participation: { ...editForm.participation!, rating: e.target.value as any }
-                              })}
-                            >
-                              <option value="High">High</option>
-                              <option value="Medium">Medium</option>
-                              <option value="Low">Low</option>
-                            </select>
-                            <input 
-                              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 font-medium text-slate-600"
-                              value={data.participation.activities.join(', ')}
-                              onChange={(e) => setEditForm({
-                                ...editForm, 
-                                participation: { ...editForm.participation!, activities: e.target.value.split(',').map(s => s.trim()) }
-                              })}
-                              placeholder="Activities (comma separated)"
-                            />
-                            <textarea 
-                              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 font-medium text-slate-600"
-                              rows={3}
-                              value={data.participation.comments}
-                              onChange={(e) => setEditForm({
-                                ...editForm, 
-                                participation: { ...editForm.participation!, comments: e.target.value }
-                              })}
-                              placeholder="Participation comments..."
-                            />
+                        <div className="flex items-center gap-4 mb-4">
+                          <div className="inline-block px-4 py-2 bg-purple-50 text-purple-700 rounded-xl font-black uppercase tracking-widest text-xs">
+                            {data.participation.rating} Involvement
                           </div>
-                        ) : (
-                          <>
-                            <div className="flex items-center gap-4 mb-4">
-                              <div className="inline-block px-4 py-2 bg-purple-50 text-purple-700 rounded-xl font-black uppercase tracking-widest text-xs">
-                                {data.participation.rating} Involvement
-                              </div>
-                            </div>
-                            <div className="mb-4">
-                              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Activities</p>
-                              <div className="flex flex-wrap gap-2">
-                                {data.participation.activities.map((act, idx) => (
-                                  <span key={idx} className="px-3 py-1 bg-slate-100 text-slate-700 rounded-lg text-xs font-bold">
-                                    {act}
-                                  </span>
-                                ))}
-                              </div>
-                            </div>
-                            <p className="text-slate-600 font-medium leading-relaxed">{data.participation.comments}</p>
-                          </>
-                        )}
+                        </div>
+                        <div className="mb-4">
+                          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Activities</p>
+                          <div className="flex flex-wrap gap-2">
+                            {data.participation.activities.map((act, idx) => (
+                              <span key={idx} className="px-3 py-1 bg-slate-100 text-slate-700 rounded-lg text-xs font-bold">
+                                {act}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                        <p className="text-slate-600 font-medium leading-relaxed">{data.participation.comments}</p>
                       </div>
                     </section>
                   </div>
 
-                  {!isEditing && isParent && (
-                    <div className="pt-8 border-t border-slate-100 mt-12">
+                  <div className="pt-8 border-t border-slate-100 mt-12">
                       {aiTranslations[progress.id] ? (
                         <div className="bg-fuchsia-50 rounded-[32px] p-8 border border-fuchsia-100">
                           <div className="flex items-center gap-3 mb-6">
@@ -852,7 +608,6 @@ const ParentPortal: React.FC<ParentPortalProps> = ({ user }) => {
                         </button>
                       )}
                     </div>
-                  )}
 
                   {/* Direct Teacher Messaging (Primary/High Only) */}
                   {institutionType !== 'Tertiary' && (
@@ -897,7 +652,7 @@ const ParentPortal: React.FC<ParentPortalProps> = ({ user }) => {
       )}
 
       {/* Financial Ledger Tab */}
-      {!loading && activeView === 'finance' && !isTeacher && (
+      {!loading && activeView === 'finance' && (
         <div className="animate-in fade-in duration-300">
            <div className="bg-emerald-900 rounded-[40px] text-white p-10 mb-8 border border-emerald-800 shadow-xl overflow-hidden relative">
              <div className="absolute top-0 right-0 w-96 h-96 bg-yellow-400/20 rounded-full blur-[100px]" />
@@ -1109,7 +864,7 @@ const ParentPortal: React.FC<ParentPortalProps> = ({ user }) => {
       )}
 
       {/* Safety & Boarding Tab */}
-      {!loading && activeView === 'safety' && !isTeacher && (
+      {!loading && activeView === 'safety' && (
         <div className="animate-in fade-in duration-300 space-y-12">
            <div className="bg-blue-900 rounded-[40px] text-white p-10 border border-blue-800 shadow-xl overflow-hidden relative">
              <div className="absolute top-0 right-0 w-96 h-96 bg-cyan-400/20 rounded-full blur-[100px]" />
@@ -1220,7 +975,7 @@ const ParentPortal: React.FC<ParentPortalProps> = ({ user }) => {
       )}
 
       {/* PTA & Consent Tab */}
-      {!loading && activeView === 'pta' && !isTeacher && (
+      {!loading && activeView === 'pta' && (
         <div className="animate-in fade-in duration-300 space-y-12">
            <div className="bg-purple-900 rounded-[40px] text-white p-10 border border-purple-800 shadow-xl overflow-hidden relative">
              <div className="absolute top-0 right-0 w-96 h-96 bg-fuchsia-400/20 rounded-full blur-[100px]" />

@@ -8,6 +8,8 @@ interface PortalEditorProps {
   onUpdate: (updatedSections: Institution['sections']) => void;
 }
 
+import SectionBaseFields from './SectionBaseFields';
+
 const PortalEditor: React.FC<PortalEditorProps> = ({ institution, onUpdate }) => {
   const { portal } = institution.sections;
 
@@ -16,28 +18,23 @@ const PortalEditor: React.FC<PortalEditorProps> = ({ institution, onUpdate }) =>
       ...institution.sections,
       portal: {
         ...portal,
-        [field]: value
-      }
-    });
-  };
-
-  const updateDeepField = (category: string, field: string, value: any) => {
-    onUpdate({
-      ...institution.sections,
-      portal: {
-        ...portal,
-        [category]: {
-          ...(portal as any)[category],
-          [field]: value
-        }
+        [field]: value,
+        lastUpdated: new Date().toISOString()
       }
     });
   };
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 animate-in fade-in slide-in-from-right-4">
-      <div className="space-y-10">
-        <header>
+    <div className="space-y-12">
+      <SectionBaseFields 
+        section={portal as any} 
+        onUpdate={updateField} 
+        label="Portal" 
+      />
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 animate-in fade-in slide-in-from-right-4">
+        <div className="space-y-10">
+          <header>
           <div className="flex items-center gap-4 mb-2">
             <div className="p-3 bg-blue-600 text-white rounded-2xl shadow-lg">
               <Globe className="w-6 h-6" />
@@ -278,6 +275,7 @@ const PortalEditor: React.FC<PortalEditorProps> = ({ institution, onUpdate }) =>
              </div>
           </div>
         </div>
+      </div>
       </div>
     </div>
   );

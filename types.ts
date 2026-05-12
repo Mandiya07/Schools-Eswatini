@@ -607,6 +607,10 @@ export interface Institution {
     };
     about: {
       enabled?: boolean;
+      title?: string;
+      content?: string;
+      mediaUrls?: string[];
+      lastUpdated?: string;
       overview: string;
       foundingBackground: string;
       history: {
@@ -742,6 +746,10 @@ export interface Institution {
     };
     academics: {
       enabled?: boolean;
+      title?: string;
+      content?: string;
+      mediaUrls?: string[];
+      lastUpdated?: string;
       overview: {
         headline: string;
         introduction: string;
@@ -753,12 +761,35 @@ export interface Institution {
       };
       departments: AcademicDepartment[];
       programs: AcademicProgram[];
+      academicCalendar?: {
+        startDate: string;
+        terms: { name: string; info: string }[];
+        examPeriods: string;
+        holidays: string;
+        url?: string;
+      };
       calendar: {
         startDate: string;
         terms: { name: string; info: string }[];
         examPeriods: string;
         holidays: string;
         url?: string;
+      };
+      staffProfiles?: {
+        id: string;
+        name: string;
+        role: string;
+        qualifications: string;
+        professionalBackground: string;
+        image?: string;
+      }[];
+      researchFocus?: string;
+      elearningCapabilities?: {
+        enabled: boolean;
+        platform: string;
+        onlineClassOptions: string;
+        digitalAssignments: string;
+        recordedLectures: string;
       };
       elearning?: {
         enabled: boolean;
@@ -832,11 +863,19 @@ export interface Institution {
     };
     news: {
       enabled?: boolean;
+      title?: string;
+      content?: string;
+      mediaUrls?: string[];
+      lastUpdated?: string;
       overview: {
         title: string;
         description: string;
       };
       featuredPostId?: string;
+      blogPosts?: BlogPost[];
+      eventCalendar?: EventItem[];
+      photoGallery?: { id: string; url: string; title: string; type: 'image'; createdAt: string }[];
+      videoUploads?: { id: string; url: string; title: string; type: 'video'; createdAt: string }[];
       posts: BlogPost[];
       events: EventItem[];
       gallery: { id: string; url: string; title: string; type: 'image' | 'video'; createdAt: string }[];
@@ -844,6 +883,10 @@ export interface Institution {
     };
     studentLife: {
       enabled?: boolean;
+      title?: string;
+      content?: string;
+      mediaUrls?: string[];
+      lastUpdated?: string;
       overview: {
         headline: string;
         introduction: string;
@@ -862,6 +905,17 @@ export interface Institution {
         icon?: string;
         category?: string;
       }[];
+      campusFacilities?: {
+        id?: string | number;
+        name: string;
+        description: string;
+        icon?: string;
+        image?: string;
+      }[];
+      supportServices?: {
+        services: string[];
+        description: string;
+      };
       arts: {
         activities: string[];
         description: string;
@@ -915,10 +969,14 @@ export interface Institution {
     };
     portal: {
       enabled: boolean;
+      title?: string;
+      content?: string;
+      mediaUrls?: string[];
+      lastUpdated?: string;
+      url: string;
       name: string;
       headline: string;
       description: string;
-      url: string;
       loginRequirements: string[];
       rolesSupported: string[];
       accountCreationProcess: string;
