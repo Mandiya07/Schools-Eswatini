@@ -16,6 +16,7 @@ export const InstitutionAcademics: React.FC = () => {
         academics={academics} 
         primaryColor={inst.theme.primaryColor} 
         institutionType={inst.type} 
+        institutionId={inst.id}
       />
     </div>
   );

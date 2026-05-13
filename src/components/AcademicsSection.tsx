@@ -28,15 +28,17 @@ import {
   Clock
 } from 'lucide-react';
 import { Institution, InstitutionType } from '../../types';
+import { PublicStudentRecords } from './PublicStudentRecords';
 
 interface AcademicsSectionProps {
   academics: Institution['sections']['academics'];
   primaryColor: string;
   institutionType: Institution['type'];
+  institutionId?: string;
 }
 
-const AcademicsSection: React.FC<AcademicsSectionProps> = ({ academics, primaryColor, institutionType }) => {
-  const [activeTab, setActiveTab] = useState<'overview' | 'staff' | 'departments' | 'performance' | 'faculty' | 'elearning'>('overview');
+const AcademicsSection: React.FC<AcademicsSectionProps> = ({ academics, primaryColor, institutionType, institutionId }) => {
+  const [activeTab, setActiveTab] = useState<'overview' | 'staff' | 'departments' | 'performance' | 'faculty' | 'elearning' | 'student_records'>('overview');
   const [selectedDept, setSelectedDept] = useState<number | null>(null);
   const [selectedProgram, setSelectedProgram] = useState<string | null>(null);
 
@@ -53,6 +55,9 @@ const AcademicsSection: React.FC<AcademicsSectionProps> = ({ academics, primaryC
     if (id === 'faculty') {
       return 'Faculty Experts';
     }
+    if (id === 'student_records') {
+      return 'Student Records';
+    }
     return defaultLabel;
   };
 
@@ -62,6 +67,7 @@ const AcademicsSection: React.FC<AcademicsSectionProps> = ({ academics, primaryC
     { id: 'staff', label: `${getTabLabel('staff', 'Staff')} Profiles`, icon: <Users className="w-4 h-4" /> },
     { id: 'faculty', label: getTabLabel('faculty', 'Faculty'), icon: <Users className="w-4 h-4" /> },
     { id: 'performance', label: 'Performance & Facilities', icon: <Award className="w-4 h-4" /> },
+    { id: 'student_records', label: 'Student Records', icon: <ClipboardCheck className="w-4 h-4" /> },
     ...(academics.elearning?.enabled ? [{ id: 'elearning', label: 'E-Learning', icon: <Monitor className="w-4 h-4" /> } as const] : []),
   ] as const;
 
@@ -213,6 +219,12 @@ const AcademicsSection: React.FC<AcademicsSectionProps> = ({ academics, primaryC
                 </section>
               )}
             </>
+          )}
+
+          {activeTab === 'student_records' && institutionId && (
+            <section className="animate-in fade-in transition-all duration-700">
+               <PublicStudentRecords institutionId={institutionId} primaryColor={primaryColor} />
+            </section>
           )}
 
           {activeTab === 'departments' && (

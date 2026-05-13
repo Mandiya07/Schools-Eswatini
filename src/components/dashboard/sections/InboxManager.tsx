@@ -43,7 +43,13 @@ const InboxManager: React.FC<InboxManagerProps> = ({ institution }) => {
   const [selectedMessage, setSelectedMessage] = useState<Message | null>(null);
   const [filter, setFilter] = useState<'all' | 'unread' | 'archived'>('all');
   const [searchTerm, setSearchTerm] = useState('');
-  
+  const [isComposing, setIsComposing] = useState(false);
+  const [composeRecipients, setComposeRecipients] = useState('');
+  const [composeSubject, setComposeSubject] = useState('');
+  const [composeBody, setComposeBody] = useState('');
+  const [composeType, setComposeType] = useState<'email' | 'sms' | 'both'>('email');
+  const [isSendingBlast, setIsSendingBlast] = useState(false);
+
   // Reply State
   const [replyText, setReplyText] = useState('');
   const [isReplying, setIsReplying] = useState(false);
@@ -160,6 +166,49 @@ const InboxManager: React.FC<InboxManagerProps> = ({ institution }) => {
     }
   };
 
+  const handleSendBlast = async () => {
+    if (!composeSubject.trim() || !composeBody.trim() || !composeRecipients.trim()) return;
+    setIsSendingBlast(true);
+    
+    // Naively parse recipients from comma separated string
+    const recipientsList = composeRecipients.split(',').map(r => r.trim()).filter(r => r);
+    const parsedRecipients = recipientsList.map(r => {
+      return { 
+        email: r.includes('@') ? r : '', 
+        phone: r.match(/^[0-9+]+$/) ? r : ''
+      };
+    });
+
+    try {
+      const response = await fetch('/api/notify/blast', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          type: composeType,
+          recipients: parsedRecipients,
+          message: composeBody,
+          subject: composeSubject
+        })
+      });
+
+      const result = await response.json();
+      if (result.success) {
+        alert(`Successfully sent to ${result.count} out of ${result.total} recipients.`);
+        setIsComposing(false);
+        setComposeRecipients('');
+        setComposeSubject('');
+        setComposeBody('');
+      } else {
+        alert('Failed to send blast: ' + (result.error || 'Unknown error.'));
+      }
+    } catch (err) {
+      console.error("Error sending blast:", err);
+      alert('Internal error sending blast.');
+    } finally {
+      setIsSendingBlast(false);
+    }
+  };
+
   return (
     <div className="flex bg-white rounded-[40px] border border-slate-100 shadow-sm overflow-hidden min-h-[700px] animate-in fade-in">
       {/* Sidebar List */}
@@ -169,8 +218,15 @@ const InboxManager: React.FC<InboxManagerProps> = ({ institution }) => {
             <h3 className="text-xl font-black text-slate-900 uppercase tracking-tight">Inbox</h3>
             <div className="flex gap-2">
               <button 
-                onClick={() => setFilter('all')}
-                className={`p-2 rounded-xl transition-all ${filter === 'all' ? 'bg-slate-900 text-white' : 'text-slate-400 hover:bg-slate-100'}`}
+                onClick={() => { setIsComposing(true); setSelectedMessage(null); }}
+                className="p-2 rounded-xl transition-all bg-emerald-600 text-white hover:bg-emerald-700 mr-2"
+                title="Send Blast Email/SMS"
+              >
+                <Send className="w-4 h-4" />
+              </button>
+              <button 
+                onClick={() => { setIsComposing(false); setFilter('all'); }}
+                className={`p-2 rounded-xl transition-all ${filter === 'all' && !isComposing ? 'bg-slate-900 text-white' : 'text-slate-400 hover:bg-slate-100'}`}
               >
                 <InboxIcon className="w-4 h-4" />
               </button>
@@ -247,7 +303,87 @@ const InboxManager: React.FC<InboxManagerProps> = ({ institution }) => {
       {/* Message Content */}
       <div className="flex-1 bg-slate-50/30 flex flex-col">
         <AnimatePresence mode="wait">
-          {selectedMessage ? (
+          {isComposing ? (
+            <motion.div
+              key="compose-blast"
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="flex flex-col h-full bg-white"
+            >
+              <header className="p-8 border-b border-slate-100 flex items-center justify-between">
+                <div>
+                  <h2 className="text-2xl font-black text-slate-900">Send Communication Blast</h2>
+                  <p className="text-xs text-slate-500 font-medium mt-1">Send an Email or SMS to a target group</p>
+                </div>
+                <button
+                  onClick={() => setIsComposing(false)}
+                  className="p-3 bg-slate-50 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-xl transition-all font-bold"
+                >
+                  Cancel
+                </button>
+              </header>
+
+              <div className="flex-1 overflow-y-auto p-8 space-y-6">
+                <div>
+                  <label className="block text-[10px] font-black tracking-widest text-slate-400 uppercase mb-2">Message Type</label>
+                  <select 
+                    value={composeType}
+                    onChange={e => setComposeType(e.target.value as any)}
+                    className="w-full sm:w-64 bg-slate-50 border border-slate-100 rounded-xl p-4 font-black text-slate-900"
+                  >
+                    <option value="email">Email Only</option>
+                    <option value="sms">SMS Only</option>
+                    <option value="both">Both Email & SMS</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-[10px] font-black tracking-widest text-slate-400 uppercase mb-2">Recipients (Email / Phone)</label>
+                  <input
+                    type="text"
+                    value={composeRecipients}
+                    onChange={e => setComposeRecipients(e.target.value)}
+                    placeholder="e.g. parent1@gmail.com, +26876123456, parent2@outlook.com"
+                    className="w-full bg-slate-50 border border-slate-100 rounded-xl p-4 font-bold text-slate-900"
+                  />
+                  <p className="text-xs text-slate-500 mt-2">Separate multiple recipients with commas.</p>
+                </div>
+
+                <div>
+                  <label className="block text-[10px] font-black tracking-widest text-slate-400 uppercase mb-2">Subject (Email Only)</label>
+                  <input
+                    type="text"
+                    value={composeSubject}
+                    onChange={e => setComposeSubject(e.target.value)}
+                    placeholder="Subject line"
+                    className="w-full bg-slate-50 border border-slate-100 rounded-xl p-4 font-bold text-slate-900"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[10px] font-black tracking-widest text-slate-400 uppercase mb-2">Message</label>
+                  <textarea
+                    value={composeBody}
+                    onChange={e => setComposeBody(e.target.value)}
+                    placeholder="Write your message here..."
+                    className="w-full h-48 bg-slate-50 border border-slate-100 rounded-xl p-4 font-medium text-slate-900 resize-none"
+                  />
+                </div>
+              </div>
+
+              <footer className="p-8 border-t border-slate-100 flex justify-end">
+                <button
+                  onClick={handleSendBlast}
+                  disabled={isSendingBlast || !composeBody.trim() || !composeRecipients.trim() || !composeSubject.trim()}
+                  className="bg-emerald-600 text-white px-8 py-4 rounded-xl font-black uppercase text-xs tracking-widest hover:bg-emerald-700 transition flex items-center gap-2 disabled:opacity-50"
+                >
+                  {isSendingBlast ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+                  Send Blast
+                </button>
+              </footer>
+            </motion.div>
+          ) : selectedMessage ? (
             <motion.div 
               key={selectedMessage.id}
               initial={{ opacity: 0, x: 20 }}

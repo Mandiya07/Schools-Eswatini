@@ -10,16 +10,17 @@ interface AcademicsEditorProps {
 }
 
 import SectionBaseFields from './SectionBaseFields';
+import { StudentProgressManager } from './StudentProgressManager';
 
 const AcademicsEditor: React.FC<AcademicsEditorProps> = ({ institution, onUpdate }) => {
   const { academics } = institution.sections;
-  const [activeSubTab, setActiveSubTab] = useState<'overview' | 'departments' | 'programs' | 'calendar' | 'performance' | 'elearning' | 'portal' | 'faculty' | 'guidance' | 'research'>('overview');
+  const [activeSubTab, setActiveSubTab] = useState<'overview' | 'departments' | 'programs' | 'calendar' | 'performance' | 'students' | 'elearning' | 'portal' | 'faculty' | 'guidance' | 'research'>('overview');
 
   const isTertiary = institution.type.includes(InstitutionType.TERTIARY);
   const isPrimary = institution.type.includes(InstitutionType.PRIMARY);
   const isHighSchool = institution.type.includes(InstitutionType.HIGH_SCHOOL);
 
-  const subTabs = ['overview', 'departments', 'programs', 'calendar', 'performance', 'elearning', 'portal', 'faculty'] as const;
+  const subTabs = ['overview', 'departments', 'programs', 'calendar', 'performance', 'students', 'elearning', 'portal', 'faculty'] as const;
   const currentSubTabs = isHighSchool ? [...subTabs, 'guidance'] : isTertiary ? [...subTabs, 'research'] : subTabs;
 
   const getTabLabel = (tab: string) => {
@@ -27,6 +28,7 @@ const AcademicsEditor: React.FC<AcademicsEditorProps> = ({ institution, onUpdate
       case 'departments': return isTertiary ? 'Faculties & Departments' : isPrimary ? 'Grades / Phases' : 'Departments';
       case 'programs': return isTertiary ? 'Degree Programs' : isPrimary ? 'Extracurriculars' : 'Programs';
       case 'performance': return 'Performance';
+      case 'students': return 'Student Records';
       case 'elearning': return 'E-learning';
       case 'portal': return 'Student Portal';
       case 'guidance': return 'Career Guidance';
@@ -620,7 +622,9 @@ const AcademicsEditor: React.FC<AcademicsEditorProps> = ({ institution, onUpdate
             />
           )}
 
-
+          {activeSubTab === 'students' && (
+            <StudentProgressManager institution={institution} />
+          )}
 
           {activeSubTab === 'calendar' && (
             <div className="space-y-8 animate-in slide-in-from-left-4">

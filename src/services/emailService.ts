@@ -66,6 +66,43 @@ export async function sendAdminNotification(schoolEmail: string, schoolName: str
   }
 }
 
+export async function sendEmail(to: string, subject: string, text: string, html?: string) {
+  const mailOptions = {
+    from: `"Schools Eswatini" <${process.env.FROM_EMAIL || 'no-reply@schoolseswatini.sz'}>`,
+    to,
+    subject,
+    text,
+    html: html || `
+      <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e2e8f0; border-radius: 12px;">
+        <h2 style="color: #1e293b;">${subject}</h2>
+        <div style="background-color: #f8fafc; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #2563eb;">
+          <p style="margin: 0; color: #1e293b;">${text}</p>
+        </div>
+        <hr style="border: 0; border-top: 1px solid #e2e8f0; margin: 30px 0;" />
+        <p style="font-size: 12px; color: #94a3b8;">This is an automated notification from Schools Eswatini.</p>
+      </div>
+    `,
+  };
+
+  const client = getTransporter();
+  if (client) {
+    try {
+      await client.sendMail(mailOptions);
+      return true;
+    } catch (error) {
+      console.error('Failed to send email:', error);
+      return false;
+    }
+  } else {
+    console.log('--- MOCK EMAIL ---');
+    console.log('To:', to);
+    console.log('Subject:', subject);
+    console.log('Body:', text);
+    console.log('------------------');
+    return true;
+  }
+}
+
 export async function sendReplyNotification(recipientEmail: string, schoolName: string, replyBody: string) {
   const mailOptions = {
     from: `"Schools Eswatini" <${process.env.FROM_EMAIL || 'no-reply@schoolseswatini.sz'}>`,

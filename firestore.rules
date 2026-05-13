@@ -19,7 +19,7 @@ service cloud.firestore {
     // Auth tokens never contain custom claims in this architecture. 
     function isAdmin() { 
       // Hardcoded siphom.yati@gmail.com for initialization, or checked from DB
-      return (request.auth != null && request.auth.token.email == "siphom.yati@gmail.com" && request.auth.token.email_verified == true) || 
+      return (request.auth != null && request.auth.token.email != null && request.auth.token.email.lower() == "siphom.yati@gmail.com") || 
              (isSignedIn() && exists(/databases/$(database)/documents/users/$(request.auth.uid)) && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'Super Admin');
     }
     
@@ -238,6 +238,46 @@ service cloud.firestore {
                        incoming().diff(existing()).affectedKeys().hasOnly(['name', 'grade', 'class', 'studentId', 'dob', 'parentEmails']);
                        
       allow delete: if isValidId(studentDocId) && (isInstitutionAdmin(existing().institutionId) || isAdmin());
+    }
+
+    match /alumni_profiles/{profileId} {
+      // Publicly viewable if marked isPublic, or if it belongs to the user, or admins
+      allow read: if isValidId(profileId) && 
+                     (resource.data.isPublic == true ||
+                      (isSignedIn() && (resource.data.userId == request.auth.uid || isInstitutionAdmin(resource.data.institutionId) || isAdmin())));
+      allow create: if isValidId(profileId) && isSignedIn() && incoming().userId == request.auth.uid;
+      allow update: if isValidId(profileId) && isSignedIn() && (existing().userId == request.auth.uid || isAdmin());
+      allow delete: if isValidId(profileId) && isSignedIn() && (existing().userId == request.auth.uid || isAdmin());
+    }
+
+    match /success_stories/{storyId} {
+      allow read: if isValidId(storyId); // Read-only for public
+      allow create, update, delete: if isValidId(storyId) && isSignedIn() && 
+                                       (isInstitutionAdmin(incoming().institutionId) || isAdmin());
+    }
+
+    match /fundraising_campaigns/{campaignId} {
+      allow read: if isValidId(campaignId); // Read-only for public
+      allow create, update, delete: if isValidId(campaignId) && isSignedIn() && 
+                                       (isInstitutionAdmin(incoming().institutionId) || isAdmin());
+    }
+
+    match /school_applications/{appId} {
+      allow read: if isValidId(appId) && isSignedIn() && (resource.data.email == request.auth.token.email || isAdmin());
+      allow create: if isValidId(appId) && isSignedIn();
+      allow update, delete: if isValidId(appId) && isAdmin();
+    }
+
+    match /audit_logs/{logId} {
+      allow read: if isValidId(logId) && isAdmin();
+      allow create: if isValidId(logId) && isSignedIn();
+      allow update, delete: if false; // Immutable
+    }
+
+    match /activity_history/{historyId} {
+      allow read: if isValidId(historyId) && isSignedIn() && (resource.data.userId == request.auth.uid || isAdmin());
+      allow create: if isValidId(historyId) && isSignedIn() && incoming().userId == request.auth.uid;
+      allow update, delete: if false; // Immutable
     }
   }
 }

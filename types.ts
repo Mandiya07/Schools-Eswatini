@@ -368,7 +368,7 @@ export interface BannerAd {
 export interface Institution {
   id: string;
   name: string;
-  subjects: string[];
+  subjects?: string[];
   downloads?: { label: string; url: string }[];
   slug: string;
   subdomain?: string;

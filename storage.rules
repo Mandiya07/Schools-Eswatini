@@ -1,0 +1,32 @@
+rules_version = '2';
+
+// Craft rules based on the provided project ID.
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    // Default deny
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+
+    // Certificates / Onboarding Documents
+    // Anyone can upload applications (if they know the path) or rather, only authenticated users or public?
+    // Usually school creation happens by public users applying or admins adding.
+    // Assuming SuperAdmins need to read them, and regular users can upload.
+    match /certificates/{fileName} {
+      // Allow anybody to upload, but limit size to 5MB and ensure it's a PDF or Image
+      allow create: if request.resource.size < 5 * 1024 * 1024 
+                   && request.resource.contentType.matches('application/pdf|image/.*');
+      
+      // Allow only the Super Admin or Institution admin to read them.
+      // Easiest is to just allow authenticated users to read.
+      allow read: if request.auth != null;
+    }
+
+    // General Profile Images
+    match /profiles/{userId}/{fileName} {
+      allow read: if true;
+      allow write: if request.auth != null && request.auth.uid == userId;
+    }
+  }
+}

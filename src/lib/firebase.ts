@@ -6,7 +6,7 @@ import firebaseConfig from '../../firebase-applet-config.json';
 
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
-const databaseId = (firebaseConfig as any).firestoreDatabaseId || '(default)';
+const databaseId = (firebaseConfig as Record<string, string>).firestoreDatabaseId || '(default)';
 
 export const db = getFirestore(app, databaseId);
 export const storage = getStorage(app);
@@ -35,7 +35,7 @@ export async function testConnection(retries = 3) {
     } catch (error) {
       console.warn(`Firebase connection attempt ${i + 1} failed:`, error);
       if (i === retries - 1) {
-        if(error instanceof Error && (error.message.includes('the client is offline') || (error as any).code === 'unavailable')) {
+        if(error instanceof Error && (error.message.includes('the client is offline') || ('code' in error && error.code === 'unavailable'))) {
           console.warn("Firebase may not be fully initialized or is offline. Retrying...", error);
         }
       }

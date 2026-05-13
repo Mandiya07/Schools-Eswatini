@@ -142,7 +142,7 @@ export const StudentProgressManager: React.FC<StudentProgressManagerProps> = ({ 
       } as StudentProgress;
 
       if (editingProgressId) {
-        await updateDoc(doc(db, 'student_progress', editingProgressId), progressData);
+        await updateDoc(doc(db, 'student_progress', editingProgressId), progressData as any);
         setProgressRecords(prev => prev.map(p => p.id === editingProgressId ? { ...p, ...progressData } : p));
       } else {
         const docRef = await addDoc(collection(db, 'student_progress'), progressData);

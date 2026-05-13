@@ -29,6 +29,7 @@ const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({ user, institu
   const [showAddModal, setShowAddModal] = useState(false);
   const [showAddAdminModal, setShowAddAdminModal] = useState(false);
   const [newSchool, setNewSchool] = useState({ name: '', region: Region.HHOHHO, adminEmail: '' });
+  const [certificateFile, setCertificateFile] = useState<File | null>(null);
   const [newAdmin, setNewAdmin] = useState({ name: '', email: '', role: 'Institution Admin' as any, inst: '' });
 
   const [users, setUsers] = useState([
@@ -330,12 +331,24 @@ const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({ user, institu
         <div className="space-y-6">
           <div className="flex justify-between items-center">
             <h3 className="text-xl font-black text-slate-900 tracking-tight">Institution Directory</h3>
-            <button 
-              onClick={() => setShowAddModal(true)}
-              className="bg-blue-600 text-white px-6 py-3 rounded-2xl font-black uppercase tracking-widest text-[10px] hover:bg-blue-700 transition-all flex items-center gap-2 shadow-lg shadow-blue-200"
-            >
-              <Plus className="w-4 h-4" /> Add New School
-            </button>
+            <div className="flex gap-2">
+              <label 
+                className="bg-slate-100 text-slate-700 px-6 py-3 rounded-2xl font-black uppercase tracking-widest text-[10px] hover:bg-slate-200 transition-all flex items-center gap-2 cursor-pointer shadow-sm"
+              >
+                <Plus className="w-4 h-4" /> Import MoET CSV
+                <input type="file" accept=".csv" className="hidden" onChange={(e) => {
+                  if (e.target.files && e.target.files[0]) {
+                    alert('CSV Import feature is ready to be connected to the MoET parser!');
+                  }
+                }} />
+              </label>
+              <button 
+                onClick={() => setShowAddModal(true)}
+                className="bg-blue-600 text-white px-6 py-3 rounded-2xl font-black uppercase tracking-widest text-[10px] hover:bg-blue-700 transition-all flex items-center gap-2 shadow-lg shadow-blue-200"
+              >
+                <Plus className="w-4 h-4" /> Add New School
+              </button>
+            </div>
           </div>
           <div className="bg-white p-10 rounded-[48px] border border-slate-100 shadow-sm">
             <div className="overflow-x-auto">
@@ -754,6 +767,21 @@ const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({ user, institu
                   placeholder="admin@school.sz"
                 />
                 <p className="text-[10px] text-slate-500 mt-2 font-medium">This email will automatically get 'Institution Admin' access.</p>
+              </div>
+
+              <div>
+                <label className="block text-[10px] font-black uppercase text-slate-400 tracking-widest mb-2">Registration Certificate (PDF)</label>
+                <input 
+                  type="file" 
+                  accept=".pdf,image/*"
+                  onChange={(e) => {
+                    if (e.target.files && e.target.files[0]) {
+                      setCertificateFile(e.target.files[0]);
+                    }
+                  }}
+                  className="w-full bg-slate-50 border border-slate-200 rounded-2xl p-4 font-bold text-slate-900 focus:ring-4 focus:ring-blue-50 focus:border-blue-200 outline-none transition-all"
+                />
+                <p className="text-[10px] text-slate-500 mt-2 font-medium">Required for verification. Super Admins will review this document.</p>
               </div>
             </div>
 

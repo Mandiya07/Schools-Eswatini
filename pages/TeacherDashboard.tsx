@@ -2609,6 +2609,14 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({ user }) => {
                    </div>
                 </div>
              )}
+
+             {managementSubTab === 'students' && institution && (
+                <StudentsManager
+                  institution={institution}
+                  isTertiary={institutionType === InstitutionType.TERTIARY}
+                  isPrimary={institutionType === InstitutionType.PRIMARY}
+                />
+             )}
           </div>
         )}
 

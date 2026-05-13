@@ -1,6 +1,7 @@
 import express from 'express';
-import { sendAdminNotification, sendReplyNotification } from '../services/emailService.js';
+import { sendAdminNotification, sendReplyNotification, sendEmail } from '../services/emailService.js';
 import { paymentGateway } from '../services/paymentService.js';
+import { sendSMS } from '../services/smsService.js';
 
 const router = express.Router();
 
@@ -36,6 +37,31 @@ router.post('/notify/reply', async (req, res) => {
   if (!recipientEmail || !schoolName || !replyBody) return res.status(400).json({ error: 'Missing required fields' });
   const success = await sendReplyNotification(recipientEmail, schoolName, replyBody);
   res.json({ success });
+});
+
+router.post('/notify/blast', async (req, res) => {
+  const { type, recipients, message, subject } = req.body;
+  // expects recipients to be an array of objects: { phone?: string, email?: string }
+  if (!type || !recipients || !message) return res.status(400).json({ error: 'Missing required fields' });
+  
+  let successCount = 0;
+  for (const recipient of recipients) {
+    let success = false;
+    if (type === 'sms' || type === 'both') {
+      if (recipient.phone) {
+        success = await sendSMS(recipient.phone, message);
+      }
+    }
+    if (type === 'email' || type === 'both') {
+      if (recipient.email) {
+        const emailSuccess = await sendEmail(recipient.email, subject || 'Important Notification', message);
+        success = success || emailSuccess;
+      }
+    }
+    if (success) successCount++;
+  }
+
+  res.json({ success: true, count: successCount, total: recipients.length });
 });
 
 // Payment Gateway Routes
