@@ -14,6 +14,33 @@ router.get('/health', (req, res) => {
   });
 });
 
+// Infrastructure Diagnostics
+router.get('/diagnostics', (req, res) => {
+  const diagnostics = {
+    email: {
+      configured: !!(process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS),
+      host: process.env.SMTP_HOST || 'Not Set',
+      from: process.env.FROM_EMAIL || 'no-reply@schoolseswatini.sz'
+    },
+    sms: {
+      twilio: !!(process.env.TWILIO_ACCOUNT_SID && process.env.TWILIO_AUTH_TOKEN && process.env.TWILIO_FROM_NUMBER),
+      localAggregator: !!(process.env.LOCAL_SMS_API_URL && process.env.LOCAL_SMS_API_KEY),
+      mode: (process.env.LOCAL_SMS_API_URL && process.env.LOCAL_SMS_API_KEY) ? 'Local Aggregator' : (process.env.TWILIO_ACCOUNT_SID ? 'Twilio' : 'Mock Mode')
+    },
+    payments: {
+      momo: !!(process.env.MOMO_API_USER && process.env.MOMO_API_KEY && process.env.MOMO_SUB_KEY),
+      emali: "Mocked (Standard)",
+      environment: process.env.MOMO_ENVIRONMENT || "sandbox"
+    },
+    system: {
+      nodeVersion: process.version,
+      platform: process.platform,
+      uptime: process.uptime()
+    }
+  };
+  res.json(diagnostics);
+});
+
 // Performance Stats (Mock for now)
 router.get('/stats', (req, res) => {
   res.json({

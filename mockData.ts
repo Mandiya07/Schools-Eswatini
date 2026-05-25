@@ -1,6 +1,11 @@
 
 import { Institution, Region, InstitutionType, User, UserRole, GenderType, SubscriptionPlan, StudentProgress } from './types';
 
+import imgVarsity from './src/assets/images/black_student_studying_1778977275379.png';
+import imgHighSchool from './src/assets/images/black_students_high_school_classroom_1778977218280.png';
+import imgPrimary from './src/assets/images/black_students_primary_school_1778977256860.png';
+import imgCampus from './src/assets/images/black_students_tertiary_campus_1778977237829.png';
+
 export const MOCK_USERS: User[] = [
   {
     id: 'user-1',
@@ -57,7 +62,7 @@ export const MOCK_INSTITUTIONS: Institution[] = [
     slug: 'waterford-kamhlaba',
     subdomain: 'waterford',
     logo: 'https://picsum.photos/seed/waterford/200/200',
-    coverImage: 'https://picsum.photos/seed/waterfordcover/1200/400',
+    coverImage: imgHighSchool,
     region: Region.HHOHHO,
     type: [InstitutionType.HIGH_SCHOOL, InstitutionType.PRIVATE],
     isVerified: true,
@@ -255,6 +260,8 @@ export const MOCK_INSTITUTIONS: Institution[] = [
     },
     contact: { 
       address: 'Mbabane, Hhohho, Eswatini', 
+      latitude: -26.305,
+      longitude: 31.111,
       phone: '+268 2422 0866', 
       email: 'info@waterford.sz',
       website: 'www.waterford.sz',
@@ -292,7 +299,7 @@ export const MOCK_INSTITUTIONS: Institution[] = [
     reviews: [],
     sections: {
       homepage: {
-        heroBanner: 'https://picsum.photos/seed/wkhero/1600/600',
+        heroBanner: imgHighSchool,
         welcomeMessage: 'Waterford Kamhlaba United World College of Southern Africa (WK UWCSA) is one of the world\'s leading international schools.',
         principalMessage: {
           text: 'Welcome to our vibrant community where we celebrate diversity and strive for academic excellence.',
@@ -907,7 +914,7 @@ export const MOCK_INSTITUTIONS: Institution[] = [
     name: 'Sifundzani Primary School',
     slug: 'sifundzani-primary',
     logo: 'https://picsum.photos/seed/sifundzani/200/200',
-    coverImage: 'https://picsum.photos/seed/sifundzanicover/1200/400',
+    coverImage: imgPrimary,
     region: Region.HHOHHO,
     type: [InstitutionType.PRIMARY, InstitutionType.PRIVATE],
     isVerified: true,
@@ -943,6 +950,8 @@ export const MOCK_INSTITUTIONS: Institution[] = [
     },
     contact: {
       address: 'Mbabane, Hhohho, Eswatini',
+      latitude: -26.33,
+      longitude: 31.14,
       phone: '+268 2404 2461',
       email: 'info@sifundzani.ac.sz',
       website: 'www.sifundzani.ac.sz',
@@ -973,7 +982,7 @@ export const MOCK_INSTITUTIONS: Institution[] = [
     reviews: [],
     sections: {
       homepage: {
-        heroBanner: 'https://picsum.photos/seed/sphero/1600/600',
+        heroBanner: imgPrimary,
         welcomeMessage: 'Welcome to Sifundzani Primary School.',
         principalMessage: { text: 'We nurture young minds.', name: 'Principal Sifundzani' },
         quickLinks: [],
@@ -1076,7 +1085,12 @@ export const MOCK_INSTITUTIONS: Institution[] = [
         faqs: [
           { question: 'Is there a waiting list?', answer: 'Yes, for certain grades we maintain a waiting list.' }
         ], 
-        contact: { name: 'Admissions Secretary', phone: '+268 2404 2461', email: 'info@sifundzani.ac.sz', hours: '07:30 - 13:30' }, 
+        contact: { 
+          name: 'Admissions Secretary', 
+          phone: '+268 2404 2461', 
+          email: 'info@sifundzani.ac.sz', 
+          hours: '07:30 - 13:30' 
+        },
         allowOnlineApplications: false 
       },
       academics: { 
@@ -1217,7 +1231,7 @@ export const MOCK_INSTITUTIONS: Institution[] = [
     name: 'Manzini Nazarene High School',
     slug: 'manzini-nazarene-high',
     logo: 'https://picsum.photos/seed/nazarene/200/200',
-    coverImage: 'https://picsum.photos/seed/nazarenecover/1200/400',
+    coverImage: imgCampus,
     region: Region.MANZINI,
     type: [InstitutionType.HIGH_SCHOOL, InstitutionType.PUBLIC],
     isVerified: true,
@@ -1253,6 +1267,8 @@ export const MOCK_INSTITUTIONS: Institution[] = [
     },
     contact: {
       address: 'Manzini, Eswatini',
+      latitude: -26.48,
+      longitude: 31.37,
       phone: '+268 2505 2211',
       email: 'info@nazarenehigh.sz',
       website: 'www.nazarenehigh.sz',
@@ -1523,7 +1539,7 @@ export const MOCK_INSTITUTIONS: Institution[] = [
     name: 'University of Eswatini (UNESWA)',
     slug: 'uneswa',
     logo: 'https://picsum.photos/seed/uneswa/200/200',
-    coverImage: 'https://picsum.photos/seed/uneswacover/1200/400',
+    coverImage: imgVarsity,
     region: Region.LUBOMBO,
     type: [InstitutionType.TERTIARY, InstitutionType.PUBLIC],
     isVerified: true,
@@ -1559,6 +1575,8 @@ export const MOCK_INSTITUTIONS: Institution[] = [
     },
     contact: {
       address: 'Kwaluseni Campus (Main), Luyengo, Mbabane',
+      latitude: -26.48,
+      longitude: 31.32,
       phone: '+268 2517 0000',
       email: 'info@uneswa.ac.sz',
       website: 'www.uneswa.ac.sz',
@@ -1590,7 +1608,7 @@ export const MOCK_INSTITUTIONS: Institution[] = [
     reviews: [],
     sections: {
       homepage: {
-        heroBanner: 'https://picsum.photos/seed/uneswahero/1600/600',
+        heroBanner: imgVarsity,
         welcomeMessage: 'Welcome to the University of Eswatini.',
         principalMessage: { text: 'Empowering through knowledge.', name: 'Vice Chancellor' },
         quickLinks: [],
@@ -1831,7 +1849,7 @@ export const MOCK_INSTITUTIONS: Institution[] = [
     name: 'Evelyn Baring High School',
     slug: 'evelyn-baring-high',
     logo: 'https://picsum.photos/seed/ebaring/200/200',
-    coverImage: 'https://picsum.photos/seed/ebaringcover/1200/400',
+    coverImage: imgHighSchool,
     region: Region.SHISELWENI,
     type: [InstitutionType.HIGH_SCHOOL, InstitutionType.PUBLIC],
     isVerified: true,
@@ -2137,7 +2155,7 @@ export const MOCK_INSTITUTIONS: Institution[] = [
     name: "St. Mark's High School",
     slug: 'st-marks-high',
     logo: 'https://picsum.photos/seed/stmarks/200/200',
-    coverImage: 'https://picsum.photos/seed/stmarkscover/1200/400',
+    coverImage: imgCampus,
     region: Region.HHOHHO,
     type: [InstitutionType.HIGH_SCHOOL, InstitutionType.PUBLIC],
     isVerified: true,

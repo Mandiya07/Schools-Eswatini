@@ -53,10 +53,10 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ user }) => {
           }
         } catch (error) {
           // Only log if it's not a standard offline issue that we've already tried to handle
-          if (error instanceof Error && !error.message.includes('offline')) {
+          if (error instanceof Error && !error.message.includes('offline') && !error.message.includes('permission')) {
             console.error("Error fetching institution details:", error);
           } else {
-            console.warn("Institution details fetch failed (likely offline). Using defaults.");
+            console.warn("Institution details fetch failed (likely offline or permission). Using defaults.");
           }
         }
       }
@@ -65,7 +65,8 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ user }) => {
     fetchInstitutionDetails();
   }, [user?.institutionId]);
 
-  const isStudent = simulatedRole === UserRole.STUDENT || user?.role === UserRole.STUDENT;
+  const isSuperAdmin = user?.email?.toLowerCase() === 'siphom.yati@gmail.com' || user?.role === UserRole.SUPER_ADMIN;
+  const isStudent = simulatedRole === UserRole.STUDENT || user?.role === UserRole.STUDENT || isSuperAdmin;
 
   if (!isStudent && !user) {
     return (

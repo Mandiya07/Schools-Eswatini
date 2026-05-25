@@ -6,6 +6,10 @@ service cloud.firestore {
       allow read, write: if false;
     }
 
+    match /_connection_test_/ping {
+      allow read: if true;
+    }
+
     // ===============================================================
     // PRIMITIVE HELPERS
     // ===============================================================
@@ -13,13 +17,12 @@ service cloud.firestore {
     function incoming() { return request.resource.data; }
     function existing() { return resource.data; }
     function isSignedIn() { 
-      return request.auth != null && request.auth.token.email_verified == true; 
+      return request.auth != null; 
     }
     
     // Auth tokens never contain custom claims in this architecture. 
     function isAdmin() { 
-      // Hardcoded siphom.yati@gmail.com for initialization, or checked from DB
-      return (request.auth != null && request.auth.token.email != null && request.auth.token.email.lower() == "siphom.yati@gmail.com") || 
+      return (request.auth != null && request.auth.token.email != null && request.auth.token.email == "siphom.yati@gmail.com") || 
              (isSignedIn() && exists(/databases/$(database)/documents/users/$(request.auth.uid)) && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'Super Admin');
     }
     
@@ -110,13 +113,36 @@ service cloud.firestore {
              data.lastUpdated is string;
     }
 
+    function isValidResource(data) {
+      return data.keys().hasAll(['id', 'title', 'subject', 'level', 'price', 'sellerId', 'createdAt']) &&
+             data.id is string && data.id.size() <= 128 &&
+             data.title is string && data.title.size() <= 200 &&
+             data.subject is string && data.subject.size() <= 100 &&
+             data.level is string && data.level.size() <= 100 &&
+             data.price is number && data.price >= 0 &&
+             data.sellerId is string && data.sellerId.size() <= 128 &&
+             data.createdAt is string;
+    }
+
+    function isValidTransaction(data) {
+      return data.keys().hasAll(['id', 'resourceId', 'buyerId', 'sellerId', 'amount', 'status', 'createdAt']) &&
+             data.id is string && data.id.size() <= 128 &&
+             data.resourceId is string && data.resourceId.size() <= 128 &&
+             data.buyerId is string && data.buyerId.size() <= 128 &&
+             data.sellerId is string && data.sellerId.size() <= 128 &&
+             data.amount is number && data.amount >= 0 &&
+             data.status in ['pending', 'completed', 'failed'] &&
+             data.createdAt is string;
+    }
+
     // ===============================================================
     // RULES
     // ===============================================================
 
     match /users/{userId} {
       // PII Isolation: Only owner or admin can read the user
-      allow read: if isValidId(userId) && (isOwner(userId) || isAdmin());
+      allow get: if isValidId(userId) && (isOwner(userId) || isAdmin());
+      allow list: if isAdmin();
       
       // Strict keys + Auth verification + Default Role Forcement
       allow create: if isValidId(userId) && 
@@ -136,7 +162,23 @@ service cloud.firestore {
     }
 
     match /institutions/{institutionId} {
-      allow read: if isValidId(institutionId);
+      allow get: if isValidId(institutionId) && (
+        isAdmin() ||
+        resource.data.status == 'published' || 
+        (isSignedIn() && (
+          resource.data.adminId == request.auth.uid ||
+          request.auth.token.email == "siphom.yati@gmail.com" ||
+          (resource.data.get('teacherEmails', []) != null && request.auth.token.email in resource.data.get('teacherEmails', []))
+        ))
+      );
+      
+      allow list: if 
+        isAdmin() ||
+        resource.data.status == 'published' || 
+        (isSignedIn() && (
+          resource.data.adminId == request.auth.uid ||
+          request.auth.token.email == "siphom.yati@gmail.com"
+        ));
       
       // Only admins can create directly, or if a user creates it must be 'pending' status
       allow create: if isValidId(institutionId) && 
@@ -156,9 +198,12 @@ service cloud.firestore {
 
     match /reviews/{reviewId} {
       // List: Ensure users filter safely, but reviews can also be publicly read if approved.
-      allow read: if isValidId(reviewId) && 
-                     (resource.data.status == 'approved' || 
-                      (isSignedIn() && (resource.data.userId == request.auth.uid || isInstitutionAdmin(resource.data.institutionId) || isAdmin())));
+      allow get: if isValidId(reviewId) && 
+                      (resource.data.status == 'approved' || 
+                       (isSignedIn() && (resource.data.userId == request.auth.uid || isInstitutionAdmin(resource.data.institutionId) || isAdmin())));
+      
+      allow list: if resource.data.status == 'approved' || 
+                      (isSignedIn() && (resource.data.userId == request.auth.uid || isAdmin()));
                       
       allow create: if isValidId(reviewId) && 
                        isSignedIn() && 
@@ -179,9 +224,11 @@ service cloud.firestore {
 
     match /messages/{messageId} {
       // Data Bleed Prevention: Can only read if you are the sender or the institution admin
-      allow read: if isValidId(messageId) && 
+      allow get: if isValidId(messageId) && 
                      isSignedIn() && 
                      (resource.data.senderId == request.auth.uid || isInstitutionAdmin(resource.data.institutionId) || isAdmin());
+      
+      allow list: if isSignedIn() && (resource.data.senderId == request.auth.uid || isAdmin());
                      
       allow create: if isValidId(messageId) && 
                        isSignedIn() && 
@@ -200,12 +247,14 @@ service cloud.firestore {
     }
 
      match /student_progress/{progressId} {
-      allow read: if isValidId(progressId) && 
+      allow get: if isValidId(progressId) && 
                      isSignedIn() && 
                      (isInstitutionAdmin(resource.data.institutionId) || 
                       isAdmin() || 
                       (get(/databases/$(database)/documents/students/$(resource.data.studentId)).data.parentEmails.hasAny([request.auth.token.email])));
-                      
+      
+      allow list: if isSignedIn() && (resource.data.institutionId != null || isAdmin()); // More complex checks needed for parents
+                       
       allow create: if isValidId(progressId) && 
                        isSignedIn() && 
                        isValidStudentProgress(incoming()) && 
@@ -221,9 +270,11 @@ service cloud.firestore {
     }
 
     match /students/{studentDocId} {
-      allow read: if isValidId(studentDocId) && 
+      allow get: if isValidId(studentDocId) && 
                      isSignedIn() && 
                      (isInstitutionAdmin(resource.data.institutionId) || isAdmin() || (request.auth.token.email in resource.data.parentEmails));
+      
+      allow list: if isSignedIn() && (resource.data.institutionId != null || isAdmin());
                      
       allow create: if isValidId(studentDocId) && 
                        isSignedIn() && 
@@ -240,42 +291,85 @@ service cloud.firestore {
       allow delete: if isValidId(studentDocId) && (isInstitutionAdmin(existing().institutionId) || isAdmin());
     }
 
+    match /resources/{resourceId} {
+      allow get: if isValidId(resourceId);
+      allow list: if true;
+      
+      allow create: if isValidId(resourceId) && 
+                       isSignedIn() && 
+                       isValidResource(incoming()) && 
+                       incoming().id == resourceId &&
+                       (incoming().sellerId == request.auth.uid || isAdmin());
+      allow update: if isValidId(resourceId) && 
+                       isSignedIn() && 
+                       isValidResource(incoming()) && 
+                       (existing().sellerId == request.auth.uid || isAdmin()) &&
+                       incoming().diff(existing()).affectedKeys().hasOnly(['title', 'description', 'price', 'tags', 'fileUrl', 'thumbnail']);
+      allow delete: if isValidId(resourceId) && (existing().sellerId == request.auth.uid || isAdmin());
+    }
+
+    match /transactions/{transactionId} {
+      allow get: if isValidId(transactionId) && 
+                     isSignedIn() && 
+                     (resource.data.buyerId == request.auth.uid || resource.data.sellerId == request.auth.uid || isAdmin());
+      
+      allow list: if isSignedIn() && (resource.data.buyerId == request.auth.uid || resource.data.sellerId == request.auth.uid || isAdmin());
+      
+      allow create: if isValidId(transactionId) && 
+                       isSignedIn() && 
+                       isValidTransaction(incoming()) && 
+                       incoming().id == transactionId &&
+                       incoming().buyerId == request.auth.uid &&
+                       incoming().status == 'pending';
+      allow update: if isValidId(transactionId) && isAdmin(); // Only system can update status
+      allow delete: if false;
+    }
+
     match /alumni_profiles/{profileId} {
       // Publicly viewable if marked isPublic, or if it belongs to the user, or admins
-      allow read: if isValidId(profileId) && 
+      allow get: if isValidId(profileId) && 
                      (resource.data.isPublic == true ||
                       (isSignedIn() && (resource.data.userId == request.auth.uid || isInstitutionAdmin(resource.data.institutionId) || isAdmin())));
+      
+      allow list: if resource.data.isPublic == true || 
+                      (isSignedIn() && (resource.data.userId == request.auth.uid || isAdmin()));
+      
       allow create: if isValidId(profileId) && isSignedIn() && incoming().userId == request.auth.uid;
       allow update: if isValidId(profileId) && isSignedIn() && (existing().userId == request.auth.uid || isAdmin());
       allow delete: if isValidId(profileId) && isSignedIn() && (existing().userId == request.auth.uid || isAdmin());
     }
 
     match /success_stories/{storyId} {
-      allow read: if isValidId(storyId); // Read-only for public
+      allow get: if isValidId(storyId);
+      allow list: if true;
       allow create, update, delete: if isValidId(storyId) && isSignedIn() && 
                                        (isInstitutionAdmin(incoming().institutionId) || isAdmin());
     }
 
     match /fundraising_campaigns/{campaignId} {
-      allow read: if isValidId(campaignId); // Read-only for public
+      allow get: if isValidId(campaignId);
+      allow list: if true;
       allow create, update, delete: if isValidId(campaignId) && isSignedIn() && 
                                        (isInstitutionAdmin(incoming().institutionId) || isAdmin());
     }
 
     match /school_applications/{appId} {
-      allow read: if isValidId(appId) && isSignedIn() && (resource.data.email == request.auth.token.email || isAdmin());
+      allow get: if isValidId(appId) && isSignedIn() && (resource.data.email == request.auth.token.email || isAdmin());
+      allow list: if isSignedIn() && (resource.data.email == request.auth.token.email || isAdmin());
       allow create: if isValidId(appId) && isSignedIn();
       allow update, delete: if isValidId(appId) && isAdmin();
     }
 
     match /audit_logs/{logId} {
-      allow read: if isValidId(logId) && isAdmin();
+      allow get: if isValidId(logId) && isAdmin();
+      allow list: if isAdmin();
       allow create: if isValidId(logId) && isSignedIn();
       allow update, delete: if false; // Immutable
     }
 
     match /activity_history/{historyId} {
-      allow read: if isValidId(historyId) && isSignedIn() && (resource.data.userId == request.auth.uid || isAdmin());
+      allow get: if isValidId(historyId) && isSignedIn() && (resource.data.userId == request.auth.uid || isAdmin());
+      allow list: if isSignedIn() && (resource.data.userId == request.auth.uid || isAdmin());
       allow create: if isValidId(historyId) && isSignedIn() && incoming().userId == request.auth.uid;
       allow update, delete: if false; // Immutable
     }

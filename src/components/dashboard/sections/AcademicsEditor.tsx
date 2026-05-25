@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { Institution, InstitutionType } from '../../../../types';
-import { Download, Rocket } from 'lucide-react';
+import { Download, Rocket, Users, Trash2, Mail, Phone, Shield } from 'lucide-react';
 import ProgramsEditor from './ProgramsEditor';
 
 interface AcademicsEditorProps {
@@ -14,14 +14,13 @@ import { StudentProgressManager } from './StudentProgressManager';
 
 const AcademicsEditor: React.FC<AcademicsEditorProps> = ({ institution, onUpdate }) => {
   const { academics } = institution.sections;
-  const [activeSubTab, setActiveSubTab] = useState<'overview' | 'departments' | 'programs' | 'calendar' | 'performance' | 'students' | 'elearning' | 'portal' | 'faculty' | 'guidance' | 'research'>('overview');
+  const [activeSubTab, setActiveSubTab] = useState<'overview' | 'departments' | 'programs' | 'calendar' | 'performance' | 'students' | 'elearning' | 'portal' | 'faculty' | 'guidance' | 'research' | 'assessment' | 'support' | 'partnerships'>('overview');
 
   const isTertiary = institution.type.includes(InstitutionType.TERTIARY);
   const isPrimary = institution.type.includes(InstitutionType.PRIMARY);
   const isHighSchool = institution.type.includes(InstitutionType.HIGH_SCHOOL);
 
-  const subTabs = ['overview', 'departments', 'programs', 'calendar', 'performance', 'students', 'elearning', 'portal', 'faculty'] as const;
-  const currentSubTabs = isHighSchool ? [...subTabs, 'guidance'] : isTertiary ? [...subTabs, 'research'] : subTabs;
+  const currentSubTabs = ['overview', 'departments', 'programs', 'calendar', 'assessment', 'performance', 'students', 'faculty', 'research', 'partnerships', 'support', 'elearning', 'portal'];
 
   const getTabLabel = (tab: string) => {
     switch(tab) {
@@ -33,7 +32,11 @@ const AcademicsEditor: React.FC<AcademicsEditorProps> = ({ institution, onUpdate
       case 'portal': return 'Student Portal';
       case 'guidance': return 'Career Guidance';
       case 'research': return 'Research Focus';
-      default: return tab.charAt(0).toUpperCase() + tab.slice(1); // overview, calendar
+      case 'partnerships': return 'Collaborations';
+      case 'support': return 'Academic Support';
+      case 'assessment': return 'Assessment & Grading';
+      case 'faculty': return 'Staff & Faculty';
+      default: return tab.charAt(0).toUpperCase() + tab.slice(1);
     }
   };
 
@@ -81,35 +84,21 @@ const AcademicsEditor: React.FC<AcademicsEditorProps> = ({ institution, onUpdate
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
           <div className="space-y-8">
-            {activeSubTab === 'research' && (
-              <div className="space-y-8 animate-in slide-in-from-left-4">
-                <div className="group">
-                  <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Primary Research Focus</label>
-                  <textarea 
-                    rows={4}
-                    className="w-full bg-slate-50 border-2 border-transparent focus:border-blue-500 focus:bg-white rounded-2xl px-6 py-4 font-medium transition-all outline-none resize-none" 
-                    placeholder="Describe the main research priorities of the institution..."
-                    value={academics.researchFocus || ''} 
-                    onChange={e => updateField('researchFocus', e.target.value)} 
-                  />
-                </div>
-              </div>
-            )}
             {activeSubTab === 'overview' && (
-            <div className="space-y-8 animate-in slide-in-from-left-4">
+            <div className="space-y-12 animate-in slide-in-from-left-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 <div className="group">
                   <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Academic Headline</label>
                   <input 
-                    className="w-full bg-slate-50 border-2 border-transparent focus:border-blue-500 focus:bg-white rounded-2xl px-6 py-4 font-bold transition-all outline-none" 
+                    className="w-full bg-slate-100 border-2 border-transparent focus:border-blue-500 focus:bg-white rounded-2xl px-6 py-4 font-bold transition-all outline-none" 
                     value={academics.overview.headline} 
                     onChange={e => updateField('overview', { ...academics.overview, headline: e.target.value })} 
                   />
                 </div>
                 <div className="group">
-                  <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Principal / Dean Name</label>
+                  <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Leadership / Dean / Principal Name</label>
                   <input 
-                    className="w-full bg-slate-50 border-2 border-transparent focus:border-blue-500 focus:bg-white rounded-2xl px-6 py-4 font-bold transition-all outline-none" 
+                    className="w-full bg-slate-100 border-2 border-transparent focus:border-blue-500 focus:bg-white rounded-2xl px-6 py-4 font-bold transition-all outline-none" 
                     value={academics.staff.head.name || ''} 
                     onChange={e => updateField('staff', { ...academics.staff, head: { ...academics.staff.head, name: e.target.value } })} 
                   />
@@ -120,14 +109,54 @@ const AcademicsEditor: React.FC<AcademicsEditorProps> = ({ institution, onUpdate
                 <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Academic Introduction</label>
                 <textarea 
                   rows={4} 
-                  className="w-full bg-slate-50 border-2 border-transparent focus:border-blue-500 focus:bg-white rounded-2xl px-6 py-4 font-medium transition-all outline-none resize-none" 
+                  className="w-full bg-slate-100 border-2 border-transparent focus:border-blue-500 focus:bg-white rounded-2xl px-6 py-4 font-medium transition-all outline-none resize-none" 
                   value={academics.overview.introduction} 
                   onChange={e => updateField('overview', { ...academics.overview, introduction: e.target.value })}
                 />
               </div>
 
-              <div className="pt-8 border-t border-slate-100">
-                <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-6">Principal's Leadership Profile</h4>
+              {/* Curriculum Details - NEW Section */}
+              <div className="pt-10 border-t border-slate-100 space-y-8">
+                <div className="flex items-center gap-4">
+                   <div className="w-8 h-8 bg-blue-50 text-blue-600 rounded-lg flex items-center justify-center font-bold italic">C</div>
+                   <h4 className="text-[10px] font-black text-slate-900 uppercase tracking-widest">Curriculum Framework</h4>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                   <div className="group">
+                      <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Curriculum Structure</label>
+                      <input 
+                        className="w-full bg-slate-50 border-2 border-transparent focus:border-blue-500 focus:bg-white rounded-2xl px-6 py-4 font-bold transition-all outline-none" 
+                        placeholder="e.g. Traditional, Montessori, Hybrid"
+                        value={academics.curriculum?.structure || ''} 
+                        onChange={e => updateField('curriculum', { ...academics.curriculum, structure: e.target.value })}
+                      />
+                   </div>
+                   <div className="group">
+                      <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Primary Examination Body</label>
+                      <input 
+                        className="w-full bg-slate-50 border-2 border-transparent focus:border-blue-500 focus:bg-white rounded-2xl px-6 py-4 font-bold transition-all outline-none" 
+                        placeholder="e.g. ECESWA, Cambridge International"
+                        value={academics.curriculum?.examinationBody || ''} 
+                        onChange={e => updateField('curriculum', { ...academics.curriculum, examinationBody: e.target.value })}
+                      />
+                   </div>
+                </div>
+                <div className="group">
+                   <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Curriculum Philosophy / Description</label>
+                   <textarea 
+                    rows={4} 
+                    className="w-full bg-slate-50 border-2 border-transparent focus:border-blue-500 focus:bg-white rounded-2xl px-6 py-4 font-medium transition-all outline-none resize-none" 
+                    placeholder="Describe how your curriculum prepares students for the future..."
+                    value={academics.curriculum?.description || ''} 
+                    onChange={e => updateField('curriculum', { ...academics.curriculum, description: e.target.value })}
+                   />
+                </div>
+              </div>
+
+              {/* Assessment & Grading removed from overview, moved to its own tab */}
+
+              <div className="pt-10 border-t border-slate-100">
+                <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-6">Academic Leadership Details (Head / Principal)</h4>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                   <div className="group">
@@ -162,14 +191,48 @@ const AcademicsEditor: React.FC<AcademicsEditorProps> = ({ institution, onUpdate
                 </div>
 
                 <div className="mt-8 group">
-                  <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Message from the Principal</label>
+                  <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Personal Message / Academic Philosophy</label>
                   <textarea 
                     rows={6} 
                     className="w-full bg-slate-50 border-2 border-transparent focus:border-blue-500 focus:bg-white rounded-2xl px-6 py-4 font-medium transition-all outline-none resize-none" 
-                    placeholder="A personal message from the principal to students and parents..."
+                    placeholder="A personal message relating specifically to academics..."
                     value={academics.staff.head.messageFromPrincipal || ''} 
                     onChange={e => updateField('staff', { ...academics.staff, head: { ...academics.staff.head, messageFromPrincipal: e.target.value } })}
                   />
+                </div>
+              </div>
+            </div>
+          )}
+
+          {activeSubTab === 'assessment' && (
+            <div className="space-y-8 animate-in slide-in-from-left-4">
+              <div className="bg-slate-50 p-10 rounded-[50px] border border-slate-100 space-y-8">
+                <div className="flex items-center gap-4">
+                   <div className="w-8 h-8 bg-emerald-100 text-emerald-600 rounded-lg flex items-center justify-center font-bold italic">A+</div>
+                   <h4 className="text-xl font-black text-slate-900 uppercase tracking-tighter">Assessment & Grading</h4>
+                </div>
+                <p className="text-xs font-bold text-slate-500 uppercase tracking-widest">Define your institution's approach to student evaluation</p>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                   <div className="group">
+                      <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Assessment Approach</label>
+                      <textarea 
+                        rows={5} 
+                        className="w-full bg-white border-2 border-transparent focus:border-emerald-500 rounded-2xl px-6 py-4 font-medium transition-all outline-none resize-none shadow-sm" 
+                        placeholder="e.g. Continuous assessment with final term examinations..."
+                        value={academics.assessment?.approach || ''} 
+                        onChange={e => updateField('assessment', { ...academics.assessment, approach: e.target.value })}
+                      />
+                   </div>
+                   <div className="group">
+                      <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Grading System</label>
+                      <textarea 
+                        rows={5} 
+                        className="w-full bg-white border-2 border-transparent focus:border-emerald-500 rounded-2xl px-6 py-4 font-medium transition-all outline-none resize-none shadow-sm" 
+                        placeholder="e.g. Percentage based with A-F grading scale..."
+                        value={academics.assessment?.gradingSystem || ''} 
+                        onChange={e => updateField('assessment', { ...academics.assessment, gradingSystem: e.target.value })}
+                      />
+                   </div>
                 </div>
               </div>
             </div>
@@ -378,83 +441,325 @@ const AcademicsEditor: React.FC<AcademicsEditorProps> = ({ institution, onUpdate
           {activeSubTab === 'faculty' && (
             <div className="space-y-6 animate-in slide-in-from-left-4">
               <div className="flex items-center justify-between">
-                <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Faculty Members</h4>
+                <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Institution Staff & Faculty</h4>
                 <button 
-                  onClick={() => updateField('faculty', [...(academics.faculty || []), { name: 'New Faculty Member', title: 'Teacher', qualifications: '', bio: '', photo: '' }])}
-                  className="text-[10px] font-black text-blue-600 uppercase tracking-widest hover:underline"
+                  onClick={() => updateField('faculty', [...(academics.faculty || []), { id: `staff-${Date.now()}`, name: 'New Staff Member', title: 'Teacher', qualifications: '', bio: '', photo: '', subjects: [], contactEmail: '', contactPhone: '' }])}
+                  className="bg-blue-600 text-white px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all hover:bg-slate-900 shadow-lg"
                 >
-                  + Add Faculty Member
+                  + Add Staff Profile
                 </button>
               </div>
-              <div className="space-y-4">
+              <div className="space-y-6">
                 {(academics.faculty || []).map((f, idx) => (
-                  <div key={idx} className="bg-slate-50 p-6 rounded-3xl border border-slate-100 space-y-4 relative group">
-                    <div className="flex justify-between items-center">
-                      <input 
-                        className="bg-transparent border-none font-black text-slate-900 p-0 focus:ring-0 text-lg w-full" 
-                        value={f.name}
-                        onChange={e => {
-                          const newFaculty = [...(academics.faculty || [])];
-                          newFaculty[idx].name = e.target.value;
-                          updateField('faculty', newFaculty);
-                        }}
-                        placeholder="Name"
-                      />
+                  <div key={idx} className="bg-white p-8 rounded-[40px] border border-slate-100 space-y-6 relative group shadow-sm hover:shadow-xl transition-all">
+                    <div className="flex justify-between items-start">
+                      <div className="flex items-center gap-6">
+                        <div className="w-20 h-20 rounded-3xl bg-slate-100 overflow-hidden shrink-0 border-4 border-white shadow-sm ring-1 ring-slate-100">
+                          {f.photo ? (
+                            <img src={f.photo} alt={f.name} className="w-full h-full object-cover" />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center text-slate-300">
+                              <Users className="w-8 h-8" />
+                            </div>
+                          )}
+                        </div>
+                        <div className="flex-1">
+                          <input 
+                            className="bg-transparent border-none font-black text-slate-900 p-0 focus:ring-0 text-2xl w-full" 
+                            value={f.name}
+                            onChange={e => {
+                              const newFaculty = [...(academics.faculty || [])];
+                              newFaculty[idx].name = e.target.value;
+                              updateField('faculty', newFaculty);
+                            }}
+                            placeholder="Full Name"
+                          />
+                          <input 
+                            className="bg-transparent border-none text-blue-600 font-bold p-0 focus:ring-0 text-xs uppercase tracking-widest w-full" 
+                            value={f.title}
+                            onChange={e => {
+                              const newFaculty = [...(academics.faculty || [])];
+                              newFaculty[idx].title = e.target.value;
+                              updateField('faculty', newFaculty);
+                            }}
+                            placeholder="Role / Title (e.g. Senior Lecturer)"
+                          />
+                        </div>
+                      </div>
                       <button 
                         onClick={() => {
                           const newFaculty = (academics.faculty || []).filter((_, i) => i !== idx);
                           updateField('faculty', newFaculty);
                         }}
-                        className="text-rose-500 hover:text-rose-700 ml-4"
+                        className="p-3 text-slate-300 hover:text-rose-500 hover:bg-rose-50 rounded-2xl transition-all"
                       >
-                        ✕
+                        <Trash2 className="w-5 h-5" />
                       </button>
                     </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div className="group">
+                        <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Qualifications</label>
+                        <input 
+                          className="w-full bg-slate-50 border-2 border-transparent focus:border-blue-500 focus:bg-white rounded-xl px-4 py-3 text-xs font-bold transition-all outline-none" 
+                          value={f.qualifications}
+                          onChange={e => {
+                            const newFaculty = [...(academics.faculty || [])];
+                            newFaculty[idx].qualifications = e.target.value;
+                            updateField('faculty', newFaculty);
+                          }}
+                          placeholder="e.g. B.Ed, M.Sc Mathematics"
+                        />
+                      </div>
+                      <div className="group">
+                        <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Photo URL</label>
+                        <input 
+                          className="w-full bg-slate-50 border-2 border-transparent focus:border-blue-500 focus:bg-white rounded-xl px-4 py-3 text-xs font-bold transition-all outline-none font-mono" 
+                          value={f.photo || ''}
+                          onChange={e => {
+                            const newFaculty = [...(academics.faculty || [])];
+                            newFaculty[idx].photo = e.target.value;
+                            updateField('faculty', newFaculty);
+                          }}
+                          placeholder="https://images.unsplash.com/..."
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div className="group">
+                        <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Contact Email</label>
+                        <div className="relative">
+                           <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                           <input 
+                            className="w-full bg-slate-50 border-2 border-transparent focus:border-blue-500 focus:bg-white rounded-xl pl-12 pr-4 py-3 text-xs font-bold transition-all outline-none" 
+                            value={f.contactEmail || ''}
+                            onChange={e => {
+                              const newFaculty = [...(academics.faculty || [])];
+                              newFaculty[idx].contactEmail = e.target.value;
+                              updateField('faculty', newFaculty);
+                            }}
+                            placeholder="staff@school.ac.sz"
+                          />
+                        </div>
+                      </div>
+                      <div className="group">
+                        <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Contact Phone</label>
+                        <div className="relative">
+                           <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                           <input 
+                            className="w-full bg-slate-50 border-2 border-transparent focus:border-blue-500 focus:bg-white rounded-xl pl-12 pr-4 py-3 text-xs font-bold transition-all outline-none" 
+                            value={f.contactPhone || ''}
+                            onChange={e => {
+                              const newFaculty = [...(academics.faculty || [])];
+                              newFaculty[idx].contactPhone = e.target.value;
+                              updateField('faculty', newFaculty);
+                            }}
+                            placeholder="+268 7xxx xxxx"
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="group">
+                      <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Subjects / Areas of Expertise</label>
+                      <div className="flex flex-wrap gap-2 mb-3">
+                        {(f.subjects || []).map((sub: string) => (
+                          <span key={sub} className="px-3 py-1 bg-blue-50 text-blue-700 rounded-lg text-[10px] font-black uppercase border border-blue-100 flex items-center gap-2">
+                            {sub}
+                            <button 
+                              onClick={() => {
+                                const newFaculty = [...(academics.faculty || [])];
+                                newFaculty[idx].subjects = (f.subjects || []).filter((s: string) => s !== sub);
+                                updateField('faculty', newFaculty);
+                              }} 
+                              className="hover:text-rose-500 transition-colors"
+                            >
+                              ✕
+                            </button>
+                          </span>
+                        ))}
+                      </div>
                       <input 
-                        className="w-full border-none rounded-xl px-4 py-3 text-xs font-bold outline-none focus:border-blue-500" 
-                        value={f.title}
-                        onChange={e => {
-                          const newFaculty = [...(academics.faculty || [])];
-                          newFaculty[idx].title = e.target.value;
-                          updateField('faculty', newFaculty);
+                        className="w-full bg-slate-50 border-2 border-transparent focus:border-blue-500 focus:bg-white rounded-xl px-4 py-3 text-xs font-bold outline-none"
+                        placeholder="Add subject and press Enter..."
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            e.preventDefault();
+                            const val = e.currentTarget.value.trim();
+                            if (val && !(f.subjects || []).includes(val)) {
+                              const newFaculty = [...(academics.faculty || [])];
+                              newFaculty[idx].subjects = [...(f.subjects || []), val];
+                              updateField('faculty', newFaculty);
+                              e.currentTarget.value = '';
+                            }
+                          }
                         }}
-                        placeholder="Title"
-                      />
-                      <input 
-                        className="w-full border-none rounded-xl px-4 py-3 text-xs font-bold outline-none focus:border-blue-500" 
-                        value={f.qualifications}
-                        onChange={e => {
-                          const newFaculty = [...(academics.faculty || [])];
-                          newFaculty[idx].qualifications = e.target.value;
-                          updateField('faculty', newFaculty);
-                        }}
-                        placeholder="Qualifications"
                       />
                     </div>
-                    <textarea 
-                      className="w-full border-none rounded-xl px-4 py-3 text-xs font-medium outline-none focus:border-blue-500" 
-                      rows={3}
-                      value={f.bio}
-                      onChange={e => {
-                        const newFaculty = [...(academics.faculty || [])];
-                        newFaculty[idx].bio = e.target.value;
-                        updateField('faculty', newFaculty);
-                      }}
-                      placeholder="Biography"
-                    />
-                    <input 
-                      className="w-full border-none rounded-xl px-4 py-3 text-xs font-bold outline-none focus:border-blue-500" 
-                      value={f.photo || ''}
-                      onChange={e => {
-                        const newFaculty = [...(academics.faculty || [])];
-                        newFaculty[idx].photo = e.target.value;
-                        updateField('faculty', newFaculty);
-                      }}
-                      placeholder="Photo URL"
-                    />
+
+                    <div className="group">
+                      <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Brief Bio / Academic Focus</label>
+                      <textarea 
+                        className="w-full bg-slate-50 border-2 border-transparent focus:border-blue-500 focus:bg-white rounded-xl px-4 py-3 text-sm font-medium transition-all outline-none resize-none" 
+                        rows={3}
+                        value={f.bio}
+                        onChange={e => {
+                          const newFaculty = [...(academics.faculty || [])];
+                          newFaculty[idx].bio = e.target.value;
+                          updateField('faculty', newFaculty);
+                        }}
+                        placeholder="Share a brief overview of professional background..."
+                      />
+                    </div>
                   </div>
                 ))}
+                {(academics.faculty || []).length === 0 && (
+                  <div className="text-center py-20 bg-slate-50 rounded-[40px] border-2 border-dashed border-slate-200">
+                    <p className="text-slate-400 font-black uppercase tracking-widest text-[10px]">No staff profiles added yet.</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {activeSubTab === 'research' && (
+            <div className="space-y-8 animate-in slide-in-from-left-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div className="space-y-4">
+                  <header>
+                    <h4 className="text-sm font-black text-slate-900 uppercase tracking-widest">Research Strategy</h4>
+                    <p className="text-[10px] text-slate-500 font-bold">Define the institutional focus for academic inquiry.</p>
+                  </header>
+                  <textarea 
+                    rows={4}
+                    className="w-full bg-slate-50 border-2 border-transparent focus:border-blue-500 focus:bg-white rounded-[32px] px-6 py-5 font-medium transition-all outline-none resize-none shadow-sm" 
+                    placeholder="Describe the main research pillars..."
+                    value={academics.research?.focus || ''} 
+                    onChange={e => updateField('research', { ...academics.research, focus: e.target.value })} 
+                  />
+                </div>
+                <div className="space-y-4">
+                  <header>
+                    <h4 className="text-sm font-black text-slate-900 uppercase tracking-widest">Research Papers & Publications</h4>
+                    <p className="text-[10px] text-slate-500 font-bold">List key academic outputs.</p>
+                  </header>
+                  <textarea 
+                    rows={4}
+                    className="w-full bg-slate-50 border-2 border-transparent focus:border-blue-500 focus:bg-white rounded-[32px] px-6 py-5 font-medium transition-all outline-none resize-none shadow-sm" 
+                    placeholder="List significant publications..."
+                    value={academics.research?.papers || ''} 
+                    onChange={e => updateField('research', { ...academics.research, papers: e.target.value })} 
+                  />
+                </div>
+              </div>
+              <div className="bg-slate-900 p-8 rounded-[40px] shadow-xl text-white space-y-6">
+                <header>
+                  <h4 className="text-sm font-black text-indigo-400 uppercase tracking-widest">Global Research Partnerships</h4>
+                  <p className="text-xs text-slate-400 font-medium">Link with other universities or industry bodies.</p>
+                </header>
+                <textarea 
+                  rows={3}
+                  className="w-full bg-white/5 border-2 border-transparent focus:border-indigo-500 focus:bg-white/10 rounded-[28px] px-6 py-5 font-medium transition-all outline-none resize-none" 
+                  placeholder="e.g. Collaborations with UNESWA, South African Universities..."
+                  value={academics.research?.partnerships || ''} 
+                  onChange={e => updateField('research', { ...academics.research, partnerships: e.target.value })} 
+                />
+              </div>
+            </div>
+          )}
+
+          {activeSubTab === 'partnerships' && (
+            <div className="space-y-8 animate-in slide-in-from-left-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div className="bg-white p-8 rounded-[40px] border border-slate-100 shadow-sm space-y-4">
+                  <h4 className="text-sm font-black text-slate-900 uppercase tracking-widest">Internships & Placements</h4>
+                  <p className="text-[10px] text-slate-500 font-bold">Work experience opportunities for students.</p>
+                  <textarea 
+                    rows={4}
+                    className="w-full bg-slate-50 border-2 border-transparent focus:border-blue-500 focus:bg-white rounded-3xl px-6 py-4 text-sm font-medium outline-none resize-none"
+                    placeholder="List partner companies for internships..."
+                    value={academics.partnerships?.internships || ''}
+                    onChange={e => updateField('partnerships', { ...academics.partnerships, internships: e.target.value })}
+                  />
+                </div>
+                <div className="bg-white p-8 rounded-[40px] border border-slate-100 shadow-sm space-y-4">
+                  <h4 className="text-sm font-black text-slate-900 uppercase tracking-widest">Industry Collaborations</h4>
+                  <p className="text-[10px] text-slate-500 font-bold">Strategic alliances with external bodies.</p>
+                  <textarea 
+                    rows={4}
+                    className="w-full bg-slate-50 border-2 border-transparent focus:border-blue-500 focus:bg-white rounded-3xl px-6 py-4 text-sm font-medium outline-none resize-none"
+                    placeholder="Describe MoUs and joint projects..."
+                    value={academics.partnerships?.collaborations || ''}
+                    onChange={e => updateField('partnerships', { ...academics.partnerships, collaborations: e.target.value })}
+                  />
+                </div>
+              </div>
+            </div>
+          )}
+
+          {activeSubTab === 'support' && (
+            <div className="space-y-8 animate-in slide-in-from-left-4">
+              <div className="bg-blue-600 p-10 rounded-[50px] shadow-2xl text-white space-y-8">
+                <div className="flex items-center gap-4">
+                  <Shield  className="w-8 h-8 text-blue-200" />
+                  <h4 className="text-xl font-black italic tracking-tighter uppercase">Academic Support Services</h4>
+                </div>
+                <div className="group">
+                  <label className="block text-[10px] font-black text-blue-200 uppercase tracking-widest mb-3">General Description</label>
+                  <textarea 
+                    rows={4}
+                    className="w-full bg-white/10 border-2 border-white/20 focus:border-white focus:bg-white/20 rounded-[32px] px-8 py-6 font-medium text-white outline-none resize-none placeholder:text-white/40"
+                    placeholder="Describe your general academic support system (e.g., student wellbeing programs, accessible learning resources...)"
+                    value={academics.support.description}
+                    onChange={e => updateField('support', { ...academics.support, description: e.target.value })}
+                  />
+                </div>
+                
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-[10px] font-black uppercase tracking-widest text-blue-200">Available Services</p>
+                      <p className="text-[8px] font-bold text-white/50 uppercase">List specific support features</p>
+                    </div>
+                    <button 
+                      onClick={() => updateField('support', { ...academics.support, services: [...academics.support.services, ''] })}
+                      className="text-[9px] font-black uppercase tracking-widest bg-white text-blue-600 px-4 py-2 rounded-xl shadow-sm hover:scale-105 transition-transform"
+                    >
+                      + Add Service
+                    </button>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    {academics.support.services.map((service, i) => (
+                      <div key={i} className="flex items-center gap-2 bg-white/5 rounded-xl border border-white/10 pr-2 focus-within:border-white/30 transition-colors">
+                        <input 
+                          className="flex-1 bg-transparent border-none text-xs font-bold text-white px-4 py-3 outline-none focus:ring-0 placeholder:text-white/30"
+                          value={service}
+                          placeholder="e.g. Peer Tutoring"
+                          onChange={e => {
+                            const newServices = [...academics.support.services];
+                            newServices[i] = e.target.value;
+                            updateField('support', { ...academics.support, services: newServices });
+                          }}
+                        />
+                        <button 
+                          onClick={() => {
+                            const newServices = academics.support.services.filter((_, idx) => idx !== i);
+                            updateField('support', { ...academics.support, services: newServices });
+                          }}
+                          className="p-2 text-white/40 hover:text-rose-400 hover:bg-rose-400/10 rounded-lg transition-colors"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    ))}
+                    {(academics.support.services || []).length === 0 && (
+                       <div className="col-span-full py-8 text-center border-2 border-dashed border-white/10 rounded-[20px]">
+                          <p className="text-[10px] font-black uppercase tracking-widest text-blue-200/50">No academic support services defined</p>
+                       </div>
+                    )}
+                  </div>
+                </div>
               </div>
             </div>
           )}
@@ -921,20 +1226,57 @@ const AcademicsEditor: React.FC<AcademicsEditorProps> = ({ institution, onUpdate
                                 </ul>
                               )}
                            </div>
-                           {prog.syllabusUrl && (
-                             <a 
-                               href={prog.syllabusUrl} 
-                               target="_blank" 
-                               rel="noreferrer" 
-                               className="w-full py-3 bg-blue-600 text-white rounded-2xl font-black text-[9px] uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-slate-900 transition-all mt-4"
-                             >
-                               <Download className="w-3 h-3" /> Download Syllabus PDF
-                             </a>
-                           )}
                         </div>
                       </div>
                     ))}
                   </div>
+                </div>
+              )}
+
+              {activeSubTab === 'research' && (
+                <div className="space-y-6 animate-in fade-in">
+                   <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Research Strategy</p>
+                   <p className="text-xs text-slate-600 font-medium italic leading-relaxed">"{academics.research?.focus || 'Our research focus spans across various academic disciplines...'}"</p>
+                   {academics.research?.papers && (
+                     <div className="p-5 bg-indigo-50 rounded-3xl border border-indigo-100 italic text-[11px] text-indigo-900 leading-relaxed">
+                       <span className="font-black uppercase tracking-widest text-[9px] block mb-2">Publications</span>
+                       {academics.research.papers}
+                     </div>
+                   )}
+                </div>
+              )}
+
+              {activeSubTab === 'partnerships' && (
+                <div className="space-y-6 animate-in fade-in">
+                   <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Institutional Partnerships</p>
+                   <div className="grid grid-cols-1 gap-4">
+                      {academics.partnerships?.internships && (
+                        <div className="p-6 bg-slate-900 rounded-[32px] text-white">
+                           <span className="text-[9px] font-black uppercase text-indigo-400 block mb-2">Student Internships</span>
+                           <p className="text-xs font-medium text-slate-300 leading-relaxed">{academics.partnerships.internships}</p>
+                        </div>
+                      )}
+                      {academics.partnerships?.collaborations && (
+                        <div className="p-6 bg-white rounded-3xl border border-slate-100 shadow-sm">
+                           <span className="text-[9px] font-black uppercase text-blue-600 block mb-2">Collaborations</span>
+                           <p className="text-xs font-medium text-slate-600 leading-relaxed">{academics.partnerships.collaborations}</p>
+                        </div>
+                      )}
+                   </div>
+                </div>
+              )}
+
+              {activeSubTab === 'support' && (
+                <div className="space-y-6 animate-in fade-in">
+                   <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Student Support Services</p>
+                   <p className="text-xs text-slate-600 font-medium leading-relaxed italic">"{academics.support.description || 'Comprehensive support provided to all students...'}"</p>
+                   <div className="flex flex-wrap gap-2 pt-2">
+                      {academics.support.services.map((s, i) => (
+                        <span key={i} className="px-3 py-1 bg-blue-600 text-white rounded-full text-[9px] font-black uppercase tracking-widest shadow-lg shadow-blue-200">
+                          ✓ {s}
+                        </span>
+                      ))}
+                   </div>
                 </div>
               )}
 

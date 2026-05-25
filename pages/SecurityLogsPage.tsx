@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { collection, query, orderBy, onSnapshot, getDocs, setDoc, doc } from 'firebase/firestore';
-import { db } from '../src/lib/firebase';
+import { db, doc, setDoc, collection, getDocs, query, orderBy, getDocsWithRetry, handleFirestoreError, OperationType } from '../src/lib/firebase';
+import { onSnapshot } from 'firebase/firestore';
 import { ShieldCheck, Calendar, User as UserIcon, Activity, AlertTriangle, ArrowLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { AuditLog } from '../types';
@@ -24,16 +24,23 @@ const SecurityLogsPage: React.FC = () => {
     const fetchAndSeed = async () => {
       try {
         const q = query(collection(db, 'audit_logs'), orderBy('createdAt', 'desc'));
-        const snapshot = await getDocs(q);
+        const snapshot = await getDocsWithRetry(q);
         
         if (snapshot.empty) {
           // Seed mock logs
           console.log('Seeding mock audit logs...');
           for (const log of MOCK_LOGS) {
-            await setDoc(doc(db, 'audit_logs', log.id), log);
+            try {
+              await setDoc(doc(db, 'audit_logs', log.id), log);
+            } catch (err) {
+              console.error(`Failed to seed log ${log.id}`, err);
+            }
           }
         }
-      } catch (err) {
+      } catch (err: any) {
+        if (err instanceof Error && !err.message.includes('offline')) {
+          handleFirestoreError(err, OperationType.GET, 'audit_logs');
+        }
         console.error("Error setting up audit logs:", err);
       }
     };
@@ -43,6 +50,9 @@ const SecurityLogsPage: React.FC = () => {
       const unsubscribe = onSnapshot(q, (snapshot) => {
         const fetchedLogs = snapshot.docs.map(doc => doc.data() as AuditLog);
         setLogs(fetchedLogs);
+        setLoading(false);
+      }, (error) => {
+        handleFirestoreError(error, OperationType.LIST, 'audit_logs');
         setLoading(false);
       });
       return unsubscribe;

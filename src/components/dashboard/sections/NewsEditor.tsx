@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Institution, BlogPost, EventItem } from '../../../../types';
-import { Trash2, Calendar, MapPin, Clock, Image as ImageIcon, Video } from 'lucide-react';
+import { Trash2, Calendar, MapPin, Clock, Image as ImageIcon, Video, Star } from 'lucide-react';
 import MediaManager from '../ui/MediaManager';
 
 interface NewsEditorProps {
@@ -85,6 +85,39 @@ const NewsEditor: React.FC<NewsEditorProps> = ({ institution, onUpdate }) => {
           </header>
 
           <div className="space-y-12">
+            {/* Overview & Subscription */}
+            <div className="p-8 bg-blue-50/50 rounded-[40px] border border-blue-100/50 space-y-6">
+              <h4 className="text-[10px] font-black text-blue-600 uppercase tracking-widest">Newsletter & Overview</h4>
+              <div className="space-y-4">
+                <div className="group">
+                  <label className="block text-[8px] font-black text-blue-400 uppercase tracking-widest mb-1">Section Title</label>
+                  <input 
+                    className="w-full bg-white border-none rounded-xl px-4 py-2 text-xs font-black text-slate-900" 
+                    value={news.overview.title} 
+                    onChange={e => updateField('overview', { ...news.overview, title: e.target.value })} 
+                  />
+                </div>
+                <div className="group">
+                  <label className="block text-[8px] font-black text-blue-400 uppercase tracking-widest mb-1">Introduction</label>
+                  <textarea 
+                    rows={2}
+                    className="w-full bg-white border-none rounded-xl px-4 py-2 text-xs font-medium text-slate-600" 
+                    value={news.overview.subtitle || ''} 
+                    onChange={e => updateField('overview', { ...news.overview, subtitle: e.target.value })} 
+                  />
+                </div>
+                <div className="group">
+                  <label className="block text-[8px] font-black text-blue-400 uppercase tracking-widest mb-1">Newsletter CTA Text</label>
+                  <input 
+                    className="w-full bg-white border-none rounded-xl px-4 py-2 text-xs font-bold text-blue-700" 
+                    placeholder="e.g. Subscribe to our monthly newsletter"
+                    value={news.newsletterCta || ''} 
+                    onChange={e => updateField('newsletterCta', e.target.value)} 
+                  />
+                </div>
+              </div>
+            </div>
+
             {/* Latest News / Posts */}
             <div className="space-y-6">
               <div className="flex items-center justify-between">
@@ -113,16 +146,28 @@ const NewsEditor: React.FC<NewsEditorProps> = ({ institution, onUpdate }) => {
                           updateField('blogPosts', newPosts);
                         }}
                       />
-                      <button 
-                        onClick={() => {
-                          const next = news.posts.filter((_, i) => i !== idx);
-                          updateField('posts', next);
-                          updateField('blogPosts', next);
-                        }}
-                        className="text-rose-500 hover:text-rose-700 ml-4"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
+                      <div className="flex gap-2">
+                        <button 
+                          onClick={() => {
+                            const newPosts = [...news.posts];
+                            newPosts[idx].isFeatured = !newPosts[idx].isFeatured;
+                            updateField('posts', newPosts);
+                          }}
+                          className={`p-2 rounded-lg transition-all ${post.isFeatured ? 'bg-amber-100 text-amber-600' : 'bg-slate-100 text-slate-400'}`}
+                        >
+                          <Star className={`w-4 h-4 ${post.isFeatured ? 'fill-current' : ''}`} />
+                        </button>
+                        <button 
+                          onClick={() => {
+                            const next = news.posts.filter((_, i) => i !== idx);
+                            updateField('posts', next);
+                            updateField('blogPosts', next);
+                          }}
+                          className="text-rose-500 hover:text-rose-700 p-2"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
                     </div>
                     {/* ... post details ... */}
                   <div className="grid grid-cols-2 gap-4">
@@ -231,6 +276,30 @@ const NewsEditor: React.FC<NewsEditorProps> = ({ institution, onUpdate }) => {
                         updateField('events', newEvents);
                       }}
                     />
+                    <div className="flex gap-2">
+                       <button 
+                         onClick={() => {
+                           const newEvents = [...news.events];
+                           newEvents[idx].isFeatured = !newEvents[idx].isFeatured;
+                           updateField('events', newEvents);
+                         }}
+                         className={`flex-1 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${event.isFeatured ? 'bg-amber-100 text-amber-600' : 'bg-slate-100 text-slate-400'}`}
+                       >
+                         {event.isFeatured ? 'Featured' : 'Mark Featured'}
+                       </button>
+                       <button 
+                         onClick={() => {
+                           const newEvents = [...news.events];
+                           newEvents[idx].isPast = !newEvents[idx].isPast;
+                           updateField('events', newEvents);
+                         }}
+                         className={`flex-1 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${event.isPast ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-400'}`}
+                       >
+                         {event.isPast ? 'Archived' : 'Active'}
+                       </button>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                     <input 
                       placeholder="Location"
                       className="bg-slate-50 border-none rounded-xl px-4 py-2 text-[10px] font-bold flex-1" 
@@ -248,6 +317,16 @@ const NewsEditor: React.FC<NewsEditorProps> = ({ institution, onUpdate }) => {
                       onChange={e => {
                         const newEvents = [...news.events];
                         newEvents[idx].host = e.target.value;
+                        updateField('events', newEvents);
+                      }}
+                    />
+                    <input 
+                      placeholder="Registration Link (External)"
+                      className="bg-slate-50 border-none rounded-xl px-4 py-2 text-[10px] font-bold flex-1" 
+                      value={event.registrationLink || ''} 
+                      onChange={e => {
+                        const newEvents = [...news.events];
+                        newEvents[idx].registrationLink = e.target.value;
                         updateField('events', newEvents);
                       }}
                     />

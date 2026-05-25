@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'motion/react';
 import { 
   BookOpen, 
@@ -16,16 +16,11 @@ import {
   UploadCloud,
   Briefcase,
   Bot,
-  ChevronRight
+  ChevronRight,
+  Loader2
 } from 'lucide-react';
-
-const MOCK_FILES = [
-  { id: 1, title: 'EGCSE Mathematics Paper 1', year: 2023, subject: 'Math', level: 'EGCSE', type: 'Past Paper', size: '2.4 MB', price: 0 },
-  { id: 2, title: 'EGCSE Science Marking Scheme', year: 2023, subject: 'Science', level: 'EGCSE', type: 'Marking Scheme', size: '1.1 MB', price: 0 },
-  { id: 3, title: 'IGCSE Geography Syllabus Breakdown', year: 2024, subject: 'Geography', level: 'IGCSE', type: 'Study Guide', size: '5.2 MB', price: 0 },
-  { id: 4, title: 'AS-Level Physics Paper 2', year: 2022, subject: 'Physics', level: 'AS/A-Level', type: 'Past Paper', size: '3.1 MB', price: 0 },
-  { id: 5, title: 'Form 5 Biology Comprehensive Revision Pack', year: 2024, subject: 'Biology', level: 'EGCSE', type: 'Study Guide', size: '12.4 MB', price: 120 },
-];
+import { resourceService, Resource } from '../src/services/resourceService';
+import { auth } from '../src/lib/firebase';
 
 const MOCK_PEER_TUTORS = [
   { 
@@ -64,12 +59,56 @@ const LIBRARIES = [
 ];
 
 const AcademicHub: React.FC = () => {
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<'papers' | 'tutoring' | 'library'>('papers');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedLevel, setSelectedLevel] = useState<string>('All');
+  const [resources, setResources] = useState<Resource[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const filteredFiles = MOCK_FILES.filter(file => 
-    (selectedLevel === 'All' || file.level === selectedLevel) &&
+  useEffect(() => {
+    if (activeTab === 'papers') {
+      fetchResources();
+    }
+  }, [activeTab, selectedLevel]);
+
+  const fetchResources = async () => {
+    setLoading(true);
+    const data = await resourceService.getResources({ level: selectedLevel });
+    setResources(data);
+    setLoading(false);
+  };
+
+  const handleAction = async (resource: Resource) => {
+    if (resource.price === 0) {
+      alert('Download started...');
+      return;
+    }
+
+    if (!auth.currentUser) {
+      alert("Please sign in to purchase resources.");
+      return;
+    }
+
+    try {
+      const txId = await resourceService.createTransaction({
+        resourceId: resource.id,
+        buyerId: auth.currentUser.uid,
+        sellerId: resource.sellerId,
+        amount: resource.price,
+        paymentMethod: 'momo'
+      });
+
+      if (txId) {
+        navigate(`/payment-checkout?tx=${txId}&ref=${resource.title.substring(0, 10)}&amount=${resource.price}`);
+      }
+    } catch (error) {
+      console.error("Purchase error:", error);
+      alert("Failed to initialize purchase.");
+    }
+  };
+
+  const filteredFiles = resources.filter(file => 
     file.title.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
@@ -183,48 +222,53 @@ const AcademicHub: React.FC = () => {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                {filteredFiles.map((file) => (
-                  <div key={file.id} className="p-8 bg-white rounded-[40px] border border-slate-100 group hover:border-amber-500 hover:shadow-2xl transition-all relative overflow-hidden flex flex-col justify-between">
-                    <div className="absolute top-0 right-0 p-6">
-                       {file.price > 0 ? (
-                         <div className="px-4 py-2 bg-amber-600 text-white rounded-2xl text-xs font-black shadow-lg">SZL {file.price}</div>
-                       ) : (
-                         <div className="px-4 py-2 bg-slate-100 text-slate-400 rounded-2xl text-xs font-black uppercase tracking-widest">Free Resource</div>
-                       )}
-                    </div>
-                    <div className="space-y-6">
-                      <div className="w-16 h-16 bg-amber-50 rounded-2xl flex items-center justify-center text-amber-600 group-hover:scale-110 transition-transform">
-                        <FileText className="w-8 h-8" />
+              {loading ? (
+                <div className="flex flex-col items-center justify-center py-20">
+                  <Loader2 className="w-10 h-10 text-amber-500 animate-spin mb-4" />
+                  <p className="text-slate-500 font-black uppercase text-[10px] tracking-widest">Loading Marketplace...</p>
+                </div>
+              ) : filteredFiles.length > 0 ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                  {filteredFiles.map((file) => (
+                    <div key={file.id} className="p-8 bg-white rounded-[40px] border border-slate-100 group hover:border-amber-500 hover:shadow-2xl transition-all relative overflow-hidden flex flex-col justify-between">
+                      <div className="absolute top-0 right-0 p-6">
+                         {file.price > 0 ? (
+                           <div className="px-4 py-2 bg-amber-600 text-white rounded-2xl text-xs font-black shadow-lg">SZL {file.price}</div>
+                         ) : (
+                           <div className="px-4 py-2 bg-slate-100 text-slate-400 rounded-2xl text-xs font-black uppercase tracking-widest">Free Resource</div>
+                         )}
                       </div>
-                      <div>
-                        <h4 className="text-xl font-black text-slate-900 group-hover:text-amber-600 transition-colors">{file.title}</h4>
-                        <div className="flex items-center gap-4 mt-2">
-                          <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest bg-slate-50 px-3 py-1 rounded-full">{file.level}</span>
-                          <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{file.type}</span>
+                      <div className="space-y-6">
+                        <div className="w-16 h-16 bg-amber-50 rounded-2xl flex items-center justify-center text-amber-600 group-hover:scale-110 transition-transform">
+                          <FileText className="w-8 h-8" />
                         </div>
+                        <div>
+                          <h4 className="text-xl font-black text-slate-900 group-hover:text-amber-600 transition-colors">{file.title}</h4>
+                          <div className="flex items-center gap-4 mt-2">
+                            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest bg-slate-50 px-3 py-1 rounded-full">{file.level}</span>
+                            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{file.type}</span>
+                          </div>
+                        </div>
+                        <p className="text-sm text-slate-500 font-medium">Curated by <span className="font-black text-slate-700">{file.sellerName}</span> • Verified Educator</p>
                       </div>
-                      <p className="text-sm text-slate-500 font-medium">Curated by <span className="font-black text-slate-700">Verified Educator</span> • {file.size}</p>
+                      <button 
+                        onClick={() => handleAction(file)}
+                        className="mt-8 w-full py-4 bg-slate-900 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-xl hover:bg-amber-600 transition-all flex items-center justify-center gap-3"
+                      >
+                        {file.price > 0 ? (
+                          <>Purchase via MoMo / eMali <ExternalLink className="w-4 h-4" /></>
+                        ) : (
+                          <>Free Download <Download className="w-4 h-4" /></>
+                        )}
+                      </button>
                     </div>
-                    <button 
-                      onClick={() => {
-                        if (file.price > 0) {
-                          alert(`Redirecting to Secure MTN MoMo Gateway for SZL ${file.price}...`);
-                        } else {
-                          alert('Download started...');
-                        }
-                      }}
-                      className="mt-8 w-full py-4 bg-slate-900 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-xl hover:bg-amber-600 transition-all flex items-center justify-center gap-3"
-                    >
-                      {file.price > 0 ? (
-                        <>Purchase via MoMo / eMali <ExternalLink className="w-4 h-4" /></>
-                      ) : (
-                        <>Free Download <Download className="w-4 h-4" /></>
-                      )}
-                    </button>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-20 bg-slate-50 rounded-[40px] border border-dashed border-slate-200">
+                   <p className="text-slate-500 font-medium">No resources found for this level.</p>
+                </div>
+              )}
             </div>
           )}
 

@@ -38,11 +38,11 @@ const Navbar: React.FC<NavbarProps> = ({ user, onLogout, compareCount = 0 }) => 
 
   const UserLinks = () => (
     <>
-      {hasRole(user, UserRole.STUDENT) && (
-        <Link to="/student" onClick={closeMobileMenu} className="text-slate-600 hover:text-blue-600 font-medium text-[13px] px-1.5 py-1 transition-colors">Student</Link>
+      {hasRole(user, [UserRole.STUDENT, UserRole.SUPER_ADMIN]) && (
+        <Link to="/student" onClick={closeMobileMenu} className="text-slate-600 hover:text-blue-600 font-medium text-[13px] px-1.5 py-1 transition-colors">Student Portal</Link>
       )}
       {hasRole(user, [UserRole.PARENT, UserRole.SUPER_ADMIN]) && (
-        <Link to="/portal" onClick={closeMobileMenu} className="text-slate-600 hover:text-blue-600 font-medium text-[13px] px-1.5 py-1 transition-colors">Portal</Link>
+        <Link to="/portal" onClick={closeMobileMenu} className="text-slate-600 hover:text-blue-600 font-medium text-[13px] px-1.5 py-1 transition-colors">Parent Portal</Link>
       )}
       {hasRole(user, [UserRole.SUPER_ADMIN, UserRole.INSTITUTION_ADMIN]) && (
         <Link to="/dashboard" onClick={closeMobileMenu} className="text-slate-600 hover:text-blue-600 font-medium text-[13px] px-1.5 py-1 transition-colors">Dashboard</Link>

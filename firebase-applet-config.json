@@ -1,9 +1,10 @@
 {
-  "apiKey": "fake-api-key-so-app-does-not-crash",
-  "authDomain": "fake-project.firebaseapp.com",
-  "projectId": "fake-project",
-  "storageBucket": "fake-project.appspot.com",
-  "messagingSenderId": "123456789",
-  "appId": "1:123456789:web:abcdef",
-  "firestoreDatabaseId": "(default)"
+  "projectId": "schools-eswatini",
+  "appId": "1:344299990864:web:bff1fe84ee45ba28b9c655",
+  "apiKey": "AIzaSyDx7pFkGhnfSwAiWeVCy08AWMrQafep14w",
+  "authDomain": "schools-eswatini.firebaseapp.com",
+  "firestoreDatabaseId": "(default)",
+  "storageBucket": "schools-eswatini.firebasestorage.app",
+  "messagingSenderId": "344299990864",
+  "measurementId": ""
 }

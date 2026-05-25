@@ -1,15 +1,39 @@
 import { initializeApp } from 'firebase/app';
 import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from 'firebase/auth';
-import { getFirestore, enableMultiTabIndexedDbPersistence, doc, getDoc, setDoc, updateDoc, deleteDoc, collection, query, where, onSnapshot, getDocs, orderBy, limit, addDoc, serverTimestamp, getDocFromServer } from 'firebase/firestore';
+import { 
+  getFirestore, 
+  enableMultiTabIndexedDbPersistence, 
+  doc, 
+  getDoc, 
+  setDoc, 
+  updateDoc, 
+  deleteDoc, 
+  collection, 
+  query, 
+  where, 
+  onSnapshot, 
+  getDocs, 
+  orderBy, 
+  limit, 
+  addDoc, 
+  serverTimestamp, 
+  getDocFromServer,
+  initializeFirestore,
+  CACHE_SIZE_UNLIMITED,
+  terminate,
+  waitForPendingWrites
+} from 'firebase/firestore';
 import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
 import firebaseConfig from '../../firebase-applet-config.json';
 
-// Initialize Firebase
+// Initialize Firebase App
 const app = initializeApp(firebaseConfig);
-const databaseId = (firebaseConfig as Record<string, string>).firestoreDatabaseId || '(default)';
 
-export const db = getFirestore(app, databaseId);
-export const storage = getStorage(app);
+// Initialize Firestore with specific settings for europe-west2 and robustness
+const db = initializeFirestore(app, {
+  cacheSizeBytes: CACHE_SIZE_UNLIMITED,
+  experimentalAutoDetectLongPolling: true,
+}, (firebaseConfig as Record<string, string>).firestoreDatabaseId || '(default)');
 
 // Enable Persistence
 if (typeof window !== 'undefined') {
@@ -22,38 +46,106 @@ if (typeof window !== 'undefined') {
   });
 }
 
+export const storage = getStorage(app);
 export const auth = getAuth(app);
 export const googleProvider = new GoogleAuthProvider();
 
-export async function testConnection(retries = 3) {
-  for (let i = 0; i < retries; i++) {
-    try {
-      const docRef = doc(db, 'test', 'connection');
-      await getDocFromServer(docRef);
-      console.log("Firebase connection successful.");
-      return;
-    } catch (error) {
-      console.warn(`Firebase connection attempt ${i + 1} failed:`, error);
-      if (i === retries - 1) {
-        if(error instanceof Error && (error.message.includes('the client is offline') || ('code' in error && error.code === 'unavailable'))) {
-          console.warn("Firebase may not be fully initialized or is offline. Retrying...", error);
+export { db };
+
+// Connection & Online State Tracking
+let isOfflineMode = false;
+let connectionCheckInterval: any = null;
+
+export async function testConnection(retries = 1) {
+  if (typeof window === 'undefined') return;
+  
+  try {
+    // Attempt a lightweight check. 
+    // Even if it results in permission denied, it confirms connectivity to the project.
+    const docRef = doc(db, '_connection_test_', 'ping');
+    
+    // Instead of forcing a server fetch every time which is prone to transient failures,
+    // we use getDoc and checking for network errors
+    const pingPromise = getDoc(docRef);
+    
+    const timeout = new Promise((_, reject) => 
+      setTimeout(() => reject(new Error('Connection timeout')), 10000)
+    );
+
+    await Promise.race([pingPromise, timeout]);
+    
+    if (isOfflineMode) {
+      console.log("Firebase connection established.");
+      isOfflineMode = false;
+      if (connectionCheckInterval) {
+        clearInterval(connectionCheckInterval);
+        connectionCheckInterval = setInterval(() => testConnection(1), 120000); // Only check every 2 mins when online
+      }
+    }
+    return true;
+  } catch (error: any) {
+    const errorMsg = error?.message?.toLowerCase() || '';
+    
+    // If we get a "Permission Denied" or "Resource Exhausted", it actually means we ARE connected to Firebase.
+    const isActuallyConnected = errorMsg.includes('permission') || 
+                                errorMsg.includes('insufficient permissions') ||
+                                errorMsg.includes('resource exhausted') ||
+                                errorMsg.includes('quota exceeded') ||
+                                errorMsg.includes('unauthenticated');
+    
+    if (isActuallyConnected) {
+      if (isOfflineMode) {
+        console.log("Firebase connection confirmed (api responding).");
+        isOfflineMode = false;
+        if (connectionCheckInterval) {
+          clearInterval(connectionCheckInterval);
+          connectionCheckInterval = setInterval(() => testConnection(1), 180000);
         }
       }
-      // Wait before retrying
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      return true;
     }
+
+    const isOfflineError = errorMsg.includes('client is offline') || 
+                          errorMsg.includes('timeout') || 
+                          errorMsg.includes('unavailable') ||
+                          errorMsg.includes('not found') ||
+                          errorMsg.includes('failed to fetch');
+
+    if (!isOfflineMode) {
+      if (isOfflineError) {
+        console.info("Firebase operating in offline mode (local cache/mock data).");
+      } else {
+        console.warn("Firebase connectivity issue:", error.message);
+      }
+      isOfflineMode = true;
+      if (connectionCheckInterval) clearInterval(connectionCheckInterval);
+      connectionCheckInterval = setInterval(() => testConnection(1), 15000);
+    }
+    return false;
   }
 }
 
-export async function getDocWithRetry(docRef: any, maxRetries = 3, delay = 1500) {
+export function isOffline() {
+  return isOfflineMode;
+}
+
+export async function getDocWithRetry(docRef: any, maxRetries = 2, delay = 1000) {
+  try {
+    // Try from cache first (fastest for offline)
+    const cachedDoc = await getDoc(docRef);
+    if (cachedDoc.exists()) return cachedDoc;
+  } catch (e) {
+    // Ignore cache errors
+  }
+
   for (let i = 0; i < maxRetries; i++) {
     try {
       return await getDoc(docRef);
     } catch (error: any) {
-      const isOffline = error instanceof Error && (error.message.includes('offline') || (error as any).code === 'unavailable');
-      if (isOffline) {
+      const isUnavailable = error instanceof Error && (error.message.includes('offline') || (error as any).code === 'unavailable' || error.message.includes('timeout'));
+      if (isUnavailable) {
         if (i < maxRetries - 1) {
-          console.warn(`Fetch failed (offline/unavailable), retrying in ${delay}ms... (Attempt ${i + 1}/${maxRetries})`);
+          console.warn(`Fetch failed, retrying... (Attempt ${i + 1}/${maxRetries})`);
           await new Promise(resolve => setTimeout(resolve, delay));
           continue;
         }
@@ -64,15 +156,19 @@ export async function getDocWithRetry(docRef: any, maxRetries = 3, delay = 1500)
   return await getDoc(docRef);
 }
 
-export async function getDocsWithRetry(q: any, maxRetries = 3, delay = 1500) {
+export async function getDocsWithRetry(q: any, maxRetries = 2, delay = 1000) {
+  try {
+    const cachedDocs = await getDocs(q);
+    if (!cachedDocs.empty) return cachedDocs;
+  } catch (e) {}
+
   for (let i = 0; i < maxRetries; i++) {
     try {
       return await getDocs(q);
     } catch (error: any) {
-      const isOffline = error instanceof Error && (error.message.includes('offline') || (error as any).code === 'unavailable');
-      if (isOffline) {
+      const isUnavailable = error instanceof Error && (error.message.includes('offline') || (error as any).code === 'unavailable' || error.message.includes('timeout'));
+      if (isUnavailable) {
         if (i < maxRetries - 1) {
-          console.warn(`Fetch docs failed (offline/unavailable), retrying in ${delay}ms... (Attempt ${i + 1}/${maxRetries})`);
           await new Promise(resolve => setTimeout(resolve, delay));
           continue;
         }
@@ -83,9 +179,23 @@ export async function getDocsWithRetry(q: any, maxRetries = 3, delay = 1500) {
   return await getDocs(q);
 }
 
-// Only run testConnection in the browser
+// Background connection test
 if (typeof window !== 'undefined') {
-  testConnection();
+  // Initial check
+  testConnection(2);
+  
+  // Set up periodic check
+  connectionCheckInterval = setInterval(() => testConnection(1), 30000);
+  
+  // Listen for online/offline browser events
+  window.addEventListener('online', () => {
+    console.log("Browser back online, checking Firebase connection...");
+    testConnection(3);
+  });
+  window.addEventListener('offline', () => {
+    isOfflineMode = true;
+    console.log("Browser went offline.");
+  });
 }
 
 // Error Handling

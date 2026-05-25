@@ -225,7 +225,8 @@ const ParentPortal: React.FC<ParentPortalProps> = ({ user }) => {
     try {
       // In a real app, query 'students' collection. 
       // For this prototype, we check all institutions' metadata.students
-      const instSnapshot = await getDocsWithRetry(collection(db, 'institutions'));
+      const instQ = query(collection(db, 'institutions'), where('status', '==', 'published'));
+      const instSnapshot = await getDocsWithRetry(instQ);
       let foundStudent = null;
       let foundInstId = '';
 

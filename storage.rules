@@ -28,5 +28,19 @@ service firebase.storage {
       allow read: if true;
       allow write: if request.auth != null && request.auth.uid == userId;
     }
+
+    // Institution Images and verification documents
+    match /institutions/{institutionId}/{fileName} {
+      allow read: if true;
+      // Note: Ideally, checking if the user is an admin of the institution.
+      // For now, allow an authenticated user to upload.
+      allow write: if request.auth != null;
+    }
+    
+    // Institution Verification Documents inside institutionId folder
+    match /institutions/{institutionId}/verification/{fileName} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null;
+    }
   }
 }

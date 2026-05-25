@@ -27,14 +27,13 @@ const SectionManager: React.FC<SectionManagerProps> = ({ institution, user, onUp
 
   const allSections: { id: any; label: string; icon: React.ReactNode }[] = [
     { id: 'visibility', label: 'Visibility', icon: <Settings className="w-4 h-4" /> },
-    { id: 'homepage', label: 'Landing Page', icon: <Layout className="w-4 h-4" /> },
-    { id: 'about', label: 'Identity', icon: <Info className="w-4 h-4" /> },
-    { id: 'admissions', label: isTertiary ? 'Enrollment' : 'Admissions', icon: <UserPlus className="w-4 h-4" /> },
-    { id: 'academics', label: isTertiary ? 'Faculties' : isPrimary ? 'Grades' : 'Academics', icon: <GraduationCap className="w-4 h-4" /> },
-    { id: 'news', label: 'News Feed', icon: <Newspaper className="w-4 h-4" /> },
-    { id: 'studentLife', label: isTertiary ? 'Campus Life' : 'School Life', icon: <Users className="w-4 h-4" /> },
-    { id: 'programs', label: 'Programs', icon: <BookOpen className="w-4 h-4" /> },
-    { id: 'portal', label: 'Gateway', icon: <Globe className="w-4 h-4" /> },
+    { id: 'homepage', label: 'Homepage', icon: <Layout className="w-4 h-4" /> },
+    { id: 'about', label: 'About', icon: <Info className="w-4 h-4" /> },
+    { id: 'admissions', label: 'Admissions', icon: <UserPlus className="w-4 h-4" /> },
+    { id: 'academics', label: 'Academics', icon: <GraduationCap className="w-4 h-4" /> },
+    { id: 'news', label: 'News', icon: <Newspaper className="w-4 h-4" /> },
+    { id: 'studentLife', label: 'Student Life', icon: <Users className="w-4 h-4" /> },
+    { id: 'portal', label: 'Portal', icon: <Globe className="w-4 h-4" /> },
     { id: 'contactUs', label: 'Contact Us', icon: <Mail className="w-4 h-4" /> }
   ];
 
@@ -47,12 +46,11 @@ const SectionManager: React.FC<SectionManagerProps> = ({ institution, user, onUp
       case 'studentLife': return user.permissions.canEditStudentLife;
       case 'admissions': return user.permissions.canEditAdmissions;
       case 'academics': return user.permissions.canEditAcademics;
-      case 'programs': return user.permissions.canEditAcademics;
       default: return false; 
     }
   });
 
-  const [activeSection, setActiveSection] = useState<keyof Institution['sections'] | 'visibility' | 'programs'>(
+  const [activeSection, setActiveSection] = useState<keyof Institution['sections'] | 'visibility'>(
     isAdmin ? 'visibility' : (sections[0]?.id as any) || 'visibility'
   );
 
@@ -81,7 +79,6 @@ const SectionManager: React.FC<SectionManagerProps> = ({ institution, user, onUp
       case 'academics': return <AcademicsEditor institution={institution} onUpdate={updateSection} />;
       case 'news': return <NewsEditor institution={institution} onUpdate={updateSection} />;
       case 'studentLife': return <StudentLifeEditor institution={institution} onUpdate={updateSection} />;
-      case 'programs': return <ProgramsEditor institution={institution} onUpdate={onUpdate as any} />;
       case 'portal': return <PortalEditor institution={institution} onUpdate={updateSection} />;
       case 'contactUs': return <ContactUsEditor institution={institution} onUpdate={onUpdate} />;
       default: return null;

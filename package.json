@@ -5,10 +5,10 @@
   "type": "module",
   "scripts": {
     "dev": "tsx server.ts",
-    "build": "vite build",
+    "build": "vite build && esbuild server.ts --bundle --platform=node --format=cjs --packages=external --sourcemap --outfile=dist/server.cjs",
     "preview": "vite preview",
     "lint": "tsc --noEmit",
-    "start": "node server.ts"
+    "start": "node dist/server.cjs"
   },
   "dependencies": {
     "@google/genai": "^1.41.0",
@@ -48,6 +48,7 @@
     "@types/nodemailer": "^8.0.0",
     "@types/simple-peer": "^9.11.9",
     "@vitejs/plugin-react": "^5.0.0",
+    "esbuild": "^0.28.0",
     "globals": "^17.6.0",
     "typescript": "~5.8.2",
     "typescript-eslint": "^8.59.2",

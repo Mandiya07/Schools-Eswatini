@@ -266,6 +266,7 @@ export interface Milestone {
 }
 
 export interface LeadershipMember {
+  id?: string;
   name: string;
   title: string;
   description?: string;
@@ -279,6 +280,9 @@ export interface LeadershipMember {
   linkedin?: string;
   videoUrl?: string;
   cvUrl?: string;
+  contactEmail?: string;
+  contactPhone?: string;
+  subjects?: string[];
 }
 
 export interface AcademicProgram {
@@ -318,6 +322,7 @@ export interface BlogPost {
   media?: { url: string; caption?: string; type: 'image' | 'video' }[];
   author?: string;
   tags?: string[];
+  isFeatured?: boolean;
 }
 
 export interface EventItem {
@@ -337,6 +342,7 @@ export interface EventItem {
   highlights?: string[];
   media?: { url: string; caption?: string; type: 'image' | 'video' }[];
   mediaUrl?: string; // Simple media URL as requested
+  isFeatured?: boolean;
 }
 
 export interface SEOMetadata {
@@ -573,6 +579,8 @@ export interface Institution {
   };
   contact: {
     address: string;
+    latitude?: number;
+    longitude?: number;
     phone: string;
     email: string;
     website?: string;
@@ -623,6 +631,8 @@ export interface Institution {
       };
       quickLinks: QuickLink[];
       announcements: Announcement[];
+      stats?: { label: string; value: string; icon: string }[];
+      features?: { title: string; description: string; icon: string }[];
     };
     about: {
       enabled?: boolean;
@@ -889,6 +899,7 @@ export interface Institution {
       overview: {
         title: string;
         description: string;
+        subtitle?: string;
       };
       featuredPostId?: string;
       blogPosts?: BlogPost[];
@@ -930,11 +941,27 @@ export interface Institution {
         description: string;
         icon?: string;
         image?: string;
+        category?: string;
+        photo?: string;
       }[];
-      supportServices?: {
-        services: string[];
+      facilities?: {
+        id?: string | number;
+        name: string;
+        description: string;
+        icon?: string;
+        image?: string;
+        category?: string;
+        photo?: string;
+      }[];
+      studentCouncil?: {
+        name: string;
+        members: { name: string; role: string; photo?: string }[];
         description: string;
       };
+      supportServices?: {
+        name: string;
+        description: string;
+      }[];
       arts: {
         activities: string[];
         description: string;
@@ -944,13 +971,6 @@ export interface Institution {
         roles: string;
         development?: string;
       };
-      facilities: {
-        id?: string | number;
-        name: string;
-        description: string;
-        icon?: string;
-        image?: string;
-      }[];
       support: {
         services: string[];
         description: string;

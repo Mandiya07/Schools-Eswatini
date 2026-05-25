@@ -70,9 +70,20 @@ const HomepageEditor: React.FC<HomepageEditorProps> = ({ institution, onUpdate }
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 animate-in fade-in slide-in-from-right-4">
       <div className="space-y-10">
-        <header>
-          <h3 className="text-xl font-black text-slate-900 uppercase tracking-tight">Homepage Configuration</h3>
-          <p className="text-sm text-slate-500 font-medium tracking-tight mt-1">Manage your institution's digital front door</p>
+        <header className="flex items-center justify-between">
+          <div>
+            <h3 className="text-xl font-black text-slate-900 uppercase tracking-tight">Homepage Configuration</h3>
+            <p className="text-sm text-slate-500 font-medium tracking-tight mt-1">Manage your institution's digital front door</p>
+          </div>
+          <div className="flex items-center gap-3 bg-slate-50 px-4 py-2 rounded-2xl border border-slate-100">
+            <span className="text-[10px] font-black uppercase text-slate-400">Section Visibility</span>
+            <button 
+              onClick={() => updateField('enabled', !homepage.enabled)}
+              className={`w-10 h-5 rounded-full transition-all relative ${homepage.enabled ? 'bg-blue-600' : 'bg-slate-300'}`}
+            >
+              <div className={`absolute top-0.5 w-4 h-4 bg-white rounded-full transition-all ${homepage.enabled ? 'right-0.5 shadow-sm' : 'left-0.5'}`} />
+            </button>
+          </div>
         </header>
 
         <div className="space-y-12">
@@ -138,6 +149,98 @@ const HomepageEditor: React.FC<HomepageEditorProps> = ({ institution, onUpdate }
                 onChange={e => updatePrincipalField('text', e.target.value)} 
                 placeholder="Share a vision or a welcome note..."
               />
+            </div>
+          </div>
+
+          {/* Institutional Stats */}
+          <div className="p-8 bg-blue-50/50 rounded-[40px] border border-blue-100/50 space-y-6">
+            <div className="flex items-center justify-between">
+              <h4 className="text-[10px] font-black text-blue-600 uppercase tracking-widest">🏆 Institutional Stats</h4>
+              <button 
+                onClick={() => updateField('stats', [...(homepage.stats || []), { label: 'Students', value: '1,000+' }])}
+                className="text-[10px] font-black text-blue-600 uppercase tracking-widest hover:underline"
+              >
+                + Add Stat
+              </button>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {(homepage.stats || []).map((stat: any, idx: number) => (
+                <div key={idx} className="bg-white p-4 rounded-2xl border border-blue-100 flex gap-4 items-center group">
+                  <div className="flex-1 space-y-2">
+                    <input 
+                      className="w-full bg-slate-50 border-none rounded-lg px-3 py-1 text-[10px] font-black uppercase text-blue-700"
+                      value={stat.label}
+                      onChange={e => {
+                        const newStats = [...homepage.stats];
+                        newStats[idx].label = e.target.value;
+                        updateField('stats', newStats);
+                      }}
+                    />
+                    <input 
+                      className="w-full bg-transparent border-none p-0 text-lg font-black text-slate-900 focus:ring-0"
+                      value={stat.value}
+                      onChange={e => {
+                        const newStats = [...homepage.stats];
+                        newStats[idx].value = e.target.value;
+                        updateField('stats', newStats);
+                      }}
+                    />
+                  </div>
+                  <button onClick={() => updateField('stats', homepage.stats.filter((_: any, i: number) => i !== idx))} className="text-rose-500 opacity-0 group-hover:opacity-100 transition-opacity">✕</button>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Key Features */}
+          <div className="space-y-6">
+            <div className="flex items-center justify-between">
+              <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Key Features / Values</h4>
+              <button 
+                onClick={() => updateField('features', [...(homepage.features || []), { title: 'Modern Facilities', description: '', icon: '🏫' }])}
+                className="text-[10px] font-black text-blue-600 uppercase tracking-widest hover:underline"
+              >
+                + Add Feature
+              </button>
+            </div>
+            <div className="grid grid-cols-1 gap-4">
+              {(homepage.features || []).map((feature: any, idx: number) => (
+                <div key={idx} className="bg-slate-50 p-6 rounded-[32px] border border-slate-100 space-y-4 group">
+                  <div className="flex justify-between items-center gap-4">
+                    <div className="flex-1 flex gap-3">
+                      <input 
+                        className="w-10 bg-white border rounded-xl text-center text-lg"
+                        value={feature.icon}
+                        onChange={e => {
+                          const nf = [...homepage.features];
+                          nf[idx].icon = e.target.value;
+                          updateField('features', nf);
+                        }}
+                      />
+                      <input 
+                        className="bg-transparent border-none font-black text-slate-900 focus:ring-0 text-sm flex-1" 
+                        value={feature.title} 
+                        onChange={e => {
+                          const nf = [...homepage.features];
+                          nf[idx].title = e.target.value;
+                          updateField('features', nf);
+                        }}
+                      />
+                    </div>
+                    <button onClick={() => updateField('features', homepage.features.filter((_: any, i: number) => i !== idx))} className="text-rose-500 opacity-0 group-hover:opacity-100 transition-opacity">✕</button>
+                  </div>
+                  <textarea 
+                    className="w-full bg-white border-none rounded-2xl px-4 py-3 text-xs font-medium"
+                    placeholder="Short description of this value or feature..."
+                    value={feature.description}
+                    onChange={e => {
+                      const nf = [...homepage.features];
+                      nf[idx].description = e.target.value;
+                      updateField('features', nf);
+                    }}
+                  />
+                </div>
+              ))}
             </div>
           </div>
 

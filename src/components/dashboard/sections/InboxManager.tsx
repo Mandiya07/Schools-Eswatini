@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { db, auth } from '../../../lib/firebase';
+import { db, auth, handleFirestoreError, OperationType } from '../../../lib/firebase';
 import { 
   collection, 
   query, 
@@ -73,7 +73,7 @@ const InboxManager: React.FC<InboxManagerProps> = ({ institution }) => {
         if (updated) setSelectedMessage(updated);
       }
     }, (err) => {
-      console.error("Error fetching messages:", err);
+      handleFirestoreError(err, OperationType.LIST, 'messages');
       setLoading(false);
     });
 
@@ -97,7 +97,7 @@ const InboxManager: React.FC<InboxManagerProps> = ({ institution }) => {
           status: 'read'
         });
       } catch (err) {
-        console.error("Error updating message status:", err);
+        handleFirestoreError(err, OperationType.WRITE, `messages/${message.id}`);
       }
     }
   };
@@ -109,7 +109,7 @@ const InboxManager: React.FC<InboxManagerProps> = ({ institution }) => {
       });
       if (selectedMessage?.id === messageId) setSelectedMessage(null);
     } catch (err) {
-      console.error("Error archiving message:", err);
+      handleFirestoreError(err, OperationType.WRITE, `messages/${messageId}`);
     }
   };
 
@@ -119,7 +119,7 @@ const InboxManager: React.FC<InboxManagerProps> = ({ institution }) => {
         await deleteDoc(doc(db, 'messages', messageId));
         if (selectedMessage?.id === messageId) setSelectedMessage(null);
       } catch (err) {
-        console.error("Error deleting message:", err);
+        handleFirestoreError(err, OperationType.DELETE, `messages/${messageId}`);
       }
     }
   };

@@ -3,7 +3,7 @@ import React, { useState, useEffect, ErrorInfo, ReactNode } from 'react';
 import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import { User, Institution, Region, UserRole } from './types';
 import { MOCK_INSTITUTIONS } from './mockData';
-import { auth, db, onAuthStateChanged, onSnapshot, collection, doc, getDoc, setDoc, deleteDoc, getDocs, query, OperationType, handleFirestoreError, getDocWithRetry, getDocsWithRetry } from './src/lib/firebase';
+import { auth, db, onAuthStateChanged, onSnapshot, collection, doc, getDoc, setDoc, deleteDoc, getDocs, query, where, OperationType, handleFirestoreError, getDocWithRetry, getDocsWithRetry, isOffline as checkFirebaseOffline } from './src/lib/firebase';
 import { logActivity, ActivityType } from './src/services/securityService';
 import { requestNotificationPermission } from './src/lib/pwa';
 
@@ -84,6 +84,7 @@ const App: React.FC = () => {
   const [lang, setLang] = useState<'en' | 'ss'>('en');
   const [isLowDataMode, setIsLowDataMode] = useState(false);
   const [isOffline, setIsOffline] = useState(!navigator.onLine);
+  const [isFirebaseOffline, setIsFirebaseOffline] = useState(false);
 
   useEffect(() => {
     // Attempt to request PWA push notification permission
@@ -95,9 +96,15 @@ const App: React.FC = () => {
     window.addEventListener('online', handleOnline);
     window.addEventListener('offline', handleOffline);
 
+    // Poll for Firestore connection status
+    const interval = setInterval(() => {
+      setIsFirebaseOffline(checkFirebaseOffline());
+    }, 5000);
+
     return () => {
       window.removeEventListener('online', handleOnline);
       window.removeEventListener('offline', handleOffline);
+      clearInterval(interval);
     };
   }, []);
 
@@ -111,6 +118,15 @@ const App: React.FC = () => {
 
   // Firebase Auth Listener
   useEffect(() => {
+    // Safety timeout for loading state
+    const safetyTimeout = setTimeout(() => {
+      if (!isAuthReady) {
+        console.warn("Auth initialization taking too long. Forcing ready state (possibly offline).");
+        setIsAuthReady(true);
+        setLoading(false);
+      }
+    }, 15000); // 15 seconds max wait
+
     // Development bypass check
     const isDevAdmin = localStorage.getItem('se_dev_admin') === 'true';
     const isDevTeacher = localStorage.getItem('se_dev_teacher') === 'true';
@@ -121,12 +137,13 @@ const App: React.FC = () => {
         email: 'siphom.yati@gmail.com',
         name: 'Sipho Mati (Govt. Official)',
         role: UserRole.SUPER_ADMIN,
-        institutionId: 'inst_1',
+        institutionId: 'inst-1',
         isVerified: true,
         twoFactorEnabled: true
       });
       setIsAuthReady(true);
       setLoading(false);
+      clearTimeout(safetyTimeout);
       return;
     }
 
@@ -142,6 +159,7 @@ const App: React.FC = () => {
       });
       setIsAuthReady(true);
       setLoading(false);
+      clearTimeout(safetyTimeout);
       return;
     }
 
@@ -172,40 +190,36 @@ const App: React.FC = () => {
           // Role assignment and verification logic
           if (firebaseUser.email?.toLowerCase() === 'siphom.yati@gmail.com') {
             updatedRole = UserRole.SUPER_ADMIN;
-            currentUser.institutionId = 'inst_1'; // St. Marks High School (Optional for Admin)
+            currentUser.institutionId = 'inst-1'; // Use hyphen to match mock data
           } else if (firebaseUser.email?.toLowerCase().endsWith('@moet.gov.sz')) {
             updatedRole = UserRole.MOET_OFFICIAL;
           } else {
-            // Institutional Check: Only overwrite if they don't have a high-privilege role 
-            // or if we find a specific matching institutional record.
-            const instQuery = query(collection(db, 'institutions'));
-            const instSnapshot = await getDocsWithRetry(instQuery);
+            // Targeted Institutional Check: Use specific queries instead of listing ALL institutions
+            // which causes security permission errors and performance issues.
+            const userEmail = firebaseUser.email?.toLowerCase();
+            
+            // 1. Check if they are the adminId
+            const adminQuery = query(collection(db, 'institutions'), where('adminId', '==', firebaseUser.uid));
+            // 2. Check if they are in teacherEmails array
+            const teacherQuery = query(collection(db, 'institutions'), where('teacherEmails', 'array-contains', userEmail));
+
+            const [adminSnap, teacherSnap] = await Promise.all([
+              getDocsWithRetry(adminQuery),
+              getDocsWithRetry(teacherQuery)
+            ]);
             
             let foundInstitutionalRole = false;
-            const userEmail = firebaseUser.email?.toLowerCase();
 
-            for (const instDoc of instSnapshot.docs) {
-              const data = instDoc.data() as Institution;
-              
-              // Check if Institution Admin
-              if (data.contact?.email?.toLowerCase() === userEmail || data.adminId === firebaseUser.uid) {
-                updatedRole = UserRole.INSTITUTION_ADMIN;
-                currentUser.institutionId = data.id;
-                foundInstitutionalRole = true;
-                break;
-              }
-              
-              // Check if Teacher assigned by Institution
-              const isInstitutionalTeacher = 
-                data.teacherEmails?.some(email => email.toLowerCase() === userEmail) ||
-                data.administrativeDetails?.staffManagement?.members?.some((m: any) => m.email?.toLowerCase() === userEmail);
-
-              if (isInstitutionalTeacher) {
-                updatedRole = UserRole.TEACHER;
-                currentUser.institutionId = data.id;
-                foundInstitutionalRole = true;
-                break;
-              }
+            if (!adminSnap.empty) {
+              const data = adminSnap.docs[0].data() as Institution;
+              updatedRole = UserRole.INSTITUTION_ADMIN;
+              currentUser.institutionId = data.id;
+              foundInstitutionalRole = true;
+            } else if (!teacherSnap.empty) {
+              const data = teacherSnap.docs[0].data() as Institution;
+              updatedRole = UserRole.TEACHER;
+              currentUser.institutionId = data.id;
+              foundInstitutionalRole = true;
             }
 
             // If no institutional role found, keep their registered role (Parent or Independent Teacher)
@@ -242,31 +256,64 @@ const App: React.FC = () => {
         setUser(null);
       }
       setIsAuthReady(true);
+      clearTimeout(safetyTimeout);
     });
 
-    return () => unsubscribe();
+    return () => {
+      unsubscribe();
+      clearTimeout(safetyTimeout);
+    };
   }, []);
 
   // Firestore Institutions Listener
   useEffect(() => {
-    const unsubscribe = onSnapshot(collection(db, 'institutions'), 
-      (snapshot) => {
-        const instList = snapshot.docs.map(doc => doc.data() as Institution);
+    if (!isAuthReady) return;
+    
+    setLoading(true);
+
+    const isSuperAdmin = user?.role === UserRole.SUPER_ADMIN || user?.email?.toLowerCase() === 'siphom.yati@gmail.com';
+    
+    // Determine the base query. 
+    // Public/Visitors only see 'published' ones.
+    // Super Admins see everything.
+    // Targeted: regular users only shouldn't even attempt to list 'pending' ones unless they own them.
+    // For simplicity of the global list, we'll keep it to 'published' for non-admins.
+    
+    let q;
+    if (isSuperAdmin) {
+      q = collection(db, 'institutions');
+    } else {
+      q = query(collection(db, 'institutions'), where('status', '==', 'published'));
+    }
+
+    const unsubscribe = onSnapshot(q, 
+      (snapshot: any) => {
+        const instList = snapshot.docs.map((doc: any) => ({ id: doc.id, ...doc.data() } as Institution));
         if (instList.length === 0) {
-          // Seed with mock data if empty (for demo purposes)
+          // If Firestore is connected but empty, we still set isFirebaseOffline to false
+          // but we use mock data for the UI
           setInstitutions(MOCK_INSTITUTIONS);
+          console.log("Firestore connected but no institutions found. Using mock data.");
         } else {
           setInstitutions(instList);
         }
         setLoading(false);
       },
-      (error) => {
-        handleFirestoreError(error, OperationType.LIST, 'institutions');
-      }
+        (error: any) => {
+          console.warn("Institutions snapshot error:", error.message);
+          const isPermissionError = error.message.includes('permission') || error.message.includes('insufficient permissions');
+          
+          if (isPermissionError) {
+             console.info("Institutions access restricted (possibly not logged in as admin). Using mocks for public view.");
+          }
+          
+          setInstitutions(MOCK_INSTITUTIONS);
+          setLoading(false);
+        }
     );
 
     return () => unsubscribe();
-  }, []);
+  }, [isAuthReady, user?.id, user?.role]);
 
   useEffect(() => {
     localStorage.setItem('se_favorites', JSON.stringify(favorites));
@@ -541,10 +588,35 @@ const App: React.FC = () => {
           />
         )}
 
-        {isOffline && (
-          <div className="fixed bottom-0 left-0 right-0 bg-rose-600 text-white text-center py-2 px-4 shadow-lg z-[100] animate-in slide-in-from-bottom-2 flex items-center justify-center gap-3">
-            <span className="w-2 h-2 bg-rose-300 rounded-full animate-pulse"></span>
-            <p className="text-[10px] font-black uppercase tracking-widest">You are currently offline. Pages and data may be cached for offline use.</p>
+        {(isOffline || isFirebaseOffline) && (
+          <div className="fixed bottom-6 right-6 z-[100] animate-in slide-in-from-right-2">
+            <div className={`px-4 py-2 rounded-full shadow-lg flex items-center gap-3 backdrop-blur-md border ${
+              isOffline ? 'bg-slate-900/90 text-white border-white/10' : 'bg-amber-100/90 text-amber-900 border-amber-200'
+            }`}>
+              <div className="flex items-center gap-2">
+                <span className={`w-2 h-2 rounded-full animate-pulse ${isOffline ? 'bg-rose-500' : 'bg-amber-500'}`}></span>
+                <span className="text-[10px] font-black uppercase tracking-widest">
+                  {isOffline ? "You are Offline" : (isFirebaseOffline ? "Local Mode" : "Connected")}
+                </span>
+              </div>
+              
+              <div className="h-4 w-px bg-current/20"></div>
+              
+              <p className="text-[9px] font-medium opacity-80">
+                {isFirebaseOffline && !isOffline ? 
+                  "Using local cache while database reconnects" : 
+                  "Pages are cached for offline use"}
+              </p>
+
+              {isFirebaseOffline && !isOffline && (
+                <button 
+                  onClick={() => window.location.reload()}
+                  className="px-2 py-0.5 bg-amber-200/50 hover:bg-amber-300/50 rounded text-[8px] font-bold transition-all ml-1"
+                >
+                  Retry
+                </button>
+              )}
+            </div>
           </div>
         )}
       </div>

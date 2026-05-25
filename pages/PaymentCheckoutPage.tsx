@@ -2,6 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { Shield, CheckCircle, CreditCard, Loader2, Smartphone, Building2, Ticket } from 'lucide-react';
 
+import { db } from '../src/lib/firebase';
+import { doc, updateDoc } from 'firebase/firestore';
+
 export default function PaymentCheckoutPage() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
@@ -14,6 +17,8 @@ export default function PaymentCheckoutPage() {
   const [processing, setProcessing] = useState(false);
   const [success, setSuccess] = useState(false);
   const [selectedMethod, setSelectedMethod] = useState<string | null>('momo');
+  const [phoneNumber, setPhoneNumber] = useState('');
+  const [momoStatus, setMomoStatus] = useState<'idle' | 'pending' | 'success' | 'failed'>('idle');
 
   useEffect(() => {
     if (!tx || !amount) {
@@ -21,18 +26,97 @@ export default function PaymentCheckoutPage() {
     }
   }, [tx, amount, navigate]);
 
-  const handlePay = async () => {
-    setProcessing(true);
-    // Simulate real-world network wait
+  const pollMomoStatus = async (referenceId: string) => {
+    const interval = setInterval(async () => {
+      try {
+        const response = await fetch(`/api/momo/status/${referenceId}`);
+        const data = await response.json();
+        
+        if (data.status === 'SUCCESSFUL') {
+          clearInterval(interval);
+          setMomoStatus('success');
+          completeTransaction();
+        } else if (data.status === 'FAILED' || data.status === 'REJECTED') {
+          clearInterval(interval);
+          setMomoStatus('failed');
+          setProcessing(false);
+          alert("Payment was rejected or failed. Please try again.");
+        }
+      } catch (error) {
+        console.error("Polling error:", error);
+      }
+    }, 3000);
+
+    // Timeout after 60 seconds
     setTimeout(() => {
+      clearInterval(interval);
+      if (momoStatus === 'pending') {
+        setProcessing(false);
+        setMomoStatus('failed');
+        alert("Payment timed out. Please check your phone for the USSD prompt.");
+      }
+    }, 60000);
+  };
+
+  const completeTransaction = async () => {
+    try {
+      if (tx) {
+        const txRef = doc(db, 'transactions', tx);
+        await updateDoc(txRef, {
+          status: 'completed',
+          paymentMethod: selectedMethod,
+          updatedAt: new Date().toISOString()
+        });
+      }
       setProcessing(false);
       setSuccess(true);
-      // Let them see success then go back
-      setTimeout(() => {
-        // Go back to previous page or dashboard
-        navigate(-1);
-      }, 3000);
-    }, 2000);
+      setTimeout(() => navigate(-1), 3000);
+    } catch (error) {
+      console.error("Failed to complete tx:", error);
+      setProcessing(false);
+    }
+  };
+
+  const handlePay = async () => {
+    if (selectedMethod === 'momo' && !phoneNumber) {
+      alert("Please enter your Mobile Money number.");
+      return;
+    }
+
+    setProcessing(true);
+    
+    try {
+      if (selectedMethod === 'momo') {
+        setMomoStatus('pending');
+        const response = await fetch('/api/momo/request-to-pay', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            phoneNumber: phoneNumber.replace(/\s+/g, ''),
+            resource: { id: tx || 'TX-001', title: ref || 'Payment', price: parseFloat(amount || '0') }
+          })
+        });
+        
+        const data = await response.json();
+        if (data.referenceId) {
+          // In Sandbox, we might just assume success for demo if polling isn't setup for real push
+          // But here we'll simulate the real flow
+          pollMomoStatus(data.referenceId);
+        } else {
+          throw new Error(data.error || "Failed to initiate MoMo payment");
+        }
+        return; // Polling will handle the rest
+      }
+
+      // Fallback for other methods (Mock for now)
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      await completeTransaction();
+    } catch (error: any) {
+      console.error("Payment error:", error);
+      alert(error.message || "Payment failed. Please check your connection.");
+      setProcessing(false);
+      setMomoStatus('failed');
+    }
   };
 
   if (success) {
@@ -167,7 +251,20 @@ export default function PaymentCheckoutPage() {
         {selectedMethod === 'momo' && (
            <div className="bg-slate-50 p-6 rounded-2xl border border-slate-200 mb-8">
               <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Enter Mobile Money Number</label>
-              <input type="text" placeholder="e.g. 7600 0000" className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 font-bold text-slate-900 focus:ring-2 focus:ring-yellow-500 outline-none" />
+              <input 
+                type="text" 
+                placeholder="e.g. 7600 0000" 
+                className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 font-bold text-slate-900 focus:ring-2 focus:ring-yellow-500 outline-none" 
+                value={phoneNumber}
+                onChange={(e) => setPhoneNumber(e.target.value)}
+              />
+              {momoStatus === 'pending' && (
+                <div className="mt-4 p-4 bg-yellow-100 rounded-xl border border-yellow-200 animate-pulse">
+                   <p className="text-xs font-black text-yellow-800 uppercase tracking-widest flex items-center gap-2">
+                     <Smartphone className="w-4 h-4" /> Check your phone for prompt
+                   </p>
+                </div>
+              )}
            </div>
         )}
 

@@ -61,7 +61,7 @@ export const StudentProgressManager: React.FC<StudentProgressManagerProps> = ({ 
       const progressData = progressSnapshot.docs.map(doc => ({ ...doc.data() as StudentProgress, id: doc.id }));
       setProgressRecords(progressData);
     } catch (error) {
-      console.error("Error fetching data:", error);
+      handleFirestoreError(error, OperationType.GET, 'student_records');
     } finally {
       setLoading(false);
     }

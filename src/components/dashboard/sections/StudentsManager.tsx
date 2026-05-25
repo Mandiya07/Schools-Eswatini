@@ -30,11 +30,7 @@ export const StudentsManager: React.FC<StudentsManagerProps> = ({ institution, i
       const data = snapshot.docs.map(doc => doc.data() as Student);
       setStudents(data);
     } catch (error) {
-      if (error instanceof Error && !error.message.includes('offline')) {
-        handleFirestoreError(error, OperationType.GET, pathForGetDocs);
-      } else {
-        console.warn("Offline: Using fallback/cache for students registry.");
-      }
+      handleFirestoreError(error, OperationType.GET, pathForGetDocs);
     } finally {
       setLoading(false);
     }
@@ -100,9 +96,7 @@ export const StudentsManager: React.FC<StudentsManagerProps> = ({ institution, i
       await deleteDoc(doc(db, pathForWrite, id));
       setStudents(students.filter(s => s.id !== id));
     } catch (error) {
-      handleFirestoreError(error, OperationType.WRITE, pathForWrite);
-      alert("Error deleting student. Check console.");
-      console.error(error);
+      handleFirestoreError(error, OperationType.DELETE, pathForWrite);
     }
   };
 

@@ -12,6 +12,8 @@ import { motion, AnimatePresence } from 'motion/react';
 import { PolicyAnnouncement, Region, User, Institution, UserRole } from '../types';
 import { db, collection, addDoc } from '../src/lib/firebase';
 
+import RegionalSchoolMap from '../src/components/RegionalSchoolMap';
+
 const mockRegionalData = [
   { name: 'Hhohho', passRate: 82, engagement: 85, schools: 142 },
   { name: 'Manzini', passRate: 78, engagement: 92, schools: 168 },
@@ -321,6 +323,25 @@ const MinistryPortal: React.FC<MinistryPortalProps> = ({ user, institutions }) =
                 ))}
               </div>
 
+              {/* National School Distribution Map */}
+              <div className="bg-white p-10 rounded-[48px] border border-slate-100 shadow-sm overflow-hidden">
+                <div className="flex items-center justify-between mb-8">
+                  <div>
+                    <h3 className="text-xl font-black text-slate-900 tracking-tight">National School Distribution</h3>
+                    <p className="text-sm text-slate-500 mt-1">Live geographic monitoring of registered and verified institutions.</p>
+                  </div>
+                  <div className="flex gap-4">
+                    <span className="flex items-center gap-1 text-[10px] font-black uppercase text-blue-600">
+                      <div className="w-2 h-2 bg-blue-600 rounded-full" /> Verified: {institutions.filter(i => i.isVerified).length}
+                    </span>
+                    <span className="flex items-center gap-1 text-[10px] font-black uppercase text-amber-600">
+                      <div className="w-2 h-2 bg-amber-600 rounded-full" /> Pending: {institutions.filter(i => !i.isVerified).length}
+                    </span>
+                  </div>
+                </div>
+                <RegionalSchoolMap institutions={institutions} height="500px" />
+              </div>
+
               {/* Charts Section */}
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 {/* Secondary Pass Trends */}
@@ -467,6 +488,88 @@ const MinistryPortal: React.FC<MinistryPortalProps> = ({ user, institutions }) =
                       ))}
                     </div>
                   </div>
+                </div>
+              </div>
+
+              {/* Regional Performance Recovery Tracking (The "Heartbeat" monitor) */}
+              <div className="bg-white p-10 rounded-[48px] border border-slate-100 shadow-sm overflow-hidden">
+                <div className="flex flex-col md:flex-row md:items-center justify-between mb-10 gap-4">
+                  <div>
+                    <div className="flex items-center gap-3 mb-2">
+                      <div className="w-2 h-2 bg-emerald-500 rounded-full animate-ping"></div>
+                      <h3 className="text-xl font-black text-slate-900 tracking-tight">Regional Performance Recovery</h3>
+                    </div>
+                    <p className="text-sm text-slate-500">Tracing schools syncing back online and their performance trajectory.</p>
+                  </div>
+                  <div className="px-6 py-3 bg-slate-50 rounded-2xl flex items-center gap-6">
+                    <div className="text-center">
+                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Schools Resynced</p>
+                      <p className="text-xl font-black text-emerald-600">842 / 910</p>
+                    </div>
+                    <div className="w-px h-8 bg-slate-200"></div>
+                    <div className="text-center">
+                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Recovery Rate</p>
+                      <p className="text-xl font-black text-blue-600">+12.4%</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+                  {[
+                    { region: 'Hhohho', growth: '+15%', status: 'Stable', color: 'blue' },
+                    { region: 'Manzini', growth: '+22%', status: 'Optimizing', color: 'emerald' },
+                    { region: 'Lubombo', growth: '-4%', status: 'At-Risk', color: 'rose' },
+                    { region: 'Shiselweni', growth: '+8%', status: 'Recovering', color: 'amber' }
+                  ].map((stat) => (
+                    <div key={stat.region} className="p-6 bg-slate-50 rounded-3xl space-y-4 border border-transparent hover:border-slate-200 transition-all">
+                       <div className="flex justify-between items-center">
+                          <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">{stat.region}</span>
+                          <span className={`text-xs font-black ${stat.growth.startsWith('+') ? 'text-emerald-500' : 'text-rose-500'}`}>{stat.growth}</span>
+                       </div>
+                       <div className="h-2 bg-white rounded-full overflow-hidden shadow-inner">
+                          <div className={`h-full rounded-full ${stat.color === 'rose' ? 'bg-rose-500' : 'bg-emerald-500'}`} style={{ width: stat.growth.replace('+', '').replace('-', '').replace('%', '') + '%' }}></div>
+                       </div>
+                       <p className="text-[10px] font-black text-slate-900 uppercase bg-white px-3 py-1 rounded-full w-fit shadow-sm">{stat.status}</p>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="mt-12 overflow-x-auto">
+                  <table className="w-full text-left">
+                    <thead>
+                      <tr className="text-[9px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100">
+                        <th className="pb-4 px-4 font-black">Institution</th>
+                        <th className="pb-4 px-4 font-black">Last Sync</th>
+                        <th className="pb-4 px-4 font-black">Performance Trend</th>
+                        <th className="pb-4 px-4 font-black">Recovery Status</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {[
+                        { name: 'St. Marks High School', sync: '2 mins ago', trend: [40, 55, 48, 62, 80], status: 'Full Recovery' },
+                        { name: 'Salesian High', sync: '15 mins ago', trend: [70, 72, 68, 75, 82], status: 'Stable' },
+                        { name: 'Eswatini College of Tech', sync: '1 hour ago', trend: [30, 35, 45, 40, 55], status: 'Partial' },
+                        { name: 'Ka-Schiele Secondary', sync: 'Just now', trend: [20, 25, 40, 60, 75], status: 'High Growth' }
+                      ].map((item, i) => (
+                        <tr key={i} className="border-b border-slate-50 group hover:bg-slate-50/50 transition-colors">
+                          <td className="py-6 px-4">
+                             <p className="text-sm font-black text-slate-900">{item.name}</p>
+                          </td>
+                          <td className="py-6 px-4 text-xs font-bold text-slate-400 uppercase">{item.sync}</td>
+                          <td className="py-6 px-4 lg:w-48">
+                             <div className="flex items-end gap-1 h-8">
+                                {item.trend.map((val, idx) => (
+                                  <div key={idx} className="w-2 bg-blue-100 rounded-t-sm group-hover:bg-blue-600 transition-all" style={{ height: `${val}%` }}></div>
+                                ))}
+                             </div>
+                          </td>
+                          <td className="py-6 px-4">
+                             <span className="px-3 py-1 bg-white border border-slate-100 rounded-full text-[10px] font-black uppercase text-slate-500 shadow-sm">{item.status}</span>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
                 </div>
               </div>
             </motion.div>

@@ -121,6 +121,17 @@ async function startServer() {
   };
 
   // API routes
+  app.get("/api/health", (req, res) => {
+    res.json({ 
+      status: "ok",
+      infrastructure: {
+        email: process.env.SMTP_HOST ? "Production" : "Mock/Console",
+        sms: (process.env.TWILIO_ACCOUNT_SID || process.env.LOCAL_SMS_API_URL) ? "Production" : "Mock/Console",
+        momo: process.env.MOMO_API_KEY ? "Sandbox/Production" : "Mock/Default"
+      }
+    });
+  });
+
   app.post("/api/momo/request-to-pay", async (req, res) => {
     try {
       const { resource, phoneNumber } = req.body;
@@ -229,7 +240,10 @@ async function startServer() {
   }
 
   httpServer.listen(PORT, "0.0.0.0", () => {
-    console.log(`Server running on http://localhost:${PORT}`);
+    console.log(`🚀 Schools Eswatini Server running on http://localhost:${PORT}`);
+    console.log(`📧 Email Service: ${process.env.SMTP_HOST ? 'CONNECTED (' + process.env.SMTP_HOST + ')' : 'MOCK MODE (Logs to console)'}`);
+    console.log(`📱 SMS Service: ${ (process.env.TWILIO_ACCOUNT_SID || process.env.LOCAL_SMS_API_URL) ? 'CONNECTED' : 'MOCK MODE (Logs to console)'}`);
+    console.log(`💰 MTN MoMo: ${process.env.MOMO_API_KEY ? 'CONFIGURED' : 'USING DEFAULT SANDBOX KEYS'}`);
   });
 }
 

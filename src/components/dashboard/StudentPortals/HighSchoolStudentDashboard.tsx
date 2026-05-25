@@ -4,7 +4,7 @@ import { Clock, MapPin, TrendingUp, BookOpen, GraduationCap, FileText, Calendar 
 import { motion, AnimatePresence } from 'motion/react';
 import { uploadFile } from '../../../services/storageService';
 import { requestToPay, checkPaymentStatus } from '../../../services/momoService';
-import { db, doc, setDoc, collection, getDocs, query, where, orderBy } from '../../../lib/firebase';
+import { db, doc, setDoc, collection, getDocs, query, where, orderBy, getDocsWithRetry, handleFirestoreError, OperationType } from '../../../lib/firebase';
 import { User, AcademicResource } from '../../../../types';
 
 const MOCK_TIMETABLE = [
@@ -94,7 +94,7 @@ export const HighSchoolStudentDashboard: React.FC<{ user?: User | null }> = ({ u
     const fetchMarketplace = async () => {
       try {
         const q = query(collection(db, 'resources'), orderBy('createdAt', 'desc'));
-        const snapshot = await getDocs(q);
+        const snapshot = await getDocsWithRetry(q);
         
         const fetched = snapshot.docs.map(doc => doc.data() as AcademicResource);
         if (fetched.length === 0) {
@@ -117,8 +117,27 @@ export const HighSchoolStudentDashboard: React.FC<{ user?: User | null }> = ({ u
         } else {
           setMarketResources(fetched);
         }
-      } catch (error) {
-        console.error("Marketplace fetch failed", error);
+      } catch (error: any) {
+        if (error instanceof Error && !error.message.includes('offline')) {
+          handleFirestoreError(error, OperationType.LIST, 'resources');
+        } else {
+          console.warn("Marketplace fetch failed (offline/timeout). Using mock fallback.");
+          setMarketResources([{
+            id: 'mock_momo_res_1',
+            title: 'EGCSE Core Math Past Paper 2024 (Cached)',
+            type: 'PAST_PAPER' as any,
+            url: '#',
+            price: 5.00,
+            subject: 'math',
+            level: 'Form 5',
+            size: '1.2 MB',
+            downloads: 0,
+            rating: 5,
+            authorId: 'test_author',
+            authorName: 'Ministry Demo',
+            createdAt: new Date().toISOString()
+          }]);
+        }
       }
     };
     fetchMarketplace();

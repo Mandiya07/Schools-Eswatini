@@ -206,6 +206,45 @@
         "lastUpdated": { "type": "string", "format": "date-time" }
       },
       "required": ["id", "studentId", "institutionId", "term", "year"]
+    },
+    "Resource": {
+      "title": "Resource",
+      "description": "Study material available in the marketplace",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "subject": { "type": "string" },
+        "level": { "type": "string" },
+        "price": { "type": "number" },
+        "sellerId": { "type": "string" },
+        "sellerName": { "type": "string" },
+        "fileUrl": { "type": "string" },
+        "thumbnail": { "type": "string" },
+        "type": { "type": "string", "enum": ["Notes", "Past Paper", "Guide"] },
+        "tags": { "type": "array", "items": { "type": "string" } },
+        "stats": { "type": "object" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "title", "subject", "level", "price", "sellerId", "createdAt"]
+    },
+    "Transaction": {
+      "title": "Transaction",
+      "description": "Marketplace purchase record",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "resourceId": { "type": "string" },
+        "buyerId": { "type": "string" },
+        "sellerId": { "type": "string" },
+        "amount": { "type": "number" },
+        "status": { "type": "string", "enum": ["pending", "completed", "failed"] },
+        "paymentMethod": { "type": "string" },
+        "momoReference": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "resourceId", "buyerId", "sellerId", "amount", "status", "createdAt"]
     }
   },
   "firestore": {
@@ -224,6 +263,14 @@
     "/student_progress/{progressId}": {
       "schema": "StudentProgress",
       "description": "Academic progress reports"
+    },
+    "/resources/{resourceId}": {
+      "schema": "Resource",
+      "description": "Marketplace resources"
+    },
+    "/transactions/{transactionId}": {
+      "schema": "Transaction",
+      "description": "Payment transactions"
     },
     "/reviews/{reviewId}": {
       "schema": "Review",

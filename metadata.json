@@ -3,5 +3,8 @@
   "description": "A comprehensive national education platform for Eswatini, featuring institutional mini-sites, an Academic Hub with a Teacher Marketplace, regional performance recovery tracking, and a sponsored-access model for schools.",
   "requestFramePermissions": [
     "geolocation"
+  ],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
   ]
 }

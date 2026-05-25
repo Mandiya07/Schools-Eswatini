@@ -39,6 +39,74 @@ const InstitutionAdminDashboard: React.FC<InstitutionAdminDashboardProps> = ({ u
   const logoInputRef = useRef<HTMLInputElement>(null);
   const coverInputRef = useRef<HTMLInputElement>(null);
 
+  const isTertiary = inst?.type.includes(InstitutionType.TERTIARY) || false;
+  const isPrimary = inst?.type.includes(InstitutionType.PRIMARY) || false;
+  const isAdmin = user.role === UserRole.INSTITUTION_ADMIN || user.role === UserRole.SUPER_ADMIN;
+
+  const tabs = [
+    { id: 'basics', label: 'Basic Details', icon: '📋' },
+    { id: 'identity', label: 'Identity', icon: '🆔' },
+    { id: 'compliance', label: 'MoET Compliance', icon: <ShieldAlert className="w-5 h-5 text-blue-500" /> },
+    { id: 'theme', label: 'Appearance', icon: '✨' },
+    { id: 'paperless', label: 'Paperless Hub', icon: <Leaf className="w-5 h-5 text-emerald-500" /> },
+    { id: 'sections', label: 'Site Modules', icon: '🎨' },
+    { id: 'downloads', label: 'Downloads', icon: <Download className="w-5 h-5" /> },
+    { id: 'media', label: 'Media Manager', icon: <ImageIcon className="w-5 h-5" /> },
+    { id: 'academic', label: isTertiary ? 'Academic Systems' : isPrimary ? 'Classroom Tools' : 'Academic Tools', icon: '📅' },
+    { id: 'academicsContent', label: isTertiary ? 'Faculties & Degrees' : isPrimary ? 'Grades & Phases' : 'Academics Content', icon: '📝' },
+    { id: 'timetabling', label: 'AI Timetable', icon: <Calendar className="w-5 h-5" /> },
+    { id: 'staff', label: isTertiary ? 'Faculty Registry' : isPrimary ? 'Teacher Directory' : 'Staff Room', icon: <Users className="w-5 h-5" /> },
+    { id: 'inventory', label: isTertiary ? 'Asset Registry' : isPrimary ? 'Supply Tracker' : 'Inventory', icon: <Package className="w-5 h-5" /> },
+    { id: 'health', label: 'Wellness Ledger', icon: <Stethoscope className="w-5 h-5" /> },
+    { id: 'logistics', label: isTertiary ? 'Field Research' : isPrimary ? 'Excursions' : 'Trip Planner', icon: <Bus className="w-5 h-5" /> },
+    { id: 'benchmarking', label: 'Peer Benchmarking', icon: <BarChart2 className="w-5 h-5" /> },
+    { id: 'alumni', label: isTertiary ? 'Alumni Network' : 'Alumni Portal', icon: <GraduationCap className="w-5 h-5" /> },
+    { id: 'students', label: isTertiary ? 'Student Enrollment' : isPrimary ? 'Pupil Registry' : 'Student Records', icon: <Users className="w-5 h-5 text-indigo-600" /> },
+    { id: 'studentProgress', label: 'Student Progress Tracking', icon: <TrendingUp className="w-5 h-5 text-blue-500" /> },
+    { id: 'teacherManagement', label: 'Teacher Management', icon: <Users className="w-5 h-5 text-emerald-500" /> },
+    { id: 'resourceMarketplace', label: 'Resource Marketplace', icon: <Package className="w-5 h-5 text-amber-500" /> },
+    { id: 'news', label: 'News & Media', icon: <Newspaper className="w-5 h-5" /> },
+    { id: 'marketing', label: 'Marketing Hub', icon: <Megaphone className="w-5 h-5" /> },
+    { id: 'finance', label: 'Finance Hub', icon: '💳' },
+    { id: 'seo', label: 'SEO Engine', icon: <Search className="w-5 h-5" /> },
+    { id: 'ai', label: 'AI Assistant', icon: <Sparkles className="w-5 h-5" /> },
+    { id: 'analytics', label: 'Analytics', icon: <BarChart className="w-5 h-5" /> },
+    { id: 'workflows', label: 'Workflows', icon: <TrendingUp className="w-5 h-5" /> },
+    { id: 'monetization', label: 'Revenue & Billing', icon: <DollarSign className="w-5 h-5 text-emerald-500" /> },
+    { id: 'inbox', label: 'Portal Inbox', icon: <Mail className="w-5 h-5 text-blue-600" /> },
+    { id: 'applications', label: 'Applications', icon: <FileText className="w-5 h-5" /> },
+    { id: 'users', label: 'Users & Permissions', icon: <Lock className="w-5 h-5 text-amber-500" /> },
+    { id: 'security', label: 'Security', icon: <Lock className="w-5 h-5" /> }
+  ];
+
+  const filteredTabs = tabs.filter(tab => {
+    if (isAdmin) return true;
+    
+    switch (tab.id) {
+      case 'news': return hasPermission(user, 'canEditNews');
+      case 'media': return hasPermission(user, 'canEditNews');
+      case 'sections': return hasPermission(user, 'canEditStudentLife') || hasPermission(user, 'canEditAdmissions') || hasPermission(user, 'canEditAcademics');
+      case 'academicsContent': return hasPermission(user, 'canEditAcademics');
+      case 'academic': return hasPermission(user, 'canEditAcademics');
+      case 'finance': return hasPermission(user, 'canManageFinance');
+      case 'monetization': return hasPermission(user, 'canManageFinance');
+      case 'staff': return hasPermission(user, 'canManageStaff');
+      case 'students': return hasPermission(user, 'canManageStudents');
+      case 'inventory': return hasPermission(user, 'canManageInventory');
+      case 'inbox': return hasPermission(user, 'canManagePortal');
+      case 'applications': return hasPermission(user, 'canEditAdmissions');
+      case 'workflow': return hasPermission(user, 'canManagePortal');
+      case 'settings': return hasPermission(user, 'canManagePortal');
+      default: return false;
+    }
+  });
+
+  useEffect(() => {
+    if (!isAdmin && filteredTabs.length > 0 && !filteredTabs.find(t => t.id === activeTab)) {
+      setActiveTab(filteredTabs[0].id as any);
+    }
+  }, [isAdmin, filteredTabs, activeTab]);
+
   if (!inst) return <div className="p-24 text-center font-black text-slate-300">Portal starting...</div>;
 
   const handleUpdate = (updatedInst: Institution) => onUpdate(updatedInst);
@@ -113,74 +181,6 @@ const InstitutionAdminDashboard: React.FC<InstitutionAdminDashboardProps> = ({ u
     }
   };
 
-  const isTertiary = inst.type.includes(InstitutionType.TERTIARY);
-  const isPrimary = inst.type.includes(InstitutionType.PRIMARY);
-
-  const isAdmin = user.role === UserRole.INSTITUTION_ADMIN || user.role === UserRole.SUPER_ADMIN;
-
-  const tabs = [
-    { id: 'basics', label: 'Basic Details', icon: '📋' },
-    { id: 'identity', label: 'Identity', icon: '🆔' },
-    { id: 'compliance', label: 'MoET Compliance', icon: <ShieldAlert className="w-5 h-5 text-blue-500" /> },
-    { id: 'theme', label: 'Appearance', icon: '✨' },
-    { id: 'paperless', label: 'Paperless Hub', icon: <Leaf className="w-5 h-5 text-emerald-500" /> },
-    { id: 'sections', label: 'Site Modules', icon: '🎨' },
-    { id: 'downloads', label: 'Downloads', icon: <Download className="w-5 h-5" /> },
-    { id: 'media', label: 'Media Manager', icon: <ImageIcon className="w-5 h-5" /> },
-    { id: 'academic', label: isTertiary ? 'Academic Systems' : isPrimary ? 'Classroom Tools' : 'Academic Tools', icon: '📅' },
-    { id: 'academicsContent', label: isTertiary ? 'Faculties & Degrees' : isPrimary ? 'Grades & Phases' : 'Academics Content', icon: '📝' },
-    { id: 'timetabling', label: 'AI Timetable', icon: <Calendar className="w-5 h-5" /> },
-    { id: 'staff', label: isTertiary ? 'Faculty Registry' : isPrimary ? 'Teacher Directory' : 'Staff Room', icon: <Users className="w-5 h-5" /> },
-    { id: 'inventory', label: isTertiary ? 'Asset Registry' : isPrimary ? 'Supply Tracker' : 'Inventory', icon: <Package className="w-5 h-5" /> },
-    { id: 'health', label: 'Wellness Ledger', icon: <Stethoscope className="w-5 h-5" /> },
-    { id: 'logistics', label: isTertiary ? 'Field Research' : isPrimary ? 'Excursions' : 'Trip Planner', icon: <Bus className="w-5 h-5" /> },
-    { id: 'benchmarking', label: 'Peer Benchmarking', icon: <BarChart2 className="w-5 h-5" /> },
-    { id: 'alumni', label: isTertiary ? 'Alumni Network' : 'Alumni Portal', icon: <GraduationCap className="w-5 h-5" /> },
-    { id: 'students', label: isTertiary ? 'Student Enrollment' : isPrimary ? 'Pupil Registry' : 'Student Records', icon: <Users className="w-5 h-5 text-indigo-600" /> },
-    { id: 'studentProgress', label: 'Student Progress Tracking', icon: <TrendingUp className="w-5 h-5 text-blue-500" /> },
-    { id: 'teacherManagement', label: 'Teacher Management', icon: <Users className="w-5 h-5 text-emerald-500" /> },
-    { id: 'resourceMarketplace', label: 'Resource Marketplace', icon: <Package className="w-5 h-5 text-amber-500" /> },
-    { id: 'news', label: 'News & Media', icon: <Newspaper className="w-5 h-5" /> },
-    { id: 'marketing', label: 'Marketing Hub', icon: <Megaphone className="w-5 h-5" /> },
-    { id: 'finance', label: 'Finance Hub', icon: '💳' },
-    { id: 'seo', label: 'SEO Engine', icon: <Search className="w-5 h-5" /> },
-    { id: 'ai', label: 'AI Assistant', icon: <Sparkles className="w-5 h-5" /> },
-    { id: 'analytics', label: 'Analytics', icon: <BarChart className="w-5 h-5" /> },
-    { id: 'workflows', label: 'Workflows', icon: <TrendingUp className="w-5 h-5" /> },
-    { id: 'monetization', label: 'Revenue & Billing', icon: <DollarSign className="w-5 h-5 text-emerald-500" /> },
-    { id: 'inbox', label: 'Portal Inbox', icon: <Mail className="w-5 h-5 text-blue-600" /> },
-    { id: 'applications', label: 'Applications', icon: <FileText className="w-5 h-5" /> },
-    { id: 'users', label: 'Users & Permissions', icon: <Lock className="w-5 h-5 text-amber-500" /> },
-    { id: 'security', label: 'Security', icon: <Lock className="w-5 h-5" /> }
-  ];
-
-  const filteredTabs = tabs.filter(tab => {
-    if (isAdmin) return true;
-    
-    switch (tab.id) {
-      case 'news': return hasPermission(user, 'canEditNews');
-      case 'media': return hasPermission(user, 'canEditNews');
-      case 'sections': return hasPermission(user, 'canEditStudentLife') || hasPermission(user, 'canEditAdmissions') || hasPermission(user, 'canEditAcademics');
-      case 'academicsContent': return hasPermission(user, 'canEditAcademics');
-      case 'academic': return hasPermission(user, 'canEditAcademics');
-      case 'finance': return hasPermission(user, 'canManageFinance');
-      case 'monetization': return hasPermission(user, 'canManageFinance');
-      case 'staff': return hasPermission(user, 'canManageStaff');
-      case 'students': return hasPermission(user, 'canManageStudents');
-      case 'inventory': return hasPermission(user, 'canManageInventory');
-      case 'inbox': return hasPermission(user, 'canManagePortal');
-      case 'applications': return hasPermission(user, 'canEditAdmissions');
-      case 'workflow': return hasPermission(user, 'canManagePortal');
-      case 'settings': return hasPermission(user, 'canManagePortal');
-      default: return false;
-    }
-  });
-
-  useEffect(() => {
-    if (!isAdmin && filteredTabs.length > 0 && !filteredTabs.find(t => t.id === activeTab)) {
-      setActiveTab(filteredTabs[0].id as any);
-    }
-  }, [isAdmin, filteredTabs, activeTab]);
 
 
   return (
@@ -488,12 +488,54 @@ const InstitutionAdminDashboard: React.FC<InstitutionAdminDashboardProps> = ({ u
                   <h3 className="text-xl font-black text-slate-900 mb-8 flex items-center gap-3">🖼 Brand Assets</h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                     <div>
-                      <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Official Logo (URL)</label>
-                      <input className="w-full bg-slate-50 border-none rounded-xl px-4 py-3 font-bold" value={inst.logo} onChange={e => handleUpdate({ ...inst, logo: e.target.value })} />
+                      <div className="flex justify-between items-end mb-2">
+                         <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest">Official Logo</label>
+                         <button 
+                           onClick={() => logoInputRef.current?.click()}
+                           className="text-[10px] font-black text-blue-600 bg-blue-50 px-3 py-1 rounded-full hover:bg-blue-100 transition-colors"
+                           disabled={isUploading}
+                         >
+                            {isUploading ? 'Uploading...' : 'Upload File'}
+                         </button>
+                      </div>
+                      <input 
+                         type="file" 
+                         ref={logoInputRef} 
+                         className="hidden" 
+                         accept="image/*" 
+                         onChange={e => handleFileChange(e, 'logo')} 
+                      />
+                      <input 
+                         className="w-full bg-slate-50 border-none rounded-xl px-4 py-3 font-bold" 
+                         value={inst.logo} 
+                         onChange={e => handleUpdate({ ...inst, logo: e.target.value })} 
+                         placeholder="Or enter image URL"
+                      />
                     </div>
                     <div>
-                      <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Cover Photo (URL)</label>
-                      <input className="w-full bg-slate-50 border-none rounded-xl px-4 py-3 font-bold" value={inst.coverImage} onChange={e => handleUpdate({ ...inst, coverImage: e.target.value })} />
+                      <div className="flex justify-between items-end mb-2">
+                         <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest">Cover Photo</label>
+                         <button 
+                           onClick={() => coverInputRef.current?.click()}
+                           className="text-[10px] font-black text-blue-600 bg-blue-50 px-3 py-1 rounded-full hover:bg-blue-100 transition-colors"
+                           disabled={isUploading}
+                         >
+                            {isUploading ? 'Uploading...' : 'Upload File'}
+                         </button>
+                      </div>
+                      <input 
+                         type="file" 
+                         ref={coverInputRef} 
+                         className="hidden" 
+                         accept="image/*" 
+                         onChange={e => handleFileChange(e, 'cover')} 
+                      />
+                      <input 
+                         className="w-full bg-slate-50 border-none rounded-xl px-4 py-3 font-bold" 
+                         value={inst.coverImage} 
+                         onChange={e => handleUpdate({ ...inst, coverImage: e.target.value })} 
+                         placeholder="Or enter image URL"
+                      />
                     </div>
                   </div>
                 </section>
@@ -2304,6 +2346,97 @@ const InstitutionAdminDashboard: React.FC<InstitutionAdminDashboardProps> = ({ u
                       </div>
                     ))}
                   </div>
+                </section>
+              </div>
+            )}
+
+            {activeTab === 'security' && (
+              <div className="bg-white p-10 rounded-[40px] border border-slate-100 shadow-sm space-y-12 animate-in fade-in">
+                <section>
+                   <h3 className="text-xl font-black text-slate-900 mb-2 flex items-center gap-3">🛡️ Infrastructure & Connectivity</h3>
+                   <p className="text-sm text-slate-500 mb-8 font-medium">Monitor the status of your institution's connection to national infrastructure services.</p>
+                   
+                   <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                      <div className="p-8 bg-slate-50 rounded-[40px] border border-slate-100">
+                         <div className="flex items-center justify-between mb-6">
+                            <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Portal Delivery Status</h4>
+                            <span className="px-3 py-1 bg-emerald-50 text-emerald-600 rounded-full text-[8px] font-black uppercase tracking-widest">Active</span>
+                         </div>
+                         <div className="space-y-6">
+                            <div className="flex items-center justify-between">
+                               <div className="flex items-center gap-3">
+                                  <Mail className="w-4 h-4 text-indigo-500" />
+                                  <span className="text-sm font-bold text-slate-700">Email Gateway</span>
+                               </div>
+                               <span className="text-[9px] font-black text-emerald-600 uppercase">Operational</span>
+                            </div>
+                            <div className="flex items-center justify-between">
+                               <div className="flex items-center gap-3">
+                                  <Megaphone className="w-4 h-4 text-blue-500" />
+                                  <span className="text-sm font-bold text-slate-700">SMS Broadcaster</span>
+                               </div>
+                               <span className="text-[9px] font-black text-emerald-600 uppercase">Operational</span>
+                            </div>
+                            <div className="flex items-center justify-between">
+                               <div className="flex items-center gap-3">
+                                  <DollarSign className="w-4 h-4 text-emerald-500" />
+                                  <span className="text-sm font-bold text-slate-700">MoMo Settlement</span>
+                               </div>
+                               <span className="text-[9px] font-black text-amber-500 uppercase">Sandbox Mode</span>
+                            </div>
+                         </div>
+                         <button className="w-full mt-8 py-4 bg-slate-900 text-white rounded-2xl text-[9px] font-black uppercase tracking-widest shadow-xl hover:bg-indigo-600 transition-all">Test End-to-End Pulse</button>
+                      </div>
+
+                      <div className="p-8 bg-slate-900 rounded-[40px] text-white">
+                         <h4 className="text-[10px] font-black text-white/40 uppercase tracking-widest mb-6">Verification Ledger</h4>
+                         <div className="flex items-center gap-4 mb-8">
+                            <div className="w-14 h-14 bg-white/10 rounded-2xl flex items-center justify-center border border-white/10">
+                               <Shield className="w-6 h-6 text-emerald-400" />
+                            </div>
+                            <div>
+                               <p className="text-sm font-black">Verified Institution</p>
+                               <p className="text-[10px] text-white/50 font-bold uppercase tracking-widest">MoET Reg: {inst.moetRegistration || "N/A"}</p>
+                            </div>
+                         </div>
+                         <div className="p-6 bg-white/5 rounded-3xl border border-white/10 space-y-4">
+                            <div className="flex items-center justify-between text-xs">
+                               <span className="text-white/60">Registry Sync</span>
+                               <span className="font-black">Passed</span>
+                            </div>
+                            <div className="flex items-center justify-between text-xs">
+                               <span className="text-white/60">Identity Match</span>
+                               <span className="font-black">Passed</span>
+                            </div>
+                            <div className="flex items-center justify-between text-xs">
+                               <span className="text-white/60">Last Audit</span>
+                               <span className="font-black">May 2026</span>
+                            </div>
+                         </div>
+                      </div>
+                   </div>
+                </section>
+
+                <section className="pt-12 border-t border-slate-100">
+                   <h3 className="text-xl font-black text-slate-900 mb-8 flex items-center gap-3">🔐 Data Access Audit</h3>
+                   <div className="bg-slate-50 p-8 rounded-[40px] border border-slate-100">
+                      <p className="text-sm font-medium text-slate-500 mb-6 leading-relaxed">
+                         View which administrative users have accessed sensitive student records or financial data in the last 24 hours.
+                      </p>
+                      <div className="space-y-3">
+                         {[
+                           { user: 'Bonsile Maseko', action: 'Accessed Fee Ledger', time: '10 mins ago' },
+                           { user: 'Admin System', action: 'Auto-Backup Sync', time: '1 hour ago' },
+                           { user: 'Bursar Assistant', action: 'Exported Debtor List', time: '3 hours ago' }
+                         ].map((log, i) => (
+                           <div key={i} className="flex items-center justify-between bg-white p-4 rounded-xl border border-slate-200">
+                              <span className="text-xs font-bold text-slate-700">{log.user}</span>
+                              <span className="text-[10px] font-black uppercase text-slate-400">{log.action}</span>
+                              <span className="text-[10px] font-bold text-slate-400 italic">{log.time}</span>
+                           </div>
+                         ))}
+                      </div>
+                   </div>
                 </section>
               </div>
             )}
