@@ -316,7 +316,7 @@ const HomePage: React.FC<HomePageProps> = ({ institutions, onSelectRegion, lang,
                       </div>
                     </div>
                     <p className="text-xs text-slate-500 font-medium line-clamp-2 mb-6 leading-relaxed">
-                      {inst.seo.description}
+                      {(inst.seo?.description || '')}
                     </p>
                     <div className="flex items-center justify-between pt-6 border-t border-slate-200">
                       <div className="flex items-center gap-2">
@@ -410,7 +410,7 @@ const HomePage: React.FC<HomePageProps> = ({ institutions, onSelectRegion, lang,
                 </div>
                 <div>
                    <h4 className="text-2xl font-black text-slate-900 mb-4 group-hover:text-red-600 transition-colors leading-tight">{inst.name}</h4>
-                   <p className="text-slate-500 font-medium line-clamp-3 leading-relaxed">{inst.seo.description}</p>
+                   <p className="text-slate-500 font-medium line-clamp-3 leading-relaxed">{(inst.seo?.description || '')}</p>
                 </div>
                 <div className="mt-10 pt-10 border-t border-slate-100 flex items-center justify-between">
                    <div className="flex items-center gap-3">

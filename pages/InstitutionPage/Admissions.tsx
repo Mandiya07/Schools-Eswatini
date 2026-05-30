@@ -12,7 +12,7 @@ export const InstitutionAdmissions: React.FC = () => {
   return (
     <div className="space-y-32">
       <h2 className="text-7xl font-black text-slate-900 tracking-tighter">Admissions</h2>
-      <AdmissionsSection admissions={admissions} primaryColor={inst.theme.primaryColor} />
+      <AdmissionsSection admissions={admissions} primaryColor={(inst.theme?.primaryColor || '#2563eb')} />
     </div>
   );
 };

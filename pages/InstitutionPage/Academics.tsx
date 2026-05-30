@@ -14,7 +14,7 @@ export const InstitutionAcademics: React.FC = () => {
       <h2 className="text-7xl font-black text-slate-900 tracking-tighter">Academics</h2>
       <AcademicsSection 
         academics={academics} 
-        primaryColor={inst.theme.primaryColor} 
+        primaryColor={(inst.theme?.primaryColor || '#2563eb')} 
         institutionType={inst.type} 
         institutionId={inst.id}
       />

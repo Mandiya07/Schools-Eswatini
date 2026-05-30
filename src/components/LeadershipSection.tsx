@@ -88,7 +88,7 @@ const LeadershipSection: React.FC<LeadershipSectionProps> = ({ leadership, prima
                 Leading with Vision & Purpose
               </h2>
               <p className="text-xl text-slate-500 font-medium leading-relaxed">
-                {principal.description}
+                {(principal?.description || '')}
               </p>
             </div>
 

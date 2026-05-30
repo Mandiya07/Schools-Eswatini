@@ -32,7 +32,7 @@ const SEO: React.FC<SEOProps> = ({
     "@context": "https://schema.org",
     "@type": "School",
     "name": institution.name,
-    "description": institution.seo.description,
+    "description": institution.seo?.description || '',
     "url": `https://${institution.slug}.schools.sz`,
     "logo": institution.logo,
     "image": institution.coverImage,

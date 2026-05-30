@@ -110,7 +110,7 @@ const AcademicsSection: React.FC<AcademicsSectionProps> = ({ academics, primaryC
                     <h2 className="text-[11px] font-black text-blue-600 uppercase tracking-[0.3em]">Academic Excellence</h2>
                   </div>
                   <h3 className="text-6xl md:text-8xl font-black text-slate-900 tracking-tighter leading-snug">
-                    {academics.overview.headline}
+                    {(academics?.overview?.headline || '')}
                   </h3>
                   {academics.studentPortal?.enabled && academics.studentPortal.url && (
                     <motion.div 
@@ -138,7 +138,7 @@ const AcademicsSection: React.FC<AcademicsSectionProps> = ({ academics, primaryC
                     </motion.div>
                   )}
                   <p className="text-2xl text-slate-500 font-medium leading-relaxed">
-                    {academics.overview.introduction}
+                    {(academics?.overview?.introduction || '')}
                   </p>
                 </div>
               </section>
@@ -168,7 +168,7 @@ const AcademicsSection: React.FC<AcademicsSectionProps> = ({ academics, primaryC
                 <div className="lg:col-span-7 flex flex-col justify-center">
                   <div className="p-12 bg-slate-50 rounded-[64px] border border-slate-100 italic">
                     <p className="text-2xl text-slate-600 font-medium leading-relaxed">
-                      "{academics.curriculum.description}"
+                      "{(academics.curriculum?.description || '')}"
                     </p>
                   </div>
                 </div>
@@ -553,7 +553,7 @@ const AcademicsSection: React.FC<AcademicsSectionProps> = ({ academics, primaryC
                       <div className="w-8 h-8 bg-white/20 rounded-xl flex items-center justify-center group-hover:bg-emerald-500 transition-colors">
                         <VideoIcon className="w-4 h-4" />
                       </div>
-                      Enter Live Demo Classroom
+                      Enter Live Classroom
                       <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                     </Link>
                     <button className="px-10 py-5 bg-white border border-slate-200 text-slate-600 rounded-[32px] font-black uppercase tracking-widest text-[10px] flex items-center gap-3 hover:border-emerald-500 hover:text-emerald-600 transition-all">
@@ -750,7 +750,7 @@ const AcademicsSection: React.FC<AcademicsSectionProps> = ({ academics, primaryC
                     <h3 className="text-3xl font-black text-slate-900 tracking-tight">Academic Facilities</h3>
                   </div>
                   <div className="space-y-8">
-                    <p className="text-lg font-medium text-slate-500 leading-relaxed italic">"{academics.facilities.description}"</p>
+                    <p className="text-lg font-medium text-slate-500 leading-relaxed italic">"{(academics.facilities?.description || '')}"</p>
                     <div className="grid grid-cols-2 gap-4">
                       {academics.facilities.list.map((fac, idx) => (
                         <div key={idx} className="flex items-center gap-4 p-4 bg-white rounded-2xl border border-slate-100">

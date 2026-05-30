@@ -46,7 +46,7 @@ const StudentLifeSection: React.FC<StudentLifeSectionProps> = ({ life, primaryCo
             <h3 className="text-4xl font-black text-slate-900 tracking-tight uppercase tracking-widest">Sports & Athletics</h3>
           </div>
           <p className="text-lg text-slate-600 font-medium leading-relaxed">
-            {life.sports.description}
+            {(life?.sports?.description || '')}
           </p>
           <div className="space-y-6">
             <div className="grid grid-cols-2 gap-4">
@@ -131,7 +131,7 @@ const StudentLifeSection: React.FC<StudentLifeSectionProps> = ({ life, primaryCo
           <div className="relative z-10 space-y-8">
             <h3 className="text-4xl font-black tracking-tight uppercase tracking-widest">Arts & Culture</h3>
             <p className="text-xl text-slate-400 font-medium leading-relaxed">
-              {life.arts.description}
+              {(life?.arts?.description || '')}
             </p>
             <div className="space-y-4">
               {life.arts.activities.map((act, idx) => (
@@ -211,7 +211,7 @@ const StudentLifeSection: React.FC<StudentLifeSectionProps> = ({ life, primaryCo
             ))}
           </div>
           <p className="text-sm text-emerald-700 font-medium leading-relaxed pt-6 border-t border-emerald-200">
-            {life.support.description}
+            {(life?.support?.description || '')}
           </p>
         </section>
       </div>
@@ -231,7 +231,7 @@ const StudentLifeSection: React.FC<StudentLifeSectionProps> = ({ life, primaryCo
               </div>
               <h3 className="text-4xl font-black text-slate-900 tracking-tight uppercase tracking-widest">Accommodation</h3>
               <p className="text-xl text-amber-900/70 font-medium leading-relaxed">
-                {life.accommodation.description}
+                {(life?.accommodation?.description || '')}
               </p>
               <div className="flex flex-wrap gap-3">
                 {life.accommodation.facilities?.map((fac, idx) => (
@@ -251,7 +251,7 @@ const StudentLifeSection: React.FC<StudentLifeSectionProps> = ({ life, primaryCo
           <div className="relative z-10 space-y-8">
             <h3 className="text-4xl font-black text-slate-900 tracking-tight uppercase tracking-widest">Community Impact</h3>
             <p className="text-xl text-blue-900/70 font-medium leading-relaxed">
-              {life.community.description}
+              {(life?.community?.description || '')}
             </p>
             <div className="space-y-4">
               {life.community.programs.map((prog, idx) => (

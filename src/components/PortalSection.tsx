@@ -79,7 +79,7 @@ const PortalSection: React.FC<PortalSectionProps> = ({ portal, primaryColor }) =
       bgHover: 'group-hover:bg-rose-600',
       iconColor: 'text-rose-600',
       dot: 'bg-rose-500',
-      description: portal.features.scheduling.description,
+      description: (portal?.features?.scheduling?.description || ''),
       items: portal.features.scheduling.list
     },
     { 
@@ -110,7 +110,7 @@ const PortalSection: React.FC<PortalSectionProps> = ({ portal, primaryColor }) =
             </h2>
           </div>
           <p className="text-2xl text-slate-400 font-medium leading-relaxed">
-            {portal.description}
+            {(portal?.description || '')}
           </p>
           <div className="flex flex-wrap gap-6">
             {portal.url ? (

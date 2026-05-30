@@ -98,7 +98,7 @@ const StudentLifeEditor: React.FC<StudentLifeEditorProps> = ({ institution, onUp
                 <textarea 
                   placeholder="Overview of sports programs..."
                   className="w-full bg-white border-none rounded-2xl px-4 py-3 text-xs font-medium"
-                  value={studentLife.sports.description}
+                  value={studentLife.sports?.description || ''}
                   onChange={e => updateField('sports', { ...studentLife.sports, description: e.target.value })}
                 />
                 <div className="flex flex-wrap gap-2">
@@ -199,7 +199,7 @@ const StudentLifeEditor: React.FC<StudentLifeEditorProps> = ({ institution, onUp
                 <textarea 
                   placeholder="Describe the boarding facilities, supervision, and environment..."
                   className="w-full bg-white border-none rounded-2xl px-4 py-3 text-xs font-medium"
-                  value={studentLife.accommodation?.description || ''}
+                  value={(studentLife.accommodation?.description || '') || ''}
                   onChange={e => updateField('accommodation', { ...studentLife.accommodation, description: e.target.value })}
                 />
               )}

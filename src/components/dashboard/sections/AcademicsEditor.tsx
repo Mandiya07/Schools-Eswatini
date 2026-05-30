@@ -91,7 +91,7 @@ const AcademicsEditor: React.FC<AcademicsEditorProps> = ({ institution, onUpdate
                   <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Academic Headline</label>
                   <input 
                     className="w-full bg-slate-100 border-2 border-transparent focus:border-blue-500 focus:bg-white rounded-2xl px-6 py-4 font-bold transition-all outline-none" 
-                    value={academics.overview.headline} 
+                    value={(academics?.overview?.headline || '')} 
                     onChange={e => updateField('overview', { ...academics.overview, headline: e.target.value })} 
                   />
                 </div>
@@ -110,7 +110,7 @@ const AcademicsEditor: React.FC<AcademicsEditorProps> = ({ institution, onUpdate
                 <textarea 
                   rows={4} 
                   className="w-full bg-slate-100 border-2 border-transparent focus:border-blue-500 focus:bg-white rounded-2xl px-6 py-4 font-medium transition-all outline-none resize-none" 
-                  value={academics.overview.introduction} 
+                  value={(academics?.overview?.introduction || '')} 
                   onChange={e => updateField('overview', { ...academics.overview, introduction: e.target.value })}
                 />
               </div>
@@ -711,7 +711,7 @@ const AcademicsEditor: React.FC<AcademicsEditorProps> = ({ institution, onUpdate
                     rows={4}
                     className="w-full bg-white/10 border-2 border-white/20 focus:border-white focus:bg-white/20 rounded-[32px] px-8 py-6 font-medium text-white outline-none resize-none placeholder:text-white/40"
                     placeholder="Describe your general academic support system (e.g., student wellbeing programs, accessible learning resources...)"
-                    value={academics.support.description}
+                    value={(academics.support?.description || '')}
                     onChange={e => updateField('support', { ...academics.support, description: e.target.value })}
                   />
                 </div>
@@ -1041,8 +1041,8 @@ const AcademicsEditor: React.FC<AcademicsEditorProps> = ({ institution, onUpdate
           <div className="sticky top-8 space-y-6">
             <div className="bg-white p-10 rounded-[40px] border border-slate-100 shadow-sm space-y-8">
               <div className="space-y-4">
-                <h4 className="text-2xl font-black text-slate-900 tracking-tight">{academics.overview.headline}</h4>
-                <p className="text-slate-500 font-medium text-sm leading-relaxed">{academics.overview.introduction}</p>
+                <h4 className="text-2xl font-black text-slate-900 tracking-tight">{(academics?.overview?.headline || '')}</h4>
+                <p className="text-slate-500 font-medium text-sm leading-relaxed">{(academics?.overview?.introduction || '')}</p>
                 
                 {academics.staff.head.name && (
                   <div className="pt-6 border-t border-slate-100 space-y-4">
@@ -1269,7 +1269,7 @@ const AcademicsEditor: React.FC<AcademicsEditorProps> = ({ institution, onUpdate
               {activeSubTab === 'support' && (
                 <div className="space-y-6 animate-in fade-in">
                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Student Support Services</p>
-                   <p className="text-xs text-slate-600 font-medium leading-relaxed italic">"{academics.support.description || 'Comprehensive support provided to all students...'}"</p>
+                   <p className="text-xs text-slate-600 font-medium leading-relaxed italic">"{(academics.support?.description || '') || 'Comprehensive support provided to all students...'}"</p>
                    <div className="flex flex-wrap gap-2 pt-2">
                       {academics.support.services.map((s, i) => (
                         <span key={i} className="px-3 py-1 bg-blue-600 text-white rounded-full text-[9px] font-black uppercase tracking-widest shadow-lg shadow-blue-200">

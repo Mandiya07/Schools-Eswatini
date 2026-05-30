@@ -12,7 +12,7 @@ export const InstitutionPortal: React.FC = () => {
   return (
     <div className="space-y-32">
       <h2 className="text-7xl font-black text-slate-900 tracking-tighter">Student Portal</h2>
-      <PortalSection portal={portal} primaryColor={inst.theme.primaryColor} />
+      <PortalSection portal={portal} primaryColor={(inst.theme?.primaryColor || '#2563eb')} />
     </div>
   );
 };

@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect, ErrorInfo, ReactNode } from 'react';
 import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
-import { User, Institution, Region, UserRole } from './types';
+import { User, Institution, Region, UserRole, InstitutionType, GenderType } from './types';
 import { MOCK_INSTITUTIONS } from './mockData';
 import { auth, db, onAuthStateChanged, onSnapshot, collection, doc, getDoc, setDoc, deleteDoc, getDocs, query, where, OperationType, handleFirestoreError, getDocWithRetry, getDocsWithRetry, isOffline as checkFirebaseOffline } from './src/lib/firebase';
 import { logActivity, ActivityType } from './src/services/securityService';
@@ -46,6 +46,7 @@ import TermsOfService from './pages/TermsOfService';
 import PrivacyPolicy from './pages/PrivacyPolicy';
 import VirtualClassroom from './pages/VirtualClassroom';
 import SecurityLogsPage from './pages/SecurityLogsPage';
+import PricingPage from './pages/PricingPage';
 
 // Components
 import Navbar from './components/Navbar';
@@ -288,15 +289,76 @@ const App: React.FC = () => {
 
     const unsubscribe = onSnapshot(q, 
       (snapshot: any) => {
-        const instList = snapshot.docs.map((doc: any) => ({ id: doc.id, ...doc.data() } as Institution));
-        if (instList.length === 0) {
-          // If Firestore is connected but empty, we still set isFirebaseOffline to false
-          // but we use mock data for the UI
-          setInstitutions(MOCK_INSTITUTIONS);
-          console.log("Firestore connected but no institutions found. Using mock data.");
-        } else {
-          setInstitutions(instList);
+        let instList = snapshot.docs.map((doc: any) => {
+          const data = doc.data();
+          const id = doc.id;
+          const inst = { id, ...data };
+          
+          const sections = inst.sections || {};
+          
+          if (sections.about) {
+            if (typeof sections.about.overview === 'object' && sections.about.overview !== null) {
+              sections.about.overview = sections.about.overview.description || sections.about.overview.title || '';
+            }
+          }
+          
+          const mockMatch = MOCK_INSTITUTIONS.find((m: any) => m.id === id || m.slug === inst.slug);
+          if (mockMatch) {
+            // Merge missing root properties from mockMatch
+            for (const prop of ['region', 'type', 'curriculum', 'admission', 'details', 'logo', 'coverImage', 'metadata', 'contact', 'plan', 'isVerified', 'isAccredited']) {
+              if (inst[prop] === undefined && (mockMatch as any)[prop] !== undefined) {
+                (inst as any)[prop] = JSON.parse(JSON.stringify((mockMatch as any)[prop]));
+              }
+            }
+            // Merge sections
+            for (const key of ['about', 'news', 'studentLife', 'academics', 'homepage']) {
+              if (!sections[key] && (mockMatch.sections as any)[key]) {
+                sections[key] = JSON.parse(JSON.stringify((mockMatch.sections as any)[key]));
+              }
+            }
+          }
+
+          // Ensure base properties exist so they never crash or fail filters
+          if (!inst.region) inst.region = Region.HHOHHO;
+          if (!inst.type) inst.type = [InstitutionType.HIGH_SCHOOL, InstitutionType.PUBLIC];
+          if (!inst.metadata) {
+            inst.metadata = {
+              gender: GenderType.MIXED,
+              isBoarding: false,
+              feeRange: { min: 3000, max: 8000 },
+              establishedYear: new Date().getFullYear(),
+              studentCount: 0,
+              hasStudentPortal: false
+            };
+          }
+          if (!inst.contact) {
+            inst.contact = {
+              address: 'Eswatini',
+              phone: '+268 2505 2000',
+              email: 'info@schoolseswatini.sz',
+              officeHours: 'Mon - Fri: 08:00 - 16:30',
+              googleMapsUrl: '',
+              headline: inst.details || '',
+              introduction: inst.details || '',
+              departments: [],
+              faqs: []
+            };
+          }
+          
+          inst.sections = sections;
+          return inst as Institution;
+        });
+
+        const mergedList = [...instList];
+        for (const mockInst of MOCK_INSTITUTIONS) {
+          const exists = mergedList.some(i => i.id === mockInst.id || (mockInst.slug && i.slug === mockInst.slug));
+          if (!exists) {
+            if (isSuperAdmin || mockInst.status === 'published') {
+              mergedList.push(mockInst);
+            }
+          }
         }
+        setInstitutions(mergedList);
         setLoading(false);
       },
         (error: any) => {
@@ -516,6 +578,8 @@ const App: React.FC = () => {
                 </RoleGuard>
               } 
             />
+
+            <Route path="/pricing" element={<PricingPage user={user} />} />
 
             <Route 
               path="/teacher/dashboard" 

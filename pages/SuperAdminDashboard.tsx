@@ -91,7 +91,7 @@ const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({ user, institu
       name: newSchool.name,
       slug: newSchool.name.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
       region: newSchool.region,
-      status: 'pending',
+      status: 'published',
       plan: SubscriptionPlan.FREE,
       isVerified: false,
       isAccredited: false,
@@ -503,16 +503,31 @@ const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({ user, institu
                 <div className="flex gap-4">
                   <button 
                     onClick={async () => {
-                      // Promote to main institutions
-                      await addDoc(collection(db, 'institutions'), {
-                        name: app.institutionName,
-                        slug: app.institutionName.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
-                        status: 'published',
-                        isVerified: true,
-                        createdAt: new Date().toISOString()
-                      });
-                      await updateDoc(doc(db, 'school_applications', app.id), { status: 'approved' });
-                      setApplications(applications.filter(a => a.id !== app.id));
+                      try {
+                        const baseInst = JSON.parse(JSON.stringify(MOCK_INSTITUTIONS[0])) as Institution;
+                        const instId = `inst-${Date.now()}`;
+                        const approvedInst: Institution = {
+                          ...baseInst,
+                          id: instId,
+                          name: app.institutionName,
+                          slug: app.institutionName.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
+                          status: 'published',
+                          isVerified: true,
+                          region: Region.HHOHHO,
+                          adminId: app.email,
+                          createdAt: new Date().toISOString(),
+                          logo: `https://picsum.photos/seed/${instId}/200/200`,
+                          coverImage: baseInst.coverImage || ''
+                        };
+                        
+                        await setDoc(doc(db, 'institutions', instId), approvedInst);
+                        await updateDoc(doc(db, 'school_applications', app.id), { status: 'approved' });
+                        setApplications(applications.filter(a => a.id !== app.id));
+                        alert(`Application for "${app.institutionName}" approved and published successfully!`);
+                      } catch (err: any) {
+                        console.error("Error approving school application:", err);
+                        alert(`Failed to approve: ${err.message}`);
+                      }
                     }}
                     className="flex-1 bg-emerald-500 text-white py-3 rounded-xl font-black uppercase tracking-widest text-[10px] hover:bg-emerald-600 transition-all"
                   >

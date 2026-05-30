@@ -239,7 +239,7 @@ const AdmissionsSection: React.FC<AdmissionsSectionProps> = ({ admissions, prima
 
           <div className="space-y-8 relative z-10">
             <div className="flex flex-wrap gap-3">
-              {admissions.scholarships.types.map((type, idx) => (
+              {admissions.scholarships?.types?.map((type, idx) => (
                 <span key={idx} className="px-4 py-2 bg-white/10 rounded-xl text-xs font-bold border border-white/10">
                   {type}
                 </span>
@@ -249,11 +249,11 @@ const AdmissionsSection: React.FC<AdmissionsSectionProps> = ({ admissions, prima
             <div className="space-y-4">
               <p className="text-sm font-medium text-blue-50 leading-relaxed">
                 <span className="block text-[10px] font-black text-blue-200 uppercase tracking-widest mb-2">Eligibility</span>
-                {admissions.scholarships.eligibility}
+                {admissions.scholarships?.eligibility}
               </p>
               <p className="text-sm font-medium text-blue-50 leading-relaxed">
                 <span className="block text-[10px] font-black text-blue-200 uppercase tracking-widest mb-2">How to Apply</span>
-                {admissions.scholarships.howToApply}
+                {admissions.scholarships?.howToApply}
               </p>
             </div>
 
@@ -302,7 +302,7 @@ const AdmissionsSection: React.FC<AdmissionsSectionProps> = ({ admissions, prima
             </div>
             
             <div className="space-y-6">
-              <p className="text-slate-600 font-medium leading-relaxed">{admissions.boardingInfo.description}</p>
+              <p className="text-slate-600 font-medium leading-relaxed">{(admissions?.boardingInfo?.description || '')}</p>
               
               <div className="grid grid-cols-2 gap-4">
                 {admissions.boardingInfo.facilities.map((fac, idx) => (

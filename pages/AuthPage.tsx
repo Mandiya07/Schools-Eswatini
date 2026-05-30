@@ -22,6 +22,11 @@ const AuthPage: React.FC = () => {
     const tab = searchParams.get('tab');
     if (tab === 'register') setActiveTab('register');
     
+    const plan = searchParams.get('plan');
+    if (plan) {
+      setSelectedRole(UserRole.INSTITUTION_ADMIN);
+    }
+    
     // Pre-fill email from URL if present
     const emailParam = searchParams.get('email');
     if (emailParam) setEmail(emailParam);
@@ -203,15 +208,15 @@ const AuthPage: React.FC = () => {
           {activeTab === 'register' && (
             <div className="bg-slate-50 p-6 rounded-3xl space-y-4">
               <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest text-center">Account Role</p>
-              <div className="flex gap-3">
-                {[UserRole.VISITOR, UserRole.PARENT, UserRole.TEACHER].map(role => (
+              <div className="flex flex-wrap gap-2 justify-center">
+                {[UserRole.VISITOR, UserRole.PARENT, UserRole.TEACHER, UserRole.INSTITUTION_ADMIN, UserRole.STUDENT, UserRole.MOET_OFFICIAL].filter(r => searchParams.get('plan') ? r === UserRole.INSTITUTION_ADMIN : [UserRole.VISITOR, UserRole.PARENT, UserRole.TEACHER].includes(r)).map(role => (
                   <button
                     key={role}
                     type="button"
                     onClick={() => setSelectedRole(role)}
-                    className={`flex-1 py-3 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all ${selectedRole === role ? 'bg-blue-600 text-white shadow-lg' : 'bg-white text-slate-500 border border-slate-200'}`}
+                    className={`px-4 py-3 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all ${selectedRole === role ? 'bg-blue-600 text-white shadow-lg' : 'bg-white text-slate-500 border border-slate-200'} ${searchParams.get('plan') ? 'w-full' : 'flex-1'}`}
                   >
-                    {role}
+                    {role === UserRole.INSTITUTION_ADMIN ? 'Institution Admin' : role}
                   </button>
                 ))}
               </div>
@@ -245,32 +250,6 @@ const AuthPage: React.FC = () => {
           <img src="https://www.google.com/favicon.ico" alt="Google" className="w-5 h-5" />
           Continue with Google
         </button>
-
-        <div className="pt-8 border-t border-slate-50 mt-8">
-           <p className="text-center text-[10px] font-black text-slate-400 uppercase tracking-widest mb-6">Development Shortcuts</p>
-           <div className="grid grid-cols-2 gap-3">
-              <button
-                onClick={() => {
-                  setLoading(true);
-                  localStorage.setItem('se_dev_admin', 'true');
-                  window.location.href = '/dashboard';
-                }}
-                className="py-3 px-4 bg-slate-50 text-slate-500 text-[9px] font-black uppercase tracking-widest rounded-xl hover:bg-slate-900 hover:text-white transition-all text-center"
-              >
-                Super Admin
-              </button>
-              <button
-                onClick={() => {
-                  setLoading(true);
-                  localStorage.setItem('se_dev_teacher', 'true');
-                  window.location.href = '/teacher/dashboard';
-                }}
-                className="py-3 px-4 bg-slate-50 text-slate-500 text-[9px] font-black uppercase tracking-widest rounded-xl hover:bg-blue-600 hover:text-white transition-all text-center"
-              >
-                Teacher Demo
-              </button>
-           </div>
-        </div>
 
         <p className="text-center text-[10px] text-slate-400 font-medium leading-relaxed opacity-60">
           By continuing, you agree to the Schools Eswatini <br />

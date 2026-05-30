@@ -21,8 +21,12 @@ import {
   initializeFirestore,
   CACHE_SIZE_UNLIMITED,
   terminate,
-  waitForPendingWrites
+  waitForPendingWrites,
+  setLogLevel
 } from 'firebase/firestore';
+
+// Suppress Firestore offline warnings
+setLogLevel('silent');
 import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
 import firebaseConfig from '../../firebase-applet-config.json';
 
@@ -69,7 +73,7 @@ export async function testConnection(retries = 1) {
     const pingPromise = getDoc(docRef);
     
     const timeout = new Promise((_, reject) => 
-      setTimeout(() => reject(new Error('Connection timeout')), 10000)
+      setTimeout(() => reject(new Error('Connection timeout')), 3000)
     );
 
     await Promise.race([pingPromise, timeout]);

@@ -28,8 +28,8 @@ const AcademicsContentEditor: React.FC<AcademicsContentEditorProps> = ({ institu
         <div className="grid grid-cols-1 gap-8">
             <section className="bg-slate-50 p-6 rounded-3xl">
                 <h3 className="text-lg font-bold mb-4">Academic Overview</h3>
-                <input className="w-full bg-white border border-slate-200 rounded-xl px-4 py-2 mb-2" value={academics.overview.headline} onChange={e => updateAcademics('overview', {...academics.overview, headline: e.target.value})} placeholder="Headline" />
-                <textarea className="w-full bg-white border border-slate-200 rounded-xl px-4 py-2" value={academics.overview.introduction} onChange={e => updateAcademics('overview', {...academics.overview, introduction: e.target.value})} placeholder="Introduction"></textarea>
+                <input className="w-full bg-white border border-slate-200 rounded-xl px-4 py-2 mb-2" value={(academics?.overview?.headline || '')} onChange={e => updateAcademics('overview', {...academics.overview, headline: e.target.value})} placeholder="Headline" />
+                <textarea className="w-full bg-white border border-slate-200 rounded-xl px-4 py-2" value={(academics?.overview?.introduction || '')} onChange={e => updateAcademics('overview', {...academics.overview, introduction: e.target.value})} placeholder="Introduction"></textarea>
             </section>
             {/* Add more sections for Curriculum, Assessment, Facilities, Digital Learning, etc. */}
         </div>

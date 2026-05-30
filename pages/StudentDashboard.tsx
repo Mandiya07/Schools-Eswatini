@@ -77,16 +77,6 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ user }) => {
              <h2 className="text-2xl font-black text-slate-900">Access Restricted</h2>
              <p className="text-slate-500 mt-2">You must be logged in as a Student to view this portal.</p>
            </div>
-           
-           <div className="pt-8 border-t border-slate-100 space-y-4">
-             <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Demo Mode (Testing Only)</p>
-             <button 
-               onClick={() => setSimulatedRole(UserRole.STUDENT)}
-               className="w-full px-6 py-3 bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white rounded-xl font-black uppercase tracking-widest text-[10px] transition-colors"
-             >
-               Enter Demo as Student
-             </button>
-           </div>
          </div>
       </div>
     );

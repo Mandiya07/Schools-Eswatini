@@ -12,7 +12,7 @@ export const InstitutionNews: React.FC = () => {
   return (
     <div className="space-y-32">
       <h2 className="text-7xl font-black text-slate-900 tracking-tighter">News & Media</h2>
-      <NewsEventsSection news={news} primaryColor={inst.theme.primaryColor} />
+      <NewsEventsSection news={news} primaryColor={(inst.theme?.primaryColor || '#2563eb')} />
     </div>
   );
 };

@@ -56,7 +56,7 @@ const AboutEditor: React.FC<AboutEditorProps> = ({ institution, onUpdate }) => {
             <textarea 
               rows={4} 
               className="w-full bg-slate-50 border-2 border-transparent focus:border-blue-500 focus:bg-white rounded-2xl px-6 py-4 font-medium transition-all outline-none resize-none" 
-              value={about.overview} 
+              value={typeof about.overview === 'object' && about.overview !== null ? (about.overview as any).description || (about.overview as any).title || '' : about.overview || ''} 
               onChange={e => updateField('overview', e.target.value)}
               placeholder="Tell the world about your institution..."
             />
@@ -97,7 +97,7 @@ const AboutEditor: React.FC<AboutEditorProps> = ({ institution, onUpdate }) => {
                 <textarea 
                   rows={3} 
                   className="w-full bg-white border-2 border-transparent focus:border-blue-500 rounded-2xl px-5 py-3 font-medium text-blue-900 text-sm outline-none transition-all resize-none" 
-                  value={about.mission.description || ''} 
+                  value={about.mission?.description || ''} 
                   onChange={e => updateSubField('mission', 'description', e.target.value)} 
                   placeholder="Expand on how you achieve your mission..."
                 />
@@ -584,7 +584,7 @@ const AboutEditor: React.FC<AboutEditorProps> = ({ institution, onUpdate }) => {
                   <textarea 
                     rows={2}
                     className="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-2 text-sm font-medium text-slate-300 outline-none focus:ring-2 focus:ring-indigo-500 transition-all resize-none" 
-                    value={(about.leadership.principal as any)?.philosophy || about.leadership.principal.description || ''} 
+                    value={(about.leadership.principal as any)?.philosophy || about.leadership.principal?.description || ''} 
                     onChange={e => updateSubField('leadership', 'principal', { ...about.leadership.principal, description: e.target.value })} 
                   />
                 </div>

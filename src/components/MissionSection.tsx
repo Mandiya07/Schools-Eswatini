@@ -39,7 +39,7 @@ const MissionSection: React.FC<MissionSectionProps> = ({ mission, primaryColor }
             {mission.statement}
           </p>
           <p className="text-blue-700/80 text-xl md:text-2xl font-medium leading-relaxed max-w-3xl">
-            {mission.description}
+            {(mission?.description || '')}
           </p>
         </div>
       </div>

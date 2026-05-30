@@ -44,7 +44,7 @@ const BrowsePage: React.FC<BrowsePageProps> = ({
       const prompt = `
         Given the user query: "${aiQuery}"
         And the following list of institutions:
-        ${institutions.map(i => `- ${i.name} (${i.region}, ${i.type.join(', ')}, ${i.metadata.gender}, Boarding: ${i.metadata.isBoarding})`).join('\n')}
+        ${institutions.map(i => `- ${i.name} (${i.region}, ${i.type?.join(', ')}, ${i.metadata?.gender}, Boarding: ${i.metadata?.isBoarding})`).join('\n')}
         
         Return a JSON array of strings containing ONLY the exact names of the institutions that best match the query.
         Example output: ["Waterford Kamhlaba", "St. Mark's High School"]
@@ -68,19 +68,21 @@ const BrowsePage: React.FC<BrowsePageProps> = ({
   };
 
   const filteredInstitutions = useMemo(() => {
-    return institutions
+    console.log("BrowsePage received institutions:", institutions.length);
+    const filtered = institutions
       .filter(inst => {
         if (aiSuggestions && aiSuggestions.length > 0) {
           return aiSuggestions.includes(inst.name);
         }
-        const matchesRegion = region ? inst.region === region : true;
+        const matchesRegion = region ? (inst.region || '').toLowerCase() === region.toLowerCase() : true;
         const matchesSearch = (inst.name || '').toLowerCase().includes(searchTerm.toLowerCase()) || 
                               (inst.region || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-                              (inst.type || []).some(t => t.toLowerCase().includes(searchTerm.toLowerCase()));
+                              (inst.type || []).some(t => typeof t === 'string' && t.toLowerCase().includes(searchTerm.toLowerCase()));
+        
         const matchesType = selectedType === 'All' || inst.type?.includes(selectedType as InstitutionType);
         const matchesOwnership = selectedOwnership === 'All' || inst.type?.includes(selectedOwnership as InstitutionType);
-        const matchesGender = selectedGender === 'All' || inst.metadata.gender === selectedGender;
-        const matchesBoarding = !boardingOnly || inst.metadata.isBoarding;
+        const matchesGender = selectedGender === 'All' || inst.metadata?.gender === selectedGender;
+        const matchesBoarding = !boardingOnly || inst.metadata?.isBoarding;
         
         const instPrograms = inst.sections?.academics?.programs?.map(p => p.name) || [];
         const matchesPrograms = selectedPrograms.length === 0 || selectedPrograms.some(p => instPrograms.includes(p));
@@ -88,20 +90,27 @@ const BrowsePage: React.FC<BrowsePageProps> = ({
         const instDepartments = inst.sections?.academics?.departments?.map(d => d.name) || [];
         const matchesDepartments = selectedDepartments.length === 0 || selectedDepartments.some(d => instDepartments.includes(d));
 
-        return matchesRegion && matchesSearch && matchesType && matchesOwnership && matchesGender && matchesBoarding && matchesPrograms && matchesDepartments && inst.status === 'published';
-      })
-      .sort((a, b) => {
+        return matchesRegion && matchesSearch && matchesType && matchesOwnership && matchesGender && matchesBoarding && matchesPrograms && matchesDepartments;
+      });
+      
+    console.log("After filtering:", filtered.length, "Region:", region);
+    
+    return filtered.sort((a, b) => {
         if (sortBy === 'featured') {
-          return a.isFeatured === b.isFeatured ? 0 : a.isFeatured ? -1 : 1;
+           return (a.isFeatured === b.isFeatured) ? 0 : a.isFeatured ? -1 : 1;
         }
         if (sortBy === 'az') {
-          return a.name.localeCompare(b.name);
+           return (a.name || '').localeCompare(b.name || '');
         }
         if (sortBy === 'newest') {
-          return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+           const timeA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+           const timeB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+           return timeB - timeA;
         }
         if (sortBy === 'views') {
-          return b.stats.views - a.stats.views;
+           const viewsA = a.stats?.views || 0;
+           const viewsB = b.stats?.views || 0;
+           return viewsB - viewsA;
         }
         return 0;
       });
@@ -388,8 +397,8 @@ const BrowsePage: React.FC<BrowsePageProps> = ({
                           <img src={inst.coverImage || undefined} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000" loading="lazy" />
                           <div className="absolute inset-0 bg-gradient-to-t from-slate-900/80 via-transparent to-transparent opacity-60" />
                           <div className="absolute bottom-6 left-6 flex gap-2">
-                              {inst.metadata.isBoarding && <span className="px-3 py-1 bg-white/20 backdrop-blur-md rounded-lg text-[8px] font-black text-white uppercase">Boarding</span>}
-                              <span className="px-3 py-1 bg-white/20 backdrop-blur-md rounded-lg text-[8px] font-black text-white uppercase">{inst.metadata.gender}</span>
+                              {inst.metadata?.isBoarding && <span className="px-3 py-1 bg-white/20 backdrop-blur-md rounded-lg text-[8px] font-black text-white uppercase">Boarding</span>}
+                              {inst.metadata?.gender && <span className="px-3 py-1 bg-white/20 backdrop-blur-md rounded-lg text-[8px] font-black text-white uppercase">{inst.metadata?.gender}</span>}
                           </div>
                         </Link>
 
@@ -426,11 +435,11 @@ const BrowsePage: React.FC<BrowsePageProps> = ({
                               <div className="flex gap-8">
                                 <div>
                                     <p className="text-[8px] font-black text-slate-300 uppercase mb-1">Pass Rate</p>
-                                    <p className="text-lg font-black text-emerald-500">{inst.sections.academics.performance.passRate}</p>
+                                    <p className="text-lg font-black text-emerald-500">{inst.sections?.academics?.performance?.passRate || 'N/A'}</p>
                                 </div>
                                 <div>
                                     <p className="text-[8px] font-black text-slate-300 uppercase mb-1">Established</p>
-                                    <p className="text-lg font-black text-slate-900">{inst.metadata.establishedYear}</p>
+                                    <p className="text-lg font-black text-slate-900">{inst.metadata?.establishedYear || 'N/A'}</p>
                                 </div>
                               </div>
                               <Link 

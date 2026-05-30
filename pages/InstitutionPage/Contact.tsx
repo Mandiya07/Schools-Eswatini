@@ -9,7 +9,7 @@ export const InstitutionContact: React.FC = () => {
   return (
     <div className="space-y-32">
       <h2 className="text-7xl font-black text-slate-900 tracking-tighter">Contact Us</h2>
-      <ContactSection institution={inst} primaryColor={inst.theme.primaryColor} lang={lang} />
+      <ContactSection institution={inst} primaryColor={(inst.theme?.primaryColor || '#2563eb')} lang={lang} />
     </div>
   );
 };

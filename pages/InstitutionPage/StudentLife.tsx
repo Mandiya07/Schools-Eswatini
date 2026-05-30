@@ -12,7 +12,7 @@ export const InstitutionStudentLife: React.FC = () => {
   return (
     <div className="space-y-32">
       <h2 className="text-7xl font-black text-slate-900 tracking-tighter">Student Life</h2>
-      <StudentLifeSection life={life} primaryColor={inst.theme.primaryColor} />
+      <StudentLifeSection life={life} primaryColor={(inst.theme?.primaryColor || '#2563eb')} />
     </div>
   );
 };

@@ -639,14 +639,32 @@ const InstitutionAdminDashboard: React.FC<InstitutionAdminDashboardProps> = ({ u
                         <input 
                           type="color" 
                           className="w-12 h-12 rounded-xl cursor-pointer border-none p-0" 
-                          value={inst.theme.primaryColor} 
-                          onChange={e => handleUpdate({ ...inst, theme: { ...inst.theme, primaryColor: e.target.value } })} 
+                          value={(inst.theme?.primaryColor || '#2563eb')} 
+                          onChange={e => handleUpdate({ 
+                            ...inst, 
+                            theme: { 
+                              primaryColor: e.target.value,
+                              fontFamily: inst.theme?.fontFamily || 'Inter',
+                              borderRadius: inst.theme?.borderRadius || 'md',
+                              layout: inst.theme?.layout || 'modern',
+                              sectionOrder: inst.theme?.sectionOrder
+                            } 
+                          })} 
                         />
                         <input 
                           type="text" 
                           className="flex-1 bg-slate-50 border-none rounded-xl px-4 py-3 font-bold uppercase" 
-                          value={inst.theme.primaryColor} 
-                          onChange={e => handleUpdate({ ...inst, theme: { ...inst.theme, primaryColor: e.target.value } })} 
+                          value={(inst.theme?.primaryColor || '#2563eb')} 
+                          onChange={e => handleUpdate({ 
+                            ...inst, 
+                            theme: { 
+                              primaryColor: e.target.value,
+                              fontFamily: inst.theme?.fontFamily || 'Inter',
+                              borderRadius: inst.theme?.borderRadius || 'md',
+                              layout: inst.theme?.layout || 'modern',
+                              sectionOrder: inst.theme?.sectionOrder
+                            } 
+                          })} 
                         />
                       </div>
                     </div>
@@ -654,8 +672,17 @@ const InstitutionAdminDashboard: React.FC<InstitutionAdminDashboardProps> = ({ u
                       <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Typography (Font Family)</label>
                       <select 
                         className="w-full bg-slate-50 border-none rounded-xl px-4 py-3 font-bold appearance-none cursor-pointer"
-                        value={inst.theme.fontFamily}
-                        onChange={e => handleUpdate({ ...inst, theme: { ...inst.theme, fontFamily: e.target.value } })}
+                        value={(inst.theme?.fontFamily || 'Inter')}
+                        onChange={e => handleUpdate({ 
+                          ...inst, 
+                          theme: { 
+                            primaryColor: inst.theme?.primaryColor || '#2563eb',
+                            fontFamily: e.target.value,
+                            borderRadius: inst.theme?.borderRadius || 'md',
+                            layout: inst.theme?.layout || 'modern',
+                            sectionOrder: inst.theme?.sectionOrder
+                          } 
+                        })}
                       >
                         <option value="Inter">Inter (Clean & Modern)</option>
                         <option value="Playfair Display">Playfair Display (Elegant & Traditional)</option>
@@ -667,8 +694,17 @@ const InstitutionAdminDashboard: React.FC<InstitutionAdminDashboardProps> = ({ u
                       <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Layout Style</label>
                       <select 
                         className="w-full bg-slate-50 border-none rounded-xl px-4 py-3 font-bold appearance-none cursor-pointer"
-                        value={inst.theme.layout}
-                        onChange={e => handleUpdate({ ...inst, theme: { ...inst.theme, layout: e.target.value } })}
+                        value={(inst.theme?.layout || 'modern')}
+                        onChange={e => handleUpdate({ 
+                          ...inst, 
+                          theme: { 
+                            primaryColor: inst.theme?.primaryColor || '#2563eb',
+                            fontFamily: inst.theme?.fontFamily || 'Inter',
+                            borderRadius: inst.theme?.borderRadius || 'md',
+                            layout: e.target.value,
+                            sectionOrder: inst.theme?.sectionOrder
+                          } 
+                        })}
                       >
                         <option value="modern">Modern (Spacious & Clean)</option>
                         <option value="classic">Classic (Traditional & Structured)</option>
@@ -679,8 +715,17 @@ const InstitutionAdminDashboard: React.FC<InstitutionAdminDashboardProps> = ({ u
                       <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Border Radius</label>
                       <select 
                         className="w-full bg-slate-50 border-none rounded-xl px-4 py-3 font-bold appearance-none cursor-pointer"
-                        value={inst.theme.borderRadius}
-                        onChange={e => handleUpdate({ ...inst, theme: { ...inst.theme, borderRadius: e.target.value } })}
+                        value={(inst.theme?.borderRadius || 'md')}
+                        onChange={e => handleUpdate({ 
+                          ...inst, 
+                          theme: { 
+                            primaryColor: inst.theme?.primaryColor || '#2563eb',
+                            fontFamily: inst.theme?.fontFamily || 'Inter',
+                            borderRadius: e.target.value,
+                            layout: inst.theme?.layout || 'modern',
+                            sectionOrder: inst.theme?.sectionOrder
+                          } 
+                        })}
                       >
                         <option value="none">Sharp (0px)</option>
                         <option value="md">Subtle (6px)</option>
@@ -707,7 +752,16 @@ const InstitutionAdminDashboard: React.FC<InstitutionAdminDashboardProps> = ({ u
                             onClick={() => {
                               const newOrder = [...array];
                               [newOrder[index - 1], newOrder[index]] = [newOrder[index], newOrder[index - 1]];
-                              handleUpdate({ ...inst, theme: { ...inst.theme, sectionOrder: newOrder } });
+                              handleUpdate({ 
+                                ...inst, 
+                                theme: { 
+                                  primaryColor: inst.theme?.primaryColor || '#2563eb',
+                                  fontFamily: inst.theme?.fontFamily || 'Inter',
+                                  borderRadius: inst.theme?.borderRadius || 'md',
+                                  layout: inst.theme?.layout || 'modern',
+                                  sectionOrder: newOrder 
+                                } 
+                              });
                             }}
                             className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors disabled:opacity-30"
                           >
@@ -718,7 +772,16 @@ const InstitutionAdminDashboard: React.FC<InstitutionAdminDashboardProps> = ({ u
                             onClick={() => {
                               const newOrder = [...array];
                               [newOrder[index + 1], newOrder[index]] = [newOrder[index], newOrder[index + 1]];
-                              handleUpdate({ ...inst, theme: { ...inst.theme, sectionOrder: newOrder } });
+                              handleUpdate({ 
+                                ...inst, 
+                                theme: { 
+                                  primaryColor: inst.theme?.primaryColor || '#2563eb',
+                                  fontFamily: inst.theme?.fontFamily || 'Inter',
+                                  borderRadius: inst.theme?.borderRadius || 'md',
+                                  layout: inst.theme?.layout || 'modern',
+                                  sectionOrder: newOrder 
+                                } 
+                              });
                             }}
                             className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors disabled:opacity-30"
                           >
@@ -1324,20 +1387,20 @@ const InstitutionAdminDashboard: React.FC<InstitutionAdminDashboardProps> = ({ u
                       <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">Meta Title</label>
                       <input 
                         className="w-full bg-white border rounded-xl px-4 py-3 font-bold" 
-                        value={inst.seo.title} 
+                        value={(inst.seo?.title || '')} 
                         onChange={e => handleUpdate({ ...inst, seo: { ...inst.seo, title: e.target.value } })} 
                       />
-                      <p className="text-[10px] text-slate-400 mt-2">Recommended: 50-60 characters. Current: {inst.seo.title.length}</p>
+                      <p className="text-[10px] text-slate-400 mt-2">Recommended: 50-60 characters. Current: {(inst.seo?.title || '').length}</p>
                     </div>
                     <div className="p-8 bg-slate-50 rounded-[32px] border border-slate-100">
                       <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">Meta Description</label>
                       <textarea 
                         rows={3}
                         className="w-full bg-white border rounded-xl px-4 py-3 font-medium" 
-                        value={inst.seo.description} 
+                        value={(inst.seo?.description || '')} 
                         onChange={e => handleUpdate({ ...inst, seo: { ...inst.seo, description: e.target.value } })} 
                       />
-                      <p className="text-[10px] text-slate-400 mt-2">Recommended: 150-160 characters. Current: {inst.seo.description.length}</p>
+                      <p className="text-[10px] text-slate-400 mt-2">Recommended: 150-160 characters. Current: {(inst.seo?.description || '').length}</p>
                     </div>
                   </div>
 
@@ -1346,7 +1409,7 @@ const InstitutionAdminDashboard: React.FC<InstitutionAdminDashboardProps> = ({ u
                     <div className="space-y-4">
                       {[
                         { label: 'Custom Subdomain Configured', status: !!inst.subdomain },
-                        { label: 'Meta Description Length Optimal', status: inst.seo.description.length >= 120 && inst.seo.description.length <= 160 },
+                        { label: 'Meta Description Length Optimal', status: (inst.seo?.description || '').length >= 120 && (inst.seo?.description || '').length <= 160 },
                         { label: 'Keywords Defined', status: inst.seo.keywords.length >= 3 },
                         { label: 'Verified Institution Badge', status: inst.isVerified },
                         { label: 'Structured Schema Markup Active', status: true },

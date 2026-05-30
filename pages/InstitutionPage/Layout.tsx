@@ -31,13 +31,21 @@ export const InstitutionLayout: React.FC<InstitutionLayoutProps> = ({ institutio
 
   if (!inst) return <Navigate to="/browse" />;
 
+  const safeTheme = inst.theme || {
+    primaryColor: '#2563eb',
+    fontFamily: 'Inter',
+    borderRadius: 'md',
+    layout: 'modern',
+    sectionOrder: ['homepage', 'about', 'admissions', 'academics', 'studentLife', 'news', 'portal']
+  };
+
   const themeStyle = {
-    '--primary': inst.theme.primaryColor,
-    '--radius': inst.theme.borderRadius === 'none' ? '0' : inst.theme.borderRadius === 'md' ? '12px' : inst.theme.borderRadius === '2xl' ? '40px' : '9999px',
-    'fontFamily': inst.theme.fontFamily === 'Inter' ? 'Inter, sans-serif' : 
-                  inst.theme.fontFamily === 'Playfair Display' ? '"Playfair Display", serif' : 
-                  inst.theme.fontFamily === 'Space Grotesk' ? '"Space Grotesk", sans-serif' : 
-                  inst.theme.fontFamily === 'Outfit' ? 'Outfit, sans-serif' : 'Inter, sans-serif'
+    '--primary': safeTheme.primaryColor,
+    '--radius': safeTheme.borderRadius === 'none' ? '0' : safeTheme.borderRadius === 'md' ? '12px' : safeTheme.borderRadius === '2xl' ? '40px' : '9999px',
+    'fontFamily': safeTheme.fontFamily === 'Inter' ? 'Inter, sans-serif' : 
+                  safeTheme.fontFamily === 'Playfair Display' ? '"Playfair Display", serif' : 
+                  safeTheme.fontFamily === 'Space Grotesk' ? '"Space Grotesk", sans-serif' : 
+                  safeTheme.fontFamily === 'Outfit' ? 'Outfit, sans-serif' : 'Inter, sans-serif'
   } as React.CSSProperties;
 
   const labels = {
@@ -72,7 +80,7 @@ export const InstitutionLayout: React.FC<InstitutionLayoutProps> = ({ institutio
   }[lang];
 
   const defaultOrder = ['homepage', 'about', 'admissions', 'academics', 'news', 'studentLife', 'portal', 'reviews', 'alumni', 'contact'];
-  const orderedSections = (inst.theme.sectionOrder || defaultOrder).map(id => {
+  const orderedSections = (safeTheme.sectionOrder || defaultOrder).map(id => {
     // Check if section is enabled
     const section = (inst.sections as any)?.[id];
     if (section && section.enabled === false) return null;
@@ -111,7 +119,7 @@ export const InstitutionLayout: React.FC<InstitutionLayoutProps> = ({ institutio
     <div className="min-h-screen bg-white pb-20" style={themeStyle}>
       <SEO 
         title={inst.name} 
-        description={inst.seo.description} 
+        description={(inst.seo?.description || '')} 
         institution={inst} 
       />
       {/* Hero Header */}
@@ -169,7 +177,7 @@ export const InstitutionLayout: React.FC<InstitutionLayoutProps> = ({ institutio
                           <motion.div 
                             layoutId="activeTab"
                             className="absolute inset-0 bg-slate-900 rounded-full -z-0"
-                            style={{ backgroundColor: inst.theme.primaryColor }}
+                            style={{ backgroundColor: safeTheme.primaryColor }}
                             transition={{ type: 'spring', bounce: 0.2, duration: 0.6 }}
                           />
                         )}

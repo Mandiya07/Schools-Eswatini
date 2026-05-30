@@ -122,6 +122,9 @@ const CareerAndScholarshipHub: React.FC<ScholarshipHubProps> = ({ institutions }
 
   // Aggregate Internal Scholarships
   const internalScholarships = institutions.flatMap(inst => {
+    if (!inst.sections?.admissions?.scholarships?.types) {
+      return [];
+    }
     return inst.sections.admissions.scholarships.types.map(type => ({
       id: `int-${inst.id}-${type}`,
       name: type,

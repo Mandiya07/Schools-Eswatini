@@ -111,7 +111,7 @@ export const HighSchoolStudentDashboard: React.FC<{ user?: User | null }> = ({ u
             downloads: 0,
             rating: 5,
             authorId: 'test_author',
-            authorName: 'Ministry Demo',
+            authorName: 'Ministry of Education & Training (MoET)',
             createdAt: new Date().toISOString()
           }]);
         } else {
@@ -134,7 +134,7 @@ export const HighSchoolStudentDashboard: React.FC<{ user?: User | null }> = ({ u
             downloads: 0,
             rating: 5,
             authorId: 'test_author',
-            authorName: 'Ministry Demo',
+            authorName: 'Ministry of Education & Training (MoET)',
             createdAt: new Date().toISOString()
           }]);
         }

@@ -647,7 +647,7 @@ const AdmissionsEditor: React.FC<AdmissionsEditorProps> = ({ institution, onUpda
                     <textarea 
                       placeholder="Facilities, supervision, and environment description..."
                       className="w-full bg-white border-none rounded-2xl px-4 py-3 text-xs font-medium min-h-[100px]"
-                      value={admissions.boardingInfo.description}
+                      value={(admissions?.boardingInfo?.description || '')}
                       onChange={e => updateAdmissionsField('boardingInfo', { ...admissions.boardingInfo, description: e.target.value })}
                     />
                     <div className="space-y-3">
@@ -727,7 +727,7 @@ const AdmissionsEditor: React.FC<AdmissionsEditorProps> = ({ institution, onUpda
                  {admissions.boardingInfo?.available && (
                    <div className="p-6 bg-emerald-50 rounded-3xl border border-emerald-100">
                      <p className="text-[10px] font-black text-emerald-600 uppercase tracking-widest mb-2">Residential Community</p>
-                     <p className="text-xs text-emerald-900 font-medium leading-relaxed">{admissions.boardingInfo.description.slice(0, 100)}...</p>
+                     <p className="text-xs text-emerald-900 font-medium leading-relaxed">{(admissions?.boardingInfo?.description || '').slice(0, 100)}...</p>
                    </div>
                  )}
                  <div className="space-y-4">
