@@ -1220,3 +1220,18 @@ export interface AcademicResource {
   createdAt: string;
   isVerified?: boolean;
 }
+
+export interface SchoolClaim {
+  id: string;
+  institutionId: string;
+  institutionName: string;
+  userId: string;
+  userEmail: string;
+  userName: string;
+  justification: string;
+  phone: string;
+  status: 'pending' | 'approved' | 'rejected';
+  documentUrl?: string;
+  decisionReason?: string;
+  createdAt: string;
+}

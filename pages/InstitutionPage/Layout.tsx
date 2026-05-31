@@ -1,9 +1,11 @@
 import React from 'react';
 import { Outlet, useParams, NavLink, Navigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
-import { Institution, InstitutionType } from '../../types';
+import { Institution, InstitutionType, User } from '../../types';
 import { getOptimizedImageUrl } from '../../src/services/performanceService';
 import SEO from '../../src/components/SEO';
+import { db } from '../../src/lib/firebase';
+import { doc, setDoc, collection, query, where, onSnapshot } from 'firebase/firestore';
 
 interface InstitutionLayoutProps {
   institutions: Institution[];
@@ -11,12 +13,80 @@ interface InstitutionLayoutProps {
   onToggleFavorite: (id: string) => void;
   lang: 'en' | 'ss';
   loading?: boolean;
+  user?: User | null;
 }
 
-export const InstitutionLayout: React.FC<InstitutionLayoutProps> = ({ institutions, favorites, onToggleFavorite, lang, loading }) => {
+export const InstitutionLayout: React.FC<InstitutionLayoutProps> = ({ institutions, favorites, onToggleFavorite, lang, loading, user }) => {
   const { slug } = useParams<{ slug: string }>();
   const location = useLocation();
   const inst = institutions.find(i => i.slug === slug);
+
+  const [showClaimForm, setShowClaimForm] = React.useState(false);
+  const [claimTitle, setClaimTitle] = React.useState('');
+  const [claimPhone, setClaimPhone] = React.useState('');
+  const [claimJustification, setClaimJustification] = React.useState('');
+  const [isSubmittingClaim, setIsSubmittingClaim] = React.useState(false);
+  const [userClaim, setUserClaim] = React.useState<any | null>(null);
+
+  React.useEffect(() => {
+    if (!user || !inst) return;
+    
+    const q = query(
+      collection(db, 'school_claims'),
+      where('userId', '==', user.id),
+      where('institutionId', '==', inst.id)
+    );
+    
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      if (!snapshot.empty) {
+        setUserClaim({ id: snapshot.docs[0].id, ...snapshot.docs[0].data() });
+      } else {
+        setUserClaim(null);
+      }
+    }, (err) => {
+      console.warn("Claim listener error:", err.message);
+    });
+    
+    return unsubscribe;
+  }, [user?.id, inst?.id]);
+
+  const handleClaimSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!user || !inst) return;
+    if (!claimTitle.trim() || !claimPhone.trim() || !claimJustification.trim()) {
+      alert("Please fill in all claiming form fields.");
+      return;
+    }
+    
+    setIsSubmittingClaim(true);
+    try {
+      const claimId = `claim-${Date.now()}`;
+      const claimDoc = {
+        id: claimId,
+        institutionId: inst.id,
+        institutionName: inst.name,
+        userId: user.id,
+        userEmail: user.email,
+        userName: user.name,
+        justification: `[${claimTitle}] ${claimJustification}`,
+        phone: claimPhone,
+        status: 'pending',
+        createdAt: new Date().toISOString()
+      };
+      
+      await setDoc(doc(db, 'school_claims', claimId), claimDoc);
+      alert("Your school claim request has been submitted successfully to the Ministry of Education & Training! You can monitor the status on this page.");
+      setShowClaimForm(false);
+      setClaimTitle('');
+      setClaimPhone('');
+      setClaimJustification('');
+    } catch (err: any) {
+      console.error("Error submitting claim:", err);
+      alert(`Failed to submit claim: ${err.message}`);
+    } finally {
+      setIsSubmittingClaim(false);
+    }
+  };
 
   if (loading && !inst) {
     return (
@@ -279,6 +349,142 @@ export const InstitutionLayout: React.FC<InstitutionLayoutProps> = ({ institutio
                         <span className="text-xs font-bold text-slate-900 text-right min-w-0 break-words">{inst.metadata?.isBoarding ? 'Yes' : 'No'}</span>
                      </div>
                   </div>
+               </div>
+
+               {/* Claim Profile Section */}
+               <div className="p-8 md:p-10 bg-slate-50 border border-slate-200/60 rounded-[40px] space-y-6">
+                  <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                     <span className="w-1.5 h-1.5 bg-blue-500 rounded-full" />
+                     Educator & Admin Claims
+                  </h4>
+                  
+                  {!user ? (
+                     <div className="space-y-4">
+                        <p className="text-xs font-medium text-slate-600 leading-relaxed">
+                           Are you an administrator or principal at {inst.name}? Claim this institution profile to manage student lists, official timetables, and academic reports.
+                        </p>
+                        <NavLink to="/auth" className="w-full py-4 text-center block bg-slate-900 hover:bg-slate-800 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all">
+                           Sign In to Claim School
+                        </NavLink>
+                     </div>
+                  ) : inst.adminId === user.id ? (
+                     <div className="space-y-4 bg-emerald-50/50 p-6 rounded-3xl border border-emerald-100">
+                        <div className="flex items-center gap-2 text-emerald-600 font-bold text-xs uppercase tracking-wider">
+                           ✓ Verified Administrator
+                        </div>
+                        <p className="text-xs text-slate-600 leading-relaxed">
+                           You are verified as the institutional administrator for {inst.name}. Use the Admin Suite to customize portal settings and publish updates.
+                        </p>
+                        <NavLink to="/dashboard" className="w-full py-4 text-center block bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all shadow-lg shadow-emerald-100">
+                           Manage Admin Suite
+                        </NavLink>
+                     </div>
+                  ) : inst.adminId ? (
+                     <div className="space-y-2 bg-blue-50/40 p-6 rounded-3xl border border-blue-50">
+                        <p className="text-xs font-black text-blue-900 flex items-center gap-2 uppercase tracking-widest text-[10px]">
+                           🔒 Claim Status Protected
+                        </p>
+                        <p className="text-xs text-slate-500 leading-relaxed">
+                           This school profile is already claimed and managed by a verified school administrator. Reach out to the verified administrator or Ministry if changes are requested.
+                        </p>
+                     </div>
+                  ) : userClaim ? (
+                     userClaim.status === 'pending' ? (
+                        <div className="space-y-4 bg-amber-50/50 p-6 rounded-3xl border border-amber-100">
+                           <div className="flex items-center gap-2 text-amber-600 font-black text-[10px] uppercase tracking-widest">
+                              ⚡ Claim Pending Review
+                           </div>
+                           <p className="text-xs text-slate-600 leading-relaxed">
+                              You have submitted a claim to manage this school. Eswatini Ministry of Education & Training (MoET) is verifying your organizational credentials.
+                           </p>
+                           <div className="text-[10px] bg-white border p-4 rounded-xl space-y-2 text-slate-500 font-medium">
+                              <div><strong>Requested:</strong> {userClaim.createdAt.split('T')[0]}</div>
+                              <div><strong>Contact:</strong> {userClaim.phone}</div>
+                           </div>
+                        </div>
+                     ) : userClaim.status === 'rejected' ? (
+                        <div className="space-y-4 bg-rose-50/50 p-6 rounded-3xl border border-rose-100">
+                           <div className="flex items-center gap-2 text-rose-600 font-black text-[10px] uppercase tracking-widest">
+                              ❌ Claim Request Rejected
+                           </div>
+                           <p className="text-xs text-slate-600 leading-relaxed">
+                              Your claim to manage this school profile was rejected by MoET reviewers.
+                           </p>
+                           {userClaim.decisionReason && (
+                              <div className="p-4 bg-white rounded-xl text-xs text-slate-500 border">
+                                 <strong>Reason:</strong> {userClaim.decisionReason}
+                              </div>
+                           )}
+                           <button onClick={() => setShowClaimForm(true)} className="w-full py-4 text-center bg-slate-900 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-slate-800 transition-all">
+                              Resubmit Claim Request
+                           </button>
+                        </div>
+                     ) : null
+                  ) : (
+                     <div className="space-y-4">
+                        <p className="text-xs font-medium text-slate-600 leading-relaxed">
+                           This school profile currently has no active administrator assigned in the Eswatini directory. If you represent {inst.name}, you can submit an official manager claim.
+                        </p>
+                        
+                        {!showClaimForm ? (
+                           <button onClick={() => setShowClaimForm(true)} className="w-full py-4 text-center bg-blue-600 hover:bg-blue-700 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all shadow-xl shadow-blue-100">
+                              Claim School Profile
+                           </button>
+                        ) : (
+                           <form onSubmit={handleClaimSubmit} className="space-y-4 border-t pt-6 mt-4">
+                              <div>
+                                 <label className="text-[9px] font-black uppercase tracking-widest text-slate-400 block mb-1">Your Title / Position</label>
+                                 <input 
+                                    type="text" 
+                                    value={claimTitle}
+                                    onChange={(e) => setClaimTitle(e.target.value)}
+                                    placeholder="e.g. Principal, Deputy Principal, IT Director"
+                                    className="w-full px-4 py-3 bg-white border rounded-xl text-xs font-medium text-slate-800 focus:outline-none focus:ring-1 focus:ring-blue-600"
+                                    required
+                                 />
+                              </div>
+                              <div>
+                                 <label className="text-[9px] font-black uppercase tracking-widest text-slate-400 block mb-1">Contact Phone Number</label>
+                                 <input 
+                                    type="text" 
+                                    value={claimPhone}
+                                    onChange={(e) => setClaimPhone(e.target.value)}
+                                    placeholder="e.g. +268 76XX XXXX"
+                                    className="w-full px-4 py-3 bg-white border rounded-xl text-xs font-medium text-slate-800 focus:outline-none focus:ring-1 focus:ring-blue-600"
+                                    required
+                                 />
+                              </div>
+                              <div>
+                                 <label className="text-[9px] font-black uppercase tracking-widest text-slate-400 block mb-1">Statement of Authority</label>
+                                 <textarea 
+                                    value={claimJustification}
+                                    onChange={(e) => setClaimJustification(e.target.value)}
+                                    placeholder="Describe your role and provide details to help MoET verify that you represent this school."
+                                    rows={3}
+                                    className="w-full px-4 py-3 bg-white border rounded-xl text-xs font-medium text-slate-800 focus:outline-none focus:ring-1 focus:ring-blue-600"
+                                    required
+                                 />
+                              </div>
+                              <div className="flex gap-2">
+                                 <button 
+                                    type="button" 
+                                    onClick={() => setShowClaimForm(false)}
+                                    className="flex-1 py-3 border text-slate-600 rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-slate-50 transition-all"
+                                 >
+                                    Cancel
+                                 </button>
+                                 <button 
+                                    type="submit"
+                                    disabled={isSubmittingClaim}
+                                    className="flex-1 py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-300 text-white rounded-xl text-[9px] font-black uppercase tracking-widest transition-all shadow-lg"
+                                 >
+                                    {isSubmittingClaim ? 'Submitting...' : 'Submit Request'}
+                                 </button>
+                              </div>
+                           </form>
+                        )}
+                     </div>
+                  )}
                </div>
 
                {/* Quick Map Link */}

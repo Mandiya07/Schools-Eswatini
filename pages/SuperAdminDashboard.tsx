@@ -27,6 +27,7 @@ const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({ user, institu
   const [perfStats, setPerfStats] = useState<any>(null);
   const [diagnostics, setDiagnostics] = useState<any>(null);
   const [applications, setApplications] = useState<any[]>([]);
+  const [claims, setClaims] = useState<any[]>([]);
   
   const [showAddModal, setShowAddModal] = useState(false);
   const [showAddAdminModal, setShowAddAdminModal] = useState(false);
@@ -75,7 +76,24 @@ const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({ user, institu
         }
       }
     };
+    
+    // Fetch claims
+    const fetchClaims = async () => {
+      try {
+        const q = query(collection(db, 'school_claims'), where('status', '==', 'pending'));
+        const querySnapshot = await getDocsWithRetry(q);
+        const fClaims = querySnapshot.docs.map(doc => ({ id: doc.id, ...(doc.data() as object) }));
+        setClaims(fClaims);
+      } catch (error: any) {
+        if (error instanceof Error && !error.message.includes('offline')) {
+          console.warn("Firestore Error (school_claims):", error.message);
+          setClaims([]);
+        }
+      }
+    };
+
     fetchApplications();
+    fetchClaims();
   }, []);
 
   const handleAddInstitution = () => {
@@ -548,6 +566,84 @@ const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({ user, institu
             {applications.length === 0 && (
               <div className="col-span-full text-center py-12 text-slate-400 font-medium">
                 No pending verification requests.
+              </div>
+            )}
+          </div>
+
+          <h3 className="text-sm font-black text-slate-900 uppercase tracking-widest mb-10 mt-16 border-t pt-10">School Admin Claims</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {claims.map(claim => (
+              <div key={claim.id} className="border border-slate-100 p-8 rounded-3xl shadow-sm bg-slate-50/50">
+                <div className="mb-4">
+                  <span className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-[8px] font-black uppercase tracking-widest mb-2 inline-block">Pending Review</span>
+                  <h4 className="font-black text-slate-900 text-lg leading-tight">{claim.institutionName}</h4>
+                  <p className="text-[10px] uppercase tracking-widest text-slate-500 font-bold mt-1">Claimer: {claim.userName} ({claim.userEmail})</p>
+                  <p className="text-[10px] uppercase tracking-widest text-slate-400 font-bold">Phone: {claim.phone}</p>
+                </div>
+                <div className="mb-6 bg-white border p-4 rounded-2xl">
+                  <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Claim Justification:</p>
+                  <p className="text-xs text-slate-700 font-medium whitespace-pre-wrap leading-relaxed">{claim.justification}</p>
+                </div>
+                <div className="flex gap-4">
+                  <button 
+                    onClick={async () => {
+                      try {
+                        // 1. Update claim status to approved
+                        await updateDoc(doc(db, 'school_claims', claim.id), { 
+                          status: 'approved',
+                          decidedAt: new Date().toISOString()
+                        });
+                        
+                        // 2. Assign adminId on the matching institution
+                        await updateDoc(doc(db, 'institutions', claim.institutionId), {
+                          adminId: claim.userId,
+                          isVerified: true
+                        });
+
+                        // 3. Make sure user is tagged as institution admin
+                        await updateDoc(doc(db, 'users', claim.userId), {
+                          role: UserRole.INSTITUTION_ADMIN,
+                          institutionId: claim.institutionId
+                        });
+
+                        setClaims(claims.filter(c => c.id !== claim.id));
+                        alert(`Claim request for "${claim.institutionName}" approved successfully! ${claim.userName} is now the verified administrator.`);
+                      } catch (err: any) {
+                        console.error("Error approving school claim:", err);
+                        alert(`Failed to approve: ${err.message}`);
+                      }
+                    }}
+                    className="flex-1 bg-emerald-500 text-white py-3 rounded-xl font-black uppercase tracking-widest text-[10px] hover:bg-emerald-600 transition-all shadow-md shadow-emerald-100"
+                  >
+                    Approve Claim
+                  </button>
+                  <button 
+                    onClick={async () => {
+                      const reason = prompt("Describe the reason for rejection:", "Authority could not be verified.");
+                      if (reason === null) return;
+                      try {
+                        await updateDoc(doc(db, 'school_claims', claim.id), { 
+                          status: 'rejected',
+                          decisionReason: reason,
+                          decidedAt: new Date().toISOString()
+                        });
+                        setClaims(claims.filter(c => c.id !== claim.id));
+                        alert('Claim request rejected.');
+                      } catch (err: any) {
+                        console.error("Error rejecting claim:", err);
+                        alert(`Failed to reject: ${err.message}`);
+                      }
+                    }}
+                    className="flex-1 bg-rose-500 text-white py-3 rounded-xl font-black uppercase tracking-widest text-[10px] hover:bg-rose-600 transition-all shadow-md shadow-rose-100"
+                  >
+                    Reject Claim
+                  </button>
+                </div>
+              </div>
+            ))}
+            {claims.length === 0 && (
+              <div className="col-span-full text-center py-12 text-slate-400 font-medium bg-slate-50/50 rounded-3xl border border-dashed">
+                No pending administrative claims.
               </div>
             )}
           </div>

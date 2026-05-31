@@ -140,6 +140,26 @@
       },
       "required": ["id", "institutionName", "email", "status", "createdAt"]
     },
+    "SchoolClaim": {
+      "title": "School Claim",
+      "description": "User claim application to become school admin",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "institutionId": { "type": "string" },
+        "institutionName": { "type": "string" },
+        "userId": { "type": "string" },
+        "userEmail": { "type": "string", "format": "email" },
+        "userName": { "type": "string" },
+        "justification": { "type": "string" },
+        "phone": { "type": "string" },
+        "status": { "type": "string", "enum": ["pending", "approved", "rejected"] },
+        "documentUrl": { "type": "string" },
+        "decisionReason": { "type": "string" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["id", "institutionId", "institutionName", "userId", "userEmail", "status", "createdAt"]
+    },
     "AuditLog": {
       "title": "Audit Log",
       "description": "System-wide audit log for security events",
@@ -303,6 +323,10 @@
     "/school_applications/{applicationId}": {
       "schema": "SchoolApplication",
       "description": "Pending school registration applications"
+    },
+    "/school_claims/{claimId}": {
+      "schema": "SchoolClaim",
+      "description": "School claim applications"
     }
   }
 }

@@ -18,38 +18,52 @@ const Navbar: React.FC<NavbarProps> = ({ user, onLogout, compareCount = 0 }) => 
 
   const closeMobileMenu = () => setIsMobileMenuOpen(false);
 
+  const getLinkClass = (path: string, colorBase: 'blue' | 'indigo' | 'amber' | 'fuchsia' = 'blue') => {
+    const base = "font-medium text-[13px] px-1.5 py-1 transition-all";
+    const isActive = location.pathname === path || (path !== '/' && location.pathname.startsWith(path));
+    
+    const colors = {
+      blue: { active: 'text-blue-600 border-b-2 border-blue-600 font-bold', inactive: 'text-slate-600 hover:text-blue-600' },
+      indigo: { active: 'text-indigo-600 border-b-2 border-indigo-600 font-bold', inactive: 'text-indigo-600 hover:text-indigo-700' },
+      amber: { active: 'text-amber-600 border-b-2 border-amber-600 font-bold', inactive: 'text-amber-600 hover:text-amber-700' },
+      fuchsia: { active: 'text-fuchsia-600 border-b-2 border-fuchsia-600 font-bold', inactive: 'text-fuchsia-600 hover:text-fuchsia-700' },
+    };
+    
+    return `${base} ${isActive ? colors[colorBase].active : colors[colorBase].inactive}`;
+  };
+
   // Reusable Nav Link styling
   const PrimaryLinks = () => (
     <>
-      <Link to="/browse" onClick={closeMobileMenu} className="text-slate-600 hover:text-blue-600 font-medium text-[13px] px-1.5 py-1 transition-colors">Directory</Link>
-      <Link to="/scholarships" onClick={closeMobileMenu} className="text-slate-600 hover:text-blue-600 font-medium text-[13px] px-1.5 py-1 transition-colors">Scholarships</Link>
-      <Link to="/resources" onClick={closeMobileMenu} className="text-slate-600 hover:text-blue-600 font-medium text-[13px] px-1.5 py-1 transition-colors">Resources</Link>
-      <Link to="/tutors" onClick={closeMobileMenu} className="text-indigo-600 hover:text-indigo-700 font-medium text-[13px] px-1.5 py-1 transition-colors">Tutoring</Link>
-      <Link to="/marketplace" onClick={closeMobileMenu} className="text-amber-600 hover:text-amber-700 font-medium text-[13px] px-1.5 py-1 transition-colors">Marketplace</Link>
-      <Link to="/ai-tutor" onClick={closeMobileMenu} className="text-fuchsia-600 hover:text-fuchsia-700 font-medium text-[13px] flex items-center gap-1 px-1.5 py-1 transition-colors">
-        AI Tutor <span className="text-[10px] bg-fuchsia-100 px-1.5 py-0.5 rounded-full font-semibold">BETA</span>
+      <Link to="/browse" onClick={closeMobileMenu} className={getLinkClass('/browse')}>Directory</Link>
+      <Link to="/scholarships" onClick={closeMobileMenu} className={getLinkClass('/scholarships')}>Scholarships</Link>
+      <Link to="/resources" onClick={closeMobileMenu} className={getLinkClass('/resources')}>Resources</Link>
+      <Link to="/tutors" onClick={closeMobileMenu} className={getLinkClass('/tutors', 'indigo')}>Tutoring</Link>
+      <Link to="/marketplace" onClick={closeMobileMenu} className={getLinkClass('/marketplace', 'amber')}>Marketplace</Link>
+      <Link to="/ai-tutor" onClick={closeMobileMenu} className={`${getLinkClass('/ai-tutor', 'fuchsia')} flex items-center gap-1`}>
+        AI Tutor <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-semibold ${location.pathname.startsWith('/ai-tutor') ? 'bg-fuchsia-200 text-fuchsia-800' : 'bg-fuchsia-100 text-fuchsia-600'}`}>BETA</span>
       </Link>
-      <Link to="/pricing" onClick={closeMobileMenu} className="text-slate-600 hover:text-blue-600 font-medium text-[13px] px-1.5 py-1 transition-colors">Pricing</Link>
-      <Link to="/ministry-corner" onClick={closeMobileMenu} className="text-slate-600 hover:text-blue-600 font-medium text-[13px] px-1.5 py-1 transition-colors">Ministry Corner</Link>
+      <Link to="/pricing" onClick={closeMobileMenu} className={getLinkClass('/pricing')}>Pricing</Link>
+      <Link to="/ministry-corner" onClick={closeMobileMenu} className={getLinkClass('/ministry-corner')}>Ministry Corner</Link>
     </>
   );
 
   const UserLinks = () => (
     <>
       {hasRole(user, [UserRole.STUDENT, UserRole.SUPER_ADMIN]) && (
-        <Link to="/student" onClick={closeMobileMenu} className="text-slate-600 hover:text-blue-600 font-medium text-[13px] px-1.5 py-1 transition-colors">Student Portal</Link>
+        <Link to="/student" onClick={closeMobileMenu} className={getLinkClass('/student')}>Student Portal</Link>
       )}
       {hasRole(user, [UserRole.PARENT, UserRole.SUPER_ADMIN]) && (
-        <Link to="/portal" onClick={closeMobileMenu} className="text-slate-600 hover:text-blue-600 font-medium text-[13px] px-1.5 py-1 transition-colors">Parent Portal</Link>
+        <Link to="/portal" onClick={closeMobileMenu} className={getLinkClass('/portal')}>Parent Portal</Link>
       )}
       {hasRole(user, [UserRole.SUPER_ADMIN, UserRole.INSTITUTION_ADMIN]) && (
-        <Link to="/dashboard" onClick={closeMobileMenu} className="text-slate-600 hover:text-blue-600 font-medium text-[13px] px-1.5 py-1 transition-colors">Dashboard</Link>
+        <Link to="/dashboard" onClick={closeMobileMenu} className={getLinkClass('/dashboard')}>Dashboard</Link>
       )}
       {hasRole(user, [UserRole.MOET_OFFICIAL, UserRole.SUPER_ADMIN]) && (
-        <Link to="/ministry" onClick={closeMobileMenu} className="text-slate-600 hover:text-blue-600 font-medium text-[13px] px-1.5 py-1 transition-colors">Ministry Dashboard</Link>
+        <Link to="/ministry" onClick={closeMobileMenu} className={getLinkClass('/ministry')}>Ministry Dashboard</Link>
       )}
       {hasRole(user, [UserRole.TEACHER, UserRole.SUPER_ADMIN, UserRole.INSTITUTION_ADMIN]) && (
-        <Link to="/teacher/dashboard" onClick={closeMobileMenu} className="text-blue-600 border-b-2 border-blue-600 font-black text-[13px] px-1.5 py-1 transition-all">Teacher Portal</Link>
+        <Link to="/teacher/dashboard" onClick={closeMobileMenu} className={getLinkClass('/teacher/dashboard')}>Teacher Portal</Link>
       )}
       <button 
         onClick={() => {

@@ -9,12 +9,14 @@ import { SuccessStory, FundraisingCampaign } from '../../types';
 
 export const fetchSuccessStories = async (institutionId?: string, count: number = 10): Promise<SuccessStory[]> => {
   try {
-    let q = query(collection(db, 'success_stories'), orderBy('createdAt', 'desc'), limit(count));
+    let q = query(collection(db, 'success_stories'));
     if (institutionId) {
-      q = query(collection(db, 'success_stories'), where('institutionId', '==', institutionId), orderBy('createdAt', 'desc'), limit(count));
+      q = query(collection(db, 'success_stories'), where('institutionId', '==', institutionId));
     }
     const snapshot = await getDocsWithRetry(q);
-    return snapshot.docs.map(doc => doc.data() as SuccessStory);
+    let data = snapshot.docs.map(doc => doc.data() as SuccessStory);
+    data.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    return data.slice(0, count);
   } catch (error) {
     console.error("CMS: Failed to fetch success stories", error);
     return [];
@@ -23,12 +25,14 @@ export const fetchSuccessStories = async (institutionId?: string, count: number 
 
 export const fetchCampaigns = async (institutionId?: string): Promise<FundraisingCampaign[]> => {
   try {
-    let q = query(collection(db, 'fundraising_campaigns'), orderBy('createdAt', 'desc'));
+    let q = query(collection(db, 'fundraising_campaigns'));
     if (institutionId) {
-      q = query(collection(db, 'fundraising_campaigns'), where('institutionId', '==', institutionId), orderBy('createdAt', 'desc'));
+      q = query(collection(db, 'fundraising_campaigns'), where('institutionId', '==', institutionId));
     }
     const snapshot = await getDocsWithRetry(q);
-    return snapshot.docs.map(doc => doc.data() as FundraisingCampaign);
+    let data = snapshot.docs.map(doc => doc.data() as FundraisingCampaign);
+    data.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    return data;
   } catch (error) {
     console.error("CMS: Failed to fetch campaigns", error);
     return [];

@@ -50,14 +50,13 @@ export const ReviewsSection: React.FC<EngagementFeaturesProps> = ({ institution,
     const q = query(
       collection(db, 'reviews'),
       where('institutionId', '==', institution.id),
-      where('status', '==', 'approved'),
-      orderBy('createdAt', 'desc'),
-      limit(10)
+      where('status', '==', 'approved')
     );
 
     const unsubscribe = onSnapshot(q, (snapshot) => {
-      const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Review));
-      setReviews(data);
+      let data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Review));
+      data.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+      setReviews(data.slice(0, 10));
       setLoading(false);
     }, (err) => {
       console.error("Error fetching reviews:", err);
@@ -291,26 +290,26 @@ export const AlumniSection: React.FC<EngagementFeaturesProps> = ({ institution, 
     // Fetch success stories
     const qStories = query(
       collection(db, 'success_stories'),
-      where('institutionId', '==', institution.id),
-      orderBy('createdAt', 'desc'),
-      limit(6)
+      where('institutionId', '==', institution.id)
     );
 
     const qCampaigns = query(
       collection(db, 'fundraising_campaigns'),
-      where('institutionId', '==', institution.id),
-      orderBy('createdAt', 'desc'),
-      limit(2)
+      where('institutionId', '==', institution.id)
     );
 
     const unsubStories = onSnapshot(qStories, (snapshot) => {
-      setStories(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as SuccessStory)));
+      let data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as SuccessStory));
+      data.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+      setStories(data.slice(0, 6));
     }, (err) => {
       console.error("Error fetching stories:", err);
     });
 
     const unsubCampaigns = onSnapshot(qCampaigns, (snapshot) => {
-      setCampaigns(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as FundraisingCampaign)));
+      let data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as FundraisingCampaign));
+      data.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+      setCampaigns(data.slice(0, 2));
       setLoading(false);
     }, (err) => {
       console.error("Error fetching campaigns:", err);

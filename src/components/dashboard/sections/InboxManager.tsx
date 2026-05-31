@@ -58,12 +58,12 @@ const InboxManager: React.FC<InboxManagerProps> = ({ institution }) => {
   useEffect(() => {
     const q = query(
       collection(db, 'messages'),
-      where('institutionId', '==', institution.id),
-      orderBy('createdAt', 'desc')
+      where('institutionId', '==', institution.id)
     );
 
     const unsubscribe = onSnapshot(q, (snapshot) => {
-      const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Message));
+      let data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Message));
+      data.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
       setMessages(data);
       setLoading(false);
       

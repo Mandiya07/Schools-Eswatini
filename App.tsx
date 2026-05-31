@@ -523,6 +523,7 @@ const App: React.FC = () => {
                   onToggleFavorite={toggleFavorite}
                   lang={lang}
                   loading={loading}
+                  user={user}
                 />
               }
             >
@@ -624,7 +625,7 @@ const App: React.FC = () => {
           </Routes>
         </main>
 
-        <Footer />
+        <Footer onSelectRegion={setSelectedRegion} />
         
         {compareList.length > 0 && (
           <div className="fixed bottom-8 right-8 z-[60] animate-in slide-in-from-bottom-4 flex flex-col items-end gap-4">

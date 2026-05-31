@@ -1,8 +1,23 @@
 
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { Region } from '../types';
 
-const Footer: React.FC = () => {
+interface FooterProps {
+  onSelectRegion?: (region: Region) => void;
+}
+
+const Footer: React.FC<FooterProps> = ({ onSelectRegion }) => {
+  const navigate = useNavigate();
+
+  const handleRegionClick = (region: Region) => {
+    if (onSelectRegion) {
+      onSelectRegion(region);
+    }
+    navigate('/browse');
+    window.scrollTo(0, 0);
+  };
+
   return (
     <footer className="bg-slate-900 text-white py-12">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -22,10 +37,10 @@ const Footer: React.FC = () => {
           <div>
             <h3 className="font-semibold text-white mb-4 uppercase text-xs tracking-wider">Regions</h3>
             <ul className="space-y-2 text-slate-400 text-sm">
-              <li><a href="#" className="hover:text-blue-400">Hhohho</a></li>
-              <li><a href="#" className="hover:text-blue-400">Manzini</a></li>
-              <li><a href="#" className="hover:text-blue-400">Lubombo</a></li>
-              <li><a href="#" className="hover:text-blue-400">Shiselweni</a></li>
+              <li><button onClick={() => handleRegionClick(Region.HHOHHO)} className="hover:text-blue-400 text-left">Hhohho</button></li>
+              <li><button onClick={() => handleRegionClick(Region.MANZINI)} className="hover:text-blue-400 text-left">Manzini</button></li>
+              <li><button onClick={() => handleRegionClick(Region.LUBOMBO)} className="hover:text-blue-400 text-left">Lubombo</button></li>
+              <li><button onClick={() => handleRegionClick(Region.SHISELWENI)} className="hover:text-blue-400 text-left">Shiselweni</button></li>
             </ul>
           </div>
 

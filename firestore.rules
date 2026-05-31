@@ -135,6 +135,17 @@ service cloud.firestore {
              data.createdAt is string;
     }
 
+    function isValidSchoolClaim(data) {
+      return data.keys().hasAll(['id', 'institutionId', 'institutionName', 'userId', 'userEmail', 'status', 'createdAt']) &&
+             data.id is string && data.id.size() <= 128 &&
+             data.institutionId is string && data.institutionId.size() <= 128 &&
+             data.institutionName is string && data.institutionName.size() <= 150 &&
+             data.userId is string && data.userId.size() <= 128 &&
+             data.userEmail is string && data.userEmail.size() <= 200 &&
+             data.status in ['pending', 'approved', 'rejected'] &&
+             data.createdAt is string;
+    }
+
     // ===============================================================
     // RULES
     // ===============================================================
@@ -358,6 +369,24 @@ service cloud.firestore {
       allow list: if isSignedIn() && (resource.data.email == request.auth.token.email || isAdmin());
       allow create: if isValidId(appId) && isSignedIn();
       allow update, delete: if isValidId(appId) && isAdmin();
+    }
+
+    match /school_claims/{claimId} {
+      allow get: if isValidId(claimId) && isSignedIn() && (resource.data.userId == request.auth.uid || isAdmin());
+      allow list: if isSignedIn() && (resource.data.userId == request.auth.uid || isAdmin());
+      allow create: if isValidId(claimId) && isSignedIn() && 
+                       isValidSchoolClaim(incoming()) && 
+                       incoming().id == claimId &&
+                       incoming().userId == request.auth.uid && 
+                       incoming().status == 'pending';
+      allow update: if isValidId(claimId) && isSignedIn() && (
+                       isAdmin() || 
+                       (existing().userId == request.auth.uid && 
+                        incoming().userId == request.auth.uid && 
+                        isValidSchoolClaim(incoming()) &&
+                        incoming().diff(existing()).affectedKeys().hasOnly(['justification', 'phone']))
+                    );
+      allow delete: if isValidId(claimId) && isSignedIn() && (existing().userId == request.auth.uid || isAdmin());
     }
 
     match /audit_logs/{logId} {
