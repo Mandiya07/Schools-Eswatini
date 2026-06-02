@@ -1,6 +1,7 @@
 import React from 'react';
 import { Outlet, useParams, NavLink, Navigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
+import { Share2, UserPlus, ArrowLeft } from 'lucide-react';
 import { Institution, InstitutionType, User } from '../../types';
 import { getOptimizedImageUrl } from '../../src/services/performanceService';
 import SEO from '../../src/components/SEO';
@@ -203,6 +204,13 @@ export const InstitutionLayout: React.FC<InstitutionLayoutProps> = ({ institutio
             </div>
             <div className="flex-1 pb-6 text-white space-y-6">
                <div className="flex flex-wrap items-center gap-4">
+                  <NavLink
+                    to="/browse"
+                    className="px-4 py-1.5 bg-black/40 hover:bg-black/80 text-white transition-colors backdrop-blur-md rounded-full text-[10px] font-black uppercase tracking-widest flex items-center gap-2 cursor-pointer"
+                  >
+                    <ArrowLeft className="w-3.5 h-3.5" />
+                    Back to Directory
+                  </NavLink>
                   {inst.isVerified && (
                     <span className="px-4 py-1.5 bg-emerald-500 rounded-full text-[10px] font-black uppercase tracking-widest shadow-xl flex items-center gap-2">
                        Verified Institution
@@ -214,6 +222,32 @@ export const InstitutionLayout: React.FC<InstitutionLayoutProps> = ({ institutio
                     </span>
                   )}
                   <span className="px-4 py-1.5 bg-white/20 backdrop-blur-md rounded-full text-[10px] font-black uppercase tracking-widest">{inst.region} Region</span>
+                  <button 
+                    onClick={() => {
+                      if (navigator.share) {
+                        navigator.share({
+                          title: inst.name,
+                          url: window.location.href,
+                        }).catch(console.error);
+                      } else {
+                        navigator.clipboard.writeText(window.location.href);
+                        alert("Link copied to clipboard!");
+                      }
+                    }}
+                    className="px-4 py-1.5 bg-white/20 hover:bg-white/40 transition-colors backdrop-blur-md rounded-full text-[10px] font-black uppercase tracking-widest flex items-center gap-2 cursor-pointer"
+                  >
+                    <Share2 className="w-3.5 h-3.5" />
+                    Share Profile
+                  </button>
+                  <button 
+                    onClick={() => {
+                      document.getElementById('claim-profile')?.scrollIntoView({ behavior: 'smooth' });
+                    }}
+                    className="px-4 py-1.5 bg-yellow-400/20 text-yellow-400 hover:bg-yellow-400/40 hover:text-white transition-colors backdrop-blur-md rounded-full text-[10px] font-black uppercase tracking-widest flex items-center gap-2 cursor-pointer"
+                  >
+                    <UserPlus className="w-3.5 h-3.5" />
+                    Claim Profile
+                  </button>
                </div>
                <h1 className="text-6xl md:text-9xl font-black tracking-tighter leading-none">{inst.name}</h1>
                <p className="text-2xl md:text-3xl font-medium text-slate-300 max-w-3xl leading-snug">{acad?.overview?.headline}</p>
@@ -352,7 +386,7 @@ export const InstitutionLayout: React.FC<InstitutionLayoutProps> = ({ institutio
                </div>
 
                {/* Claim Profile Section */}
-               <div className="p-8 md:p-10 bg-slate-50 border border-slate-200/60 rounded-[40px] space-y-6">
+               <div id="claim-profile" className="p-8 md:p-10 bg-slate-50 border border-slate-200/60 rounded-[40px] space-y-6">
                   <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
                      <span className="w-1.5 h-1.5 bg-blue-500 rounded-full" />
                      Educator & Admin Claims

@@ -2954,7 +2954,6 @@ export const NEW_ESTABLISHED_SCHOOLS: Institution[] = COMPACT_SCHOOLS.map(s => {
     trustScore: 85,
     plan: SubscriptionPlan.FREE,
     status: 'published' as const,
-    adminId: 'user-2',
     createdAt: '2024-01-01T00:00:00Z',
     seo: {
       title: `${s.name} - Eswatini School Directory`,

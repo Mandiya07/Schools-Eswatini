@@ -1052,7 +1052,7 @@ export interface Institution {
     engagementRate: number;
     performanceRanking?: number;
   };
-  adminId: string;
+  adminId?: string;
   teacherEmails?: string[];
   createdAt: string;
 }
