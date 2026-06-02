@@ -14,6 +14,9 @@ export default defineConfig(({ mode }) => {
         react(),
         VitePWA({
           registerType: 'autoUpdate',
+          devOptions: {
+            enabled: true
+          },
           includeAssets: ['icon-192x192.svg', 'icon-512x512.svg'],
           manifest: {
             name: 'Eswatini Schools Portal',

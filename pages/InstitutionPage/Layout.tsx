@@ -1,7 +1,7 @@
 import React from 'react';
 import { Outlet, useParams, NavLink, Navigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
-import { Share2, UserPlus, ArrowLeft } from 'lucide-react';
+import { Share2, UserPlus, ArrowLeft, X, Copy, Check, Mail } from 'lucide-react';
 import { Institution, InstitutionType, User } from '../../types';
 import { getOptimizedImageUrl } from '../../src/services/performanceService';
 import SEO from '../../src/components/SEO';
@@ -23,11 +23,15 @@ export const InstitutionLayout: React.FC<InstitutionLayoutProps> = ({ institutio
   const inst = institutions.find(i => i.slug === slug);
 
   const [showClaimForm, setShowClaimForm] = React.useState(false);
+  const [showClaimModal, setShowClaimModal] = React.useState(false);
+  const [showShareModal, setShowShareModal] = React.useState(false);
   const [claimTitle, setClaimTitle] = React.useState('');
   const [claimPhone, setClaimPhone] = React.useState('');
   const [claimJustification, setClaimJustification] = React.useState('');
   const [isSubmittingClaim, setIsSubmittingClaim] = React.useState(false);
   const [userClaim, setUserClaim] = React.useState<any | null>(null);
+  const [shareCopied, setShareCopied] = React.useState(false);
+  const [claimStatusMsg, setClaimStatusMsg] = React.useState<{ text: string; type: 'success' | 'error' } | null>(null);
 
   React.useEffect(() => {
     if (!user || !inst) return;
@@ -55,11 +59,12 @@ export const InstitutionLayout: React.FC<InstitutionLayoutProps> = ({ institutio
     e.preventDefault();
     if (!user || !inst) return;
     if (!claimTitle.trim() || !claimPhone.trim() || !claimJustification.trim()) {
-      alert("Please fill in all claiming form fields.");
+      setClaimStatusMsg({ text: "Please fill in all claiming form fields.", type: 'error' });
       return;
     }
     
     setIsSubmittingClaim(true);
+    setClaimStatusMsg(null);
     try {
       const claimId = `claim-${Date.now()}`;
       const claimDoc = {
@@ -76,14 +81,17 @@ export const InstitutionLayout: React.FC<InstitutionLayoutProps> = ({ institutio
       };
       
       await setDoc(doc(db, 'school_claims', claimId), claimDoc);
-      alert("Your school claim request has been submitted successfully to the Ministry of Education & Training! You can monitor the status on this page.");
+      setClaimStatusMsg({ 
+        text: "Your school claim request has been submitted successfully to the Ministry of Education & Training! You can monitor the status on this page.", 
+        type: 'success' 
+      });
       setShowClaimForm(false);
       setClaimTitle('');
       setClaimPhone('');
       setClaimJustification('');
     } catch (err: any) {
       console.error("Error submitting claim:", err);
-      alert(`Failed to submit claim: ${err.message}`);
+      setClaimStatusMsg({ text: `Failed to submit claim: ${err.message}`, type: 'error' });
     } finally {
       setIsSubmittingClaim(false);
     }
@@ -194,16 +202,20 @@ export const InstitutionLayout: React.FC<InstitutionLayoutProps> = ({ institutio
         institution={inst} 
       />
       {/* Hero Header */}
-      <div className="relative h-[500px] md:h-[750px] overflow-hidden">
-        <img src={getOptimizedImageUrl(inst.sections?.homepage?.heroBanner || inst.coverImage, 1920, 1080) || undefined} className="w-full h-full object-cover scale-105" loading="lazy" />
-        <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/40 to-transparent" />
-        <div className="absolute bottom-0 left-0 w-full p-8 md:p-20">
-          <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-end gap-12">
-            <div className="w-48 h-48 bg-white p-6 shadow-2xl shrink-0 mb-[-120px] md:mb-[-180px] z-10 overflow-hidden" style={{ borderRadius: themeStyle['--radius' as any] }}>
+      <div className="relative h-auto md:h-[750px] overflow-hidden flex flex-col justify-end pt-24 pb-16 md:py-0">
+        <img 
+          src={getOptimizedImageUrl(inst.sections?.homepage?.heroBanner || inst.coverImage, 1920, 1080) || undefined} 
+          className="absolute inset-0 w-full h-full object-cover scale-105 z-0" 
+          loading="lazy" 
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/40 to-transparent z-10" />
+        <div className="relative z-20 w-full px-4 py-6 sm:p-12 md:p-20 md:pt-24">
+          <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center md:items-end gap-6 md:gap-12">
+            <div className="w-32 h-32 md:w-48 md:h-48 bg-white p-4 md:p-6 shadow-2xl shrink-0 mb-6 md:mb-[-180px] z-10 overflow-hidden" style={{ borderRadius: themeStyle['--radius' as any] }}>
               <img src={getOptimizedImageUrl(inst.logo, 400, 400) || undefined} className="w-full h-full object-contain" loading="lazy" />
             </div>
-            <div className="flex-1 pb-6 text-white space-y-6">
-               <div className="flex flex-wrap items-center gap-4">
+            <div className="flex-1 pb-6 text-white space-y-4 md:space-y-6 w-full text-center md:text-left">
+               <div className="flex flex-wrap items-center justify-center md:justify-start gap-2 md:gap-4">
                   <NavLink
                     to="/browse"
                     className="px-4 py-1.5 bg-black/40 hover:bg-black/80 text-white transition-colors backdrop-blur-md rounded-full text-[10px] font-black uppercase tracking-widest flex items-center gap-2 cursor-pointer"
@@ -222,35 +234,27 @@ export const InstitutionLayout: React.FC<InstitutionLayoutProps> = ({ institutio
                     </span>
                   )}
                   <span className="px-4 py-1.5 bg-white/20 backdrop-blur-md rounded-full text-[10px] font-black uppercase tracking-widest">{inst.region} Region</span>
+               </div>
+               <h1 className="text-3xl sm:text-5xl md:text-8xl lg:text-9xl font-black tracking-tighter leading-none text-center md:text-left">{inst.name}</h1>
+               <p className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-medium text-slate-300 max-w-3xl leading-snug text-center md:text-left mx-auto md:mx-0">{acad?.overview?.headline}</p>
+
+               {/* Primary Hero Actions Moved to the Bottom of Hero Header */}
+               <div className="flex flex-wrap items-center justify-center md:justify-start gap-4 pt-4 w-full">
                   <button 
-                    onClick={() => {
-                      if (navigator.share) {
-                        navigator.share({
-                          title: inst.name,
-                          url: window.location.href,
-                        }).catch(console.error);
-                      } else {
-                        navigator.clipboard.writeText(window.location.href);
-                        alert("Link copied to clipboard!");
-                      }
-                    }}
-                    className="px-4 py-1.5 bg-white/20 hover:bg-white/40 transition-colors backdrop-blur-md rounded-full text-[10px] font-black uppercase tracking-widest flex items-center gap-2 cursor-pointer"
+                    onClick={() => setShowShareModal(true)}
+                    className="w-full sm:w-auto px-6 py-3 bg-white/10 hover:bg-white/20 transition-all duration-300 backdrop-blur-md rounded-2xl text-[11px] font-black uppercase tracking-widest flex items-center justify-center gap-2.5 cursor-pointer text-white shadow-xl border border-white/10"
                   >
-                    <Share2 className="w-3.5 h-3.5" />
+                    <Share2 className="w-4 h-4 text-white/80" />
                     Share Profile
                   </button>
                   <button 
-                    onClick={() => {
-                      document.getElementById('claim-profile')?.scrollIntoView({ behavior: 'smooth' });
-                    }}
-                    className="px-4 py-1.5 bg-yellow-400/20 text-yellow-400 hover:bg-yellow-400/40 hover:text-white transition-colors backdrop-blur-md rounded-full text-[10px] font-black uppercase tracking-widest flex items-center gap-2 cursor-pointer"
+                    onClick={() => setShowClaimModal(true)}
+                    className="w-full sm:w-auto px-6 py-3 bg-yellow-400 hover:bg-yellow-500 hover:scale-[1.02] active:scale-95 transition-all duration-300 rounded-2xl text-[11px] font-black uppercase tracking-widest flex items-center justify-center gap-2.5 cursor-pointer text-slate-900 shadow-xl"
                   >
-                    <UserPlus className="w-3.5 h-3.5" />
+                    <UserPlus className="w-4 h-4" />
                     Claim Profile
                   </button>
                </div>
-               <h1 className="text-6xl md:text-9xl font-black tracking-tighter leading-none">{inst.name}</h1>
-               <p className="text-2xl md:text-3xl font-medium text-slate-300 max-w-3xl leading-snug">{acad?.overview?.headline}</p>
             </div>
           </div>
         </div>
@@ -391,6 +395,16 @@ export const InstitutionLayout: React.FC<InstitutionLayoutProps> = ({ institutio
                      <span className="w-1.5 h-1.5 bg-blue-500 rounded-full" />
                      Educator & Admin Claims
                   </h4>
+                  
+                  {claimStatusMsg && (
+                     <div className={`p-4 rounded-2xl text-xs font-semibold ${
+                        claimStatusMsg.type === 'success' 
+                          ? 'bg-emerald-50 text-emerald-800 border border-emerald-100' 
+                          : 'bg-rose-50 text-rose-800 border border-rose-100'
+                     }`}>
+                        {claimStatusMsg.text}
+                     </div>
+                  )}
                   
                   {!user ? (
                      <div className="space-y-4">
@@ -541,6 +555,285 @@ export const InstitutionLayout: React.FC<InstitutionLayoutProps> = ({ institutio
                   </NavLink>
                </div>
             </aside>
+
+       {showClaimModal && (
+        <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-[100] flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl max-w-xl w-full max-h-[90vh] overflow-y-auto shadow-2xl relative border border-slate-100 flex flex-col">
+            {/* Header */}
+            <div className="p-6 md:p-8 border-b border-slate-100 flex justify-between items-start shrink-0">
+              <div>
+                <span className="px-3 py-1 bg-yellow-100 text-yellow-800 text-[9px] font-black uppercase tracking-widest rounded-full">
+                  Directory Verification
+                </span>
+                <h3 className="text-xl md:text-2xl font-black text-slate-900 tracking-tight mt-2">
+                  Claim {inst.name}
+                </h3>
+              </div>
+              <button 
+                onClick={() => setShowClaimModal(false)}
+                className="w-10 h-10 rounded-full bg-slate-50 hover:bg-slate-100 flex items-center justify-center text-slate-400 hover:text-slate-900 transition-colors cursor-pointer mr-[-8px] mt-[-8px]"
+                id="close-claim-modal"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Content */}
+            <div className="p-6 md:p-8 space-y-6 flex-1">
+              {claimStatusMsg && (
+                <div className={`p-4 rounded-2xl text-xs font-semibold ${
+                  claimStatusMsg.type === 'success' 
+                    ? 'bg-emerald-50 text-emerald-800 border border-emerald-100' 
+                    : 'bg-rose-50 text-rose-800 border border-rose-100'
+                }`}>
+                  {claimStatusMsg.text}
+                </div>
+              )}
+
+              {!user ? (
+                <div className="space-y-6 py-4 text-center">
+                  <div className="w-16 h-16 bg-slate-100 rounded-2xl flex items-center justify-center mx-auto text-3xl">
+                    🔒
+                  </div>
+                  <div className="space-y-2 text-center max-w-md mx-auto">
+                    <p className="text-sm font-black text-slate-900">Sign in to Claim School Profile</p>
+                    <p className="text-xs text-slate-500 leading-relaxed font-semibold">
+                      Only registered administrators, principals, and teachers can manage institution profile details. You need to log in to verify your identity.
+                    </p>
+                  </div>
+                  <NavLink 
+                    to="/auth" 
+                    className="w-full py-4 text-center block bg-slate-900 hover:bg-slate-800 text-white rounded-2xl text-xs font-black uppercase tracking-widest transition-all shadow-xl"
+                  >
+                    Go to Sign In / Sign Up
+                  </NavLink>
+                </div>
+              ) : inst.adminId === user.id ? (
+                <div className="space-y-4 bg-emerald-50/50 p-6 rounded-3xl border border-emerald-100 text-center">
+                  <div className="w-12 h-12 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto font-black text-xl mb-4">
+                     ✓
+                  </div>
+                  <p className="text-sm font-black text-emerald-950 uppercase tracking-wider text-xs">
+                     Verified Administrator
+                  </p>
+                  <p className="text-xs text-slate-600 leading-relaxed font-semibold">
+                     Your account {user.email} is connected as the official administrator for {inst.name}.
+                  </p>
+                  <NavLink 
+                    to="/dashboard" 
+                    onClick={() => setShowClaimModal(false)}
+                    className="w-full py-4 text-center block bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all shadow-lg"
+                  >
+                     Manage Admin Suite
+                  </NavLink>
+                </div>
+              ) : inst.adminId ? (
+                <div className="space-y-2 bg-blue-50/40 p-6 rounded-3xl border border-blue-50 text-center">
+                  <div className="text-2xl mb-2">🔒</div>
+                  <p className="text-xs font-black text-blue-950 uppercase tracking-widest text-[10px]">
+                     Claim Protected
+                  </p>
+                  <p className="text-xs text-slate-500 leading-relaxed">
+                     This school profile is already claimed and managed by a verified school administrator. If you believe this is an error, please reach out directly to the Eswatini Ministry of Education & Training.
+                  </p>
+                </div>
+              ) : userClaim ? (
+                userClaim.status === 'pending' ? (
+                  <div className="space-y-4 bg-amber-50/50 p-6 rounded-3xl border border-amber-100 text-center">
+                    <div className="w-12 h-12 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center mx-auto text-xl mb-2">
+                       ⚡
+                    </div>
+                    <div className="text-xs text-amber-900 font-black uppercase tracking-widest">
+                       Claim Pending Verification
+                    </div>
+                    <p className="text-xs text-slate-500 leading-relaxed font-medium">
+                       Your claim to manage {inst.name} is currently under verification by the Ministry of Education & Training (MoET).
+                    </p>
+                    <div className="text-[10px] bg-white border p-4 rounded-xl text-left space-y-2 text-slate-500 font-semibold max-w-sm mx-auto">
+                       <div><strong>Requested:</strong> {userClaim.createdAt.split('T')[0]}</div>
+                       <div><strong>Contact Phone:</strong> {userClaim.phone}</div>
+                       <div><strong>Your Role:</strong> {userClaim.justification.match(/^\[(.*?)\]/)?.[1] || 'Requested'}</div>
+                    </div>
+                    <p className="text-[10px] text-slate-400 font-bold italic">Verification typically takes 24-48 business hours.</p>
+                  </div>
+                ) : userClaim.status === 'rejected' ? (
+                  <div className="space-y-4 bg-rose-50/50 p-6 rounded-3xl border border-rose-100">
+                     <div className="flex items-center gap-2 text-rose-600 font-black text-[10px] uppercase tracking-widest">
+                        ❌ Claim Request Rejected
+                     </div>
+                     <p className="text-xs text-slate-600 leading-relaxed">
+                        Your claim to manage this school profile was rejected by MoET reviewers.
+                     </p>
+                     {userClaim.decisionReason && (
+                        <div className="p-4 bg-white rounded-xl text-xs text-slate-500 border">
+                           <strong>Reason:</strong> {userClaim.decisionReason}
+                        </div>
+                     )}
+                     <button 
+                       onClick={() => setUserClaim(null)} 
+                       className="w-full py-4 text-center bg-slate-900 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-slate-800 transition-all font-black uppercase cursor-pointer"
+                     >
+                        New Attempt
+                     </button>
+                  </div>
+                ) : null
+              ) : (
+                <form onSubmit={async (e) => {
+                  await handleClaimSubmit(e);
+                }} className="space-y-4">
+                  <p className="text-xs text-slate-600 font-medium leading-relaxed">
+                    By submitting this form, you claim legal representation of {inst.name}. Eswatini Ministry of Education & Training (MoET) authorities must verify your details to approve access.
+                  </p>
+                  <div>
+                    <label className="text-[9px] font-black uppercase tracking-widest text-slate-400 block mb-1">Your Title / Position</label>
+                    <input 
+                      type="text" 
+                      value={claimTitle}
+                      onChange={(e) => setClaimTitle(e.target.value)}
+                      placeholder="e.g. Principal, Deputy Principal, IT Administrator"
+                      className="w-full px-4 py-3 bg-white border rounded-xl text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-yellow-400"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[9px] font-black uppercase tracking-widest text-slate-400 block mb-1">Valid Contact Number (Eswatini)</label>
+                    <input 
+                      type="tel" 
+                      value={claimPhone}
+                      onChange={(e) => setClaimPhone(e.target.value)}
+                      placeholder="e.g. +268 7612 3456"
+                      className="w-full px-4 py-3 bg-white border rounded-xl text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-yellow-400"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[9px] font-black uppercase tracking-widest text-slate-400 block mb-1">Brief Justification / Credentials</label>
+                    <textarea 
+                      value={claimJustification}
+                      onChange={(e) => setClaimJustification(e.target.value)}
+                      placeholder="Provide proof of credential alignment, school-issued domain email or office field details..."
+                      rows={3}
+                      className="w-full px-4 py-3 bg-white border rounded-xl text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-yellow-400"
+                      required
+                    />
+                  </div>
+                  <div className="flex gap-2 pt-2">
+                    <button 
+                      type="button" 
+                      onClick={() => setShowClaimModal(false)}
+                      className="flex-1 py-3.5 border border-slate-200 text-slate-600 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-slate-50 transition-all cursor-pointer"
+                    >
+                      Cancel
+                    </button>
+                    <button 
+                      type="submit"
+                      disabled={isSubmittingClaim}
+                      className="flex-1 py-3.5 bg-yellow-400 hover:bg-yellow-500 disabled:bg-slate-200 disabled:text-slate-400 text-slate-900 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all shadow-lg cursor-pointer"
+                    >
+                      {isSubmittingClaim ? 'Submitting Claim...' : 'Publish Official Claim'}
+                    </button>
+                  </div>
+                </form>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showShareModal && (
+        <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-[100] flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl max-w-md w-full p-6 md:p-8 shadow-2xl relative border border-slate-100 space-y-6">
+            <div className="flex justify-between items-start">
+              <div>
+                <span className="px-3 py-1 bg-emerald-100 text-emerald-800 text-[9px] font-black uppercase tracking-widest rounded-full">
+                  Profile Tool
+                </span>
+                <h3 className="text-xl md:text-2xl font-black text-slate-900 tracking-tight mt-2">
+                  Share {inst.name}
+                </h3>
+              </div>
+              <button 
+                onClick={() => setShowShareModal(false)}
+                className="w-10 h-10 rounded-full bg-slate-50 hover:bg-slate-100 flex items-center justify-center text-slate-400 hover:text-slate-900 transition-colors cursor-pointer mr-[-8px] mt-[-8px]"
+                id="close-share-modal"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <p className="text-xs text-slate-600 font-medium leading-relaxed">
+              Share the official digital portal for {inst.name} with students, parents, key stakeholders, or local school placement boards.
+            </p>
+
+            <div className="space-y-2">
+              <label className="text-[9px] font-black uppercase tracking-widest text-slate-400 block">Digital Portal URL</label>
+              <div className="flex gap-2">
+                <input 
+                  type="text" 
+                  readOnly 
+                  value={window.location.href}
+                  className="flex-1 px-4 py-3 bg-slate-50 border rounded-xl text-xs font-mono text-slate-600 focus:outline-none"
+                  onClick={(e) => (e.target as HTMLInputElement).select()}
+                />
+                <button 
+                  onClick={async () => {
+                    try {
+                      await navigator.clipboard.writeText(window.location.href);
+                    } catch (err) {
+                      console.error("Clipboard copy failed, manual selection fallback:", err);
+                    }
+                    setShareCopied(true);
+                    setTimeout(() => setShareCopied(false), 2000);
+                  }}
+                  className={`px-5 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center gap-2 transition-all duration-300 cursor-pointer ${
+                    shareCopied 
+                      ? 'bg-emerald-500 text-white shadow-lg' 
+                      : 'bg-slate-900 text-white hover:bg-slate-800'
+                  }`}
+                >
+                  {shareCopied ? (
+                    <>
+                      <Check className="w-3.5 h-3.5" />
+                      Copied!
+                    </>
+                  ) : (
+                    <>
+                      <Copy className="w-3.5 h-3.5" />
+                      Copy Link
+                    </>
+                  )}
+                </button>
+              </div>
+              <p className="text-[10px] text-slate-400 font-semibold italic">Tip: If automatic copy is blocked, click inside the input to highlight and copy manually.</p>
+            </div>
+
+            <div className="pt-4 border-t border-slate-100 flex justify-center gap-4">
+              <a 
+                href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(window.location.href)}`} 
+                target="_blank" 
+                rel="noreferrer" 
+                className="w-12 h-12 rounded-2xl bg-slate-50 hover:bg-blue-50 text-slate-400 hover:text-blue-600 flex items-center justify-center transition-colors shadow-sm"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"></path></svg>
+              </a>
+              <a 
+                href={`https://twitter.com/intent/tweet?url=${encodeURIComponent(window.location.href)}&text=${encodeURIComponent(`Check out the school profile for ${inst.name} on Schools Eswatini!`)}`} 
+                target="_blank" 
+                rel="noreferrer" 
+                className="w-12 h-12 rounded-2xl bg-slate-50 hover:bg-sky-50 text-slate-400 hover:text-sky-500 flex items-center justify-center transition-colors shadow-sm"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M22 4s-.7 2.1-2 3.4c1.6 10-9.4 17.3-18 11.6 2.2.1 4.4-.6 6-2C3 15.5.5 9.6 3 5c2.2 2.6 5.6 4.1 9 4-.9-4.2 4-6.6 7-3.8 1.1 0 3-1.2 3-1.2z"></path></svg>
+              </a>
+              <a 
+                href={`mailto:?subject=${encodeURIComponent(`Official Digital Portal: ${inst.name}`)}&body=${encodeURIComponent(`Hi,\n\nI recommend reviewing the official digital portal for ${inst.name} on the Eswatini National School Registry portal:\n\n${window.location.href}`)}`} 
+                className="w-12 h-12 rounded-2xl bg-slate-50 hover:bg-emerald-50 text-slate-400 hover:text-emerald-500 flex items-center justify-center transition-colors shadow-sm"
+              >
+                <Mail className="w-5 h-5" />
+              </a>
+            </div>
+          </div>
+        </div>
+      )}
          </div>
       </div>
     </div>
