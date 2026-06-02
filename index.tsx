@@ -3,10 +3,6 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { HashRouter } from 'react-router-dom';
 import App from './App';
-import { registerSW } from 'virtual:pwa-register';
-
-// Register the PWA service worker with autoUpdate
-registerSW({ immediate: true });
 
 const rootElement = document.getElementById('root');
 if (!rootElement) {

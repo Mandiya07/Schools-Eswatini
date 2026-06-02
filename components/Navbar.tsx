@@ -295,9 +295,13 @@ const Navbar: React.FC<NavbarProps> = ({ user, onLogout, compareCount = 0 }) => 
                   </div>
                 ) : (
                   <div className="space-y-3">
-                    <p className="text-[11px] text-slate-500 font-medium leading-relaxed">
-                      To install natively, bypass the security iframe we are currently inside by opening the portal in a fresh tab.
-                    </p>
+                    <div className="p-3 bg-amber-50 rounded-lg border border-amber-100 flex gap-2">
+                       <span className="text-amber-500 mt-0.5">⚠️</span>
+                       <div className="text-[11px] text-amber-900 font-medium leading-relaxed">
+                         If you are using this inside an embedded window (like a preview iframe), browsers hide the standard Install address bar icon.
+                         <strong className="block mt-1">Open the app in a full New Tab to trigger the browser's native URL bar Install Icon.</strong>
+                       </div>
+                    </div>
                     <button
                       type="button"
                       onClick={() => window.open(window.location.origin, '_blank')}
