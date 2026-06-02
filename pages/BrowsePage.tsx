@@ -35,6 +35,13 @@ const BrowsePage: React.FC<BrowsePageProps> = ({
 
   const [selectedPrograms, setSelectedPrograms] = useState<string[]>([]);
   const [selectedDepartments, setSelectedDepartments] = useState<string[]>([]);
+  const [browseAll, setBrowseAll] = useState(false);
+
+  useEffect(() => {
+    if (region) {
+      setBrowseAll(false);
+    }
+  }, [region]);
 
   const handleAiSearch = async () => {
     if (!aiQuery.trim()) return;
@@ -139,7 +146,7 @@ const BrowsePage: React.FC<BrowsePageProps> = ({
     setCurrentPage(1);
   }, [searchTerm, region, selectedType, selectedOwnership, selectedGender, boardingOnly, aiSuggestions, sortBy, selectedPrograms, selectedDepartments]);
 
-  if (!region) {
+  if (!region && !browseAll) {
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center p-6">
         <div className="max-w-4xl w-full text-center space-y-12">
@@ -163,6 +170,15 @@ const BrowsePage: React.FC<BrowsePageProps> = ({
                 </div>
               </button>
             ))}
+            <button 
+              onClick={() => { onSelectRegion(null); setBrowseAll(true); }}
+              className="bg-slate-900 p-12 rounded-[40px] border-2 border-transparent hover:border-blue-600 hover:shadow-2xl transition-all group relative overflow-hidden text-left md:col-span-2"
+            >
+              <div className="relative z-10 text-center">
+                <h3 className="text-3xl font-black text-white mb-2">🌍 All Regions</h3>
+                <p className="text-blue-400 text-xs font-black uppercase tracking-widest">Search & Browse Across the Whole Kingdom →</p>
+              </div>
+            </button>
           </div>
           <Link to="/" className="inline-block text-slate-400 font-black uppercase tracking-widest text-[10px] hover:text-slate-600 transition-colors">
             ← Back to Home
@@ -233,8 +249,14 @@ const BrowsePage: React.FC<BrowsePageProps> = ({
                <section className="space-y-4">
                   <label className="text-[11px] font-black text-slate-900 uppercase tracking-widest">Region</label>
                   <div className="flex flex-col gap-2">
+                     <button 
+                       onClick={() => { onSelectRegion(null); setBrowseAll(true); }}
+                       className={`text-left px-5 py-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${(!region || browseAll) ? 'bg-blue-600 text-white shadow-lg' : 'bg-white border text-slate-500 hover:border-slate-300'}`}
+                     >
+                       🌍 All Regions
+                     </button>
                      {Object.values(Region).map(r => (
-                        <button key={r} onClick={() => onSelectRegion(r)} className={`text-left px-5 py-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${region === r ? 'bg-blue-600 text-white shadow-lg' : 'bg-white border text-slate-500 hover:border-slate-300'}`}>{r}</button>
+                        <button key={r} onClick={() => { onSelectRegion(r); setBrowseAll(false); }} className={`text-left px-5 py-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${region === r && !browseAll ? 'bg-blue-600 text-white shadow-lg' : 'bg-white border text-slate-500 hover:border-slate-300'}`}>{r}</button>
                      ))}
                   </div>
                </section>
@@ -375,8 +397,8 @@ const BrowsePage: React.FC<BrowsePageProps> = ({
             {viewMode === 'list' ? (
               <>
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-2 gap-8">
-                  {paginatedInstitutions.map(inst => (
-                      <div key={inst.id} className="institution-card bg-white rounded-[40px] overflow-hidden border border-slate-100 transition-all hover:shadow-2xl flex flex-col group relative">
+                  {paginatedInstitutions.map((inst, index) => (
+                      <div key={`${inst.id}-${index}`} className="institution-card bg-white rounded-[40px] overflow-hidden border border-slate-100 transition-all hover:shadow-2xl flex flex-col group relative">
                         {inst.isFeatured && (
                           <div className="absolute top-6 left-6 z-20 bg-blue-600 text-white px-4 py-1.5 rounded-full text-[8px] font-black uppercase tracking-[0.15em] shadow-xl flex items-center gap-2">
                               <span className="animate-pulse w-1.5 h-1.5 bg-white rounded-full" />
@@ -426,8 +448,8 @@ const BrowsePage: React.FC<BrowsePageProps> = ({
                           </div>
 
                           <div className="flex flex-wrap gap-2 mb-8">
-                              {inst.type.map(t => (
-                                <span key={t} className="px-3 py-1 bg-slate-100 rounded-lg text-[8px] font-black uppercase text-slate-500">{t}</span>
+                              {Array.isArray(inst.type) && inst.type.map((t, typeIdx) => (
+                                <span key={`${t}-${typeIdx}`} className="px-3 py-1 bg-slate-100 rounded-lg text-[8px] font-black uppercase text-slate-500">{t}</span>
                               ))}
                           </div>
 

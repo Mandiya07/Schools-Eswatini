@@ -1,5 +1,6 @@
 import { Institution, Region, InstitutionType, GenderType, SubscriptionPlan } from './types';
 import imgHighSchool from './src/assets/images/black_students_high_school_classroom_1778977218280.png';
+import { PRIMARY_SCHOOLS } from './src/primarySchoolsData';
 
 interface CompactSchool {
   id: string;
@@ -2935,7 +2936,7 @@ const COMPACT_SCHOOLS: CompactSchool[] = [
 
 ];
 
-export const NEW_ESTABLISHED_SCHOOLS: Institution[] = COMPACT_SCHOOLS.map(s => {
+export const NEW_ESTABLISHED_SCHOOLS: Institution[] = [...COMPACT_SCHOOLS, ...PRIMARY_SCHOOLS].map(s => {
   return {
     id: s.id,
     name: s.name,
@@ -2968,12 +2969,12 @@ export const NEW_ESTABLISHED_SCHOOLS: Institution[] = COMPACT_SCHOOLS.map(s => {
       layout: 'classic',
     },
     metadata: {
-      gender: s.admission.toLowerCase().includes('all-girls') || s.details.toLowerCase().includes('all-girls') || s.name.toLowerCase().includes('girls') || s.details.toLowerCase().includes('for girls')
+      gender: (s.admission || '').toLowerCase().includes('all-girls') || (s.details || '').toLowerCase().includes('all-girls') || (s.name || '').toLowerCase().includes('girls') || (s.details || '').toLowerCase().includes('for girls')
         ? GenderType.GIRLS
-        : s.admission.toLowerCase().includes('all-boys') || s.details.toLowerCase().includes('all-boys') || s.name.toLowerCase().includes('boys') || s.details.toLowerCase().includes('for boys')
+        : (s.admission || '').toLowerCase().includes('all-boys') || (s.details || '').toLowerCase().includes('all-boys') || (s.name || '').toLowerCase().includes('boys') || (s.details || '').toLowerCase().includes('for boys')
         ? GenderType.BOYS
         : GenderType.MIXED,
-      isBoarding: s.details.toLowerCase().includes('boarding') || s.name.toLowerCase().includes('boarding') || s.id === 'inst-phophonyane' || s.id === 'inst-stmichaels' || s.id === 'inst-mhlatane',
+      isBoarding: (s.details || '').toLowerCase().includes('boarding') || (s.name || '').toLowerCase().includes('boarding') || s.id === 'inst-phophonyane' || s.id === 'inst-stmichaels' || s.id === 'inst-mhlatane',
       feeRange: s.type.includes(InstitutionType.PRIVATE)
         ? { min: 25000, max: 75000 }
         : { min: 3000, max: 8000 },

@@ -76,7 +76,7 @@ const Navbar: React.FC<NavbarProps> = ({ user, onLogout, compareCount = 0 }) => 
   const closeMobileMenu = () => setIsMobileMenuOpen(false);
 
   const getLinkClass = (path: string, colorBase: 'blue' | 'indigo' | 'amber' | 'fuchsia' = 'blue') => {
-    const base = "font-medium text-[13px] px-1.5 py-1 transition-all";
+    const base = "font-medium text-xs xl:text-[13px] px-1 xl:px-1.5 py-1 transition-all flex-shrink-0";
     const isActive = location.pathname === path || (path !== '/' && location.pathname.startsWith(path));
     
     const colors = {
@@ -128,7 +128,7 @@ const Navbar: React.FC<NavbarProps> = ({ user, onLogout, compareCount = 0 }) => 
           closeMobileMenu();
           navigate('/');
         }}
-        className="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1.5 flex text-left rounded-lg text-[13px] font-medium items-center w-max transition-colors"
+        className="bg-slate-100 hover:bg-slate-200 text-slate-700 px-2 py-1 flex text-left rounded-lg text-xs font-semibold items-center w-max transition-colors flex-shrink-0"
       >
         Logout
       </button>
@@ -149,25 +149,25 @@ const Navbar: React.FC<NavbarProps> = ({ user, onLogout, compareCount = 0 }) => 
           </Link>
 
           {/* Desktop Menu */}
-          <div className="hidden lg:flex items-center space-x-1.5 xl:space-x-2.5 overflow-x-auto">
+          <div className="hidden lg:flex items-center space-x-1 xl:space-x-1.5 overflow-x-auto flex-shrink-0">
             <PrimaryLinks />
-            <div className="w-px h-6 bg-slate-200 mx-1.5"></div>
+            <div className="w-px h-5 bg-slate-200 flex-shrink-0"></div>
             <button
               onClick={handleNativeInstall}
-              className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 text-blue-700 hover:bg-blue-100 hover:text-blue-800 transition-all duration-200 rounded-lg text-[13px] font-bold cursor-pointer"
+              className="flex items-center gap-1 px-2 py-1 bg-blue-50 text-blue-700 hover:bg-blue-100 hover:text-blue-800 transition-all duration-200 rounded-lg text-xs font-bold cursor-pointer flex-shrink-0"
             >
               <Download className="w-3.5 h-3.5 text-blue-600" />
               <span>Install App</span>
             </button>
-            <div className="w-px h-6 bg-slate-200 mx-1.5"></div>
+            <div className="w-px h-5 bg-slate-200 flex-shrink-0"></div>
             {user ? (
-              <div className="flex items-center space-x-1.5">
+              <div className="flex items-center space-x-1 flex-shrink-0">
                 <UserLinks />
               </div>
             ) : (
-              <div className="flex items-center space-x-2 flex-shrink-0">
-                <Link to="/auth" className="text-slate-600 hover:text-blue-600 font-medium text-[13px] px-1.5 transition-colors">Login</Link>
-                <Link to="/auth?tab=register" className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-lg text-[13px] font-medium transition-shadow hover:shadow-md">Register</Link>
+              <div className="flex items-center space-x-1.5 flex-shrink-0">
+                <Link to="/auth" className="text-slate-600 hover:text-blue-600 font-medium text-xs px-1.5 transition-colors flex-shrink-0">Login</Link>
+                <Link to="/auth?tab=register" className="bg-blue-600 hover:bg-blue-700 text-white px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-shadow hover:shadow-sm">Register</Link>
               </div>
             )}
           </div>
